@@ -45,13 +45,15 @@ export default function TripComplete() {
   // A transfer the passenger says they sent (or a payment whose result didn't come back) is awaiting
   // confirmation, not unpaid: the wording on the way out and on Home must not invite a second payment.
   const awaiting = b?.paymentStatus === 'pending' && !!b.paymentNotice;
-  // Pay later: the trip stays outstanding (Home banner) and no new trip starts until it's paid.
-  const payLater = () => {
+  // No "Pay later" (owner, 2026-10-22): an unpaid trip is paid here. Only a payment already sent and
+  // awaiting confirmation can be left to finish in the background ("Check later" → Home banner).
+  const checkLater = () => {
     if (status === 'processing') return;
-    toast(awaiting ? 'Payment pending. Check again from Home.' : 'Payment outstanding. Pay from Home.', 'info');
+    if (!awaiting) return toast('Pay for this trip to finish it.', 'info');
+    toast('Payment pending. Check again from Home.', 'info');
     resetTo('/(tabs)');
   };
-  useConfirmBeforeBack(true, payLater);
+  useConfirmBeforeBack(true, checkLater);
 
   useEffect(() => {
     if (leaving.current) return;
@@ -130,10 +132,10 @@ export default function TripComplete() {
   const footer = (
     <>
       {primary}
-      {processing ? null : (
-        <Pressable onPress={payLater} accessibilityRole="button" style={styles.linkBtn} testID="pay-later" hitSlop={4}>
+      {processing || !awaiting ? null : (
+        <Pressable onPress={checkLater} accessibilityRole="button" style={styles.linkBtn} testID="check-later" hitSlop={4}>
           <Text variant="subhead" weight="semibold" color="textSecondary">
-            {awaiting ? 'Check later' : 'Pay later'}
+            Check later
           </Text>
         </Pressable>
       )}

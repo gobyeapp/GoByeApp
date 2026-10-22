@@ -159,7 +159,7 @@ Per point: search the place, compare the result/pin with the actual kerbside pic
 | DV-UI-02 | Appearance Light / Dark / System applies immediately and persists after force-quit; map follows | ☐ | ☐ | Not run |
 | DV-UI-03 | Edit pickup via pencil → search, choose on map, current location; options re-route and re-price | ☐ | ☐ | Not run |
 | DV-UI-04 | Add / replace / remove profile photo (library + camera permission prompts); Home avatar updates | ☐ | ☐ | Not run |
-| DV-UI-05 | Payment states: wallet paid, wallet too low, transfer checking → not received → paid, duplicate taps ignored, Pay later + Home banner | ☐ | ☐ | Not run |
+| DV-UI-05 | Payment states: wallet paid, wallet too low, transfer checking → not received → paid, duplicate taps ignored, no Pay later (back is blocked until paid), Check later + Home banner while a transfer is awaiting confirmation | ☐ | ☐ | Not run |
 | DV-UI-06 | Only "GoBye Car" offered; no Keke anywhere | ☐ | ☐ | Not run |
 | DV-UI-07 | Onboarding drift animates; still with Reduce Motion / Remove animations | ☐ | ☐ | Not run |
 | DV-UI-08 | Keyboard and tab bar never cover inputs or primary buttons (sheets, deposit, passenger) | ☐ | ☐ | Not run |

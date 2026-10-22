@@ -104,9 +104,9 @@ describe('Trip completed: payment confirmation states', () => {
     await act(async () => showScreen(true));
     await flush(500);
 
-    // Before paying: one amount-led action and "Pay later".
+    // Before paying: one amount-led action and no way to put the payment off (no "Pay later").
     expect(screen.getByTestId('open-transfer')).toBeTruthy();
-    expect(screen.getByText('Pay later')).toBeTruthy();
+    expect(screen.queryByText('Pay later')).toBeNull();
 
     // "I've transferred" starts a check; the simulated bank hasn't seen it.
     await act(async () => void api.booking.confirmPayment());

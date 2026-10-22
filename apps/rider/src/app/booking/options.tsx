@@ -298,7 +298,7 @@ export default function RideOptions() {
               ) : null}
               {quote && showBreakdown ? <FareBreakdownView breakdown={quote.breakdown} /> : null}
 
-              <View style={[styles.payLater, { backgroundColor: colors.surfaceMuted }]} accessible>
+              <View style={[styles.payNote, { backgroundColor: colors.surfaceMuted }]} accessible>
                 <Icon name="wallet" size="sm" color="textSecondary" />
                 <Text variant="footnote" color="textSecondary" style={styles.flex}>
                   {mode === 'quick_match' ? 'Fixed fare, no meter.' : 'You pay the fare you agree.'} Choose wallet or bank transfer after the trip.
@@ -392,6 +392,6 @@ const styles = StyleSheet.create({
   catSkeleton: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1.5, borderRadius: layout.cardRadius, padding: spacing.sm, paddingRight: layout.container, minHeight: 96 },
   catSkeletonText: { flex: 1, gap: 6 },
   breakdownToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: minTouch },
-  payLater: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: 14 },
+  payNote: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: 14 },
   footer: { paddingTop: spacing.sm },
 });

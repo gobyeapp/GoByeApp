@@ -1,4 +1,5 @@
 import { Image } from 'expo-image';
+import { Component, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -28,12 +29,6 @@ export default function Welcome() {
   const compact = height < 700;
   const stage = Math.round(Math.min(380, Math.max(120, height - (compact ? 450 : 470))));
 
-  const player = useVideoPlayer(VIDEO, (p) => {
-    p.loop = true;
-    p.muted = true;
-    p.audioMixingMode = 'mixWithOthers';
-    if (!reduce) p.play();
-  });
 
   const go = (to: '/auth/signup' | '/auth/signin') => {
     completeOnboarding();
@@ -50,7 +45,11 @@ export default function Welcome() {
 
       <View style={[styles.stage, { height: stage }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <Image source={POSTER} style={StyleSheet.absoluteFill} contentFit="cover" />
-        {reduce ? null : <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} allowsPictureInPicture={false} />}
+        {reduce ? null : (
+          <VideoGuard>
+            <RoadLoop />
+          </VideoGuard>
+        )}
         {stage < 200 ? null : (
         <Animated.View entering={reduce ? undefined : FadeIn.delay(400).duration(400)} style={[styles.fare, { backgroundColor: c.surface, borderColor: c.border }]}>
           <Text variant="caption" style={{ color: c.textSecondary }}>
@@ -78,6 +77,31 @@ export default function Welcome() {
       </View>
     </View>
   );
+}
+
+/** The looping road. Its own component so a player failure can be contained by `VideoGuard`. */
+function RoadLoop() {
+  const player = useVideoPlayer(VIDEO, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.audioMixingMode = 'mixWithOthers';
+    p.play();
+  });
+  return <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} allowsPictureInPicture={false} />;
+}
+
+/** If the video can't play on this device or build, the still poster underneath stays: the welcome never breaks. */
+class VideoGuard extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  componentDidCatch() {
+    // Intentionally silent: the poster is already showing.
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
 }
 
 const styles = StyleSheet.create({

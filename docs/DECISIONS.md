@@ -328,3 +328,9 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Backend tasks:** server-side password hashing (Argon2id or bcrypt), rate limits on sign-in, OTP and reset; real Sign in with Apple (`expo-apple-authentication`) and Google (`expo-auth-session` / native SDK) with token verification on the server; account linking by verified email.
 - **Welcome:** the website's dark 3D road scene recorded as a 12 s seamless loop (250 KB H.264) and played with `expo-video`; a still poster shows under Reduce Motion.
 - The driver app still uses phone + code (D-008) until the owner asks for the same there.
+
+## D-046 — No "Pay later" after a trip (2026-10-22, owner; amends D-036 / Q-053)
+
+- **Decision:** the trip-complete screen no longer offers "Pay later". An unpaid trip is paid there (wallet or bank transfer, with the method switch and Add money still available), and Android back shows "Pay for this trip to finish it." instead of leaving.
+- **Exception:** when the rider has already sent a payment that is awaiting confirmation (a transfer not yet seen, or a result that didn't come back), "Check later" remains. Leaving keeps the trip on Home as "Payment pending", because asking to pay again would invite a double payment.
+- **Risk noted:** a rider who can't pay right now (no wallet balance, no bank access) is held on this screen. Support contact and the refund/dispute process should be reachable here once the backend exists.
