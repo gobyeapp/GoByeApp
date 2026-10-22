@@ -314,23 +314,13 @@
   /* ---------- Hero video: pause control, reduced motion, blocked autoplay ---------- */
   function heroVideo() {
     var v = document.getElementById('hero-video');
-    var t = document.getElementById('video-toggle');
-    if (!v || !t) return;
-    var setState = function (playing) {
-      t.setAttribute('aria-pressed', String(!playing));
-      t.setAttribute('aria-label', playing ? 'Pause background video' : 'Play background video');
-      t.innerHTML = icon(playing ? 'pause' : 'play');
-    };
-    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) { v.removeAttribute('autoplay'); v.pause(); setState(false); }
-    else {
-      var p = v.play();
-      if (p && typeof p.catch === 'function') p.catch(function () { setState(false); });
-    }
-    v.addEventListener('play', function () { setState(true); });
-    v.addEventListener('pause', function () { setState(false); });
-    t.addEventListener('click', function () { if (v.paused) v.play(); else v.pause(); });
+    if (!v) return;
+    // Reduced motion: show the still poster instead of playing.
+    if (reduce()) { v.removeAttribute('autoplay'); v.pause(); return; }
+    var p = v.play();
+    if (p && typeof p.catch === 'function') p.catch(function () { /* autoplay blocked: the poster stays */ });
   }
+
 
   /* ---------- Audience: riders or drivers ---------- */
   var reduce = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };

@@ -438,3 +438,4 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Success:** an "Early access pass" ticket with name, role and city, a perforation and the confirmation line.
   - **Accessibility:** inactive steps are `inert`, a live region announces "Step n of 4", and reduced motion removes the transitions.
   - The Supabase payload is unchanged. Tested on desktop and phone: per-step errors, auto advance, back, the payload, the pass content and 409 handling.
+- **Website: hero video pause/play button removed (owner request).** The video still autoplays muted and loops; with reduced motion it does not play and the poster shows. Note: WCAG 2.2.2 expects a way to pause motion lasting over 5 s; reduced-motion users are covered, others are not.
