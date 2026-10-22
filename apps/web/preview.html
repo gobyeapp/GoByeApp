@@ -1,6 +1,7 @@
 <title>GoBYE</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="color-scheme" content="light only">
+<meta name="theme-color" content="#ffffff">
 <meta name="description" content="Request a car, agree your fare, and get moving with GoBYE. Coming to Lagos and Abuja.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
 <link rel="stylesheet" href="styles.css">
@@ -9,7 +10,7 @@
   <nav class="nav" aria-label="Main">
     <a class="brand" href="#top" aria-label="GoBYE home">
       <img class="logo-light" src="assets/logo-mark-inverse.png" alt="" width="34" height="34" />
-      <img class="logo-dark" src="assets/logo-mark.png" alt="" width="34" height="34" />
+      <picture class="logo-dark"><source media="(max-width: 760px)" srcset="assets/logo-mark-white.png" /><img src="assets/logo-mark.png" alt="" width="34" height="34" /></picture>
       <span data-text="brand.name">GoBYE</span>
     </a>
     <div class="nav-right">
@@ -128,7 +129,7 @@
 
   <div class="foot-nav">
     <div class="foot-brand">
-      <a class="brand" href="#top"><img src="assets/logo-mark.png" alt="" width="30" height="30" /><span>GoBYE</span></a>
+      <a class="brand" href="#top"><img src="assets/logo-mark-white.png" alt="" width="30" height="30" /><span>GoBYE</span></a>
       <p>Ride hailing for Lagos and Abuja. Agree your fare before you go.</p>
       <div class="social" id="social"></div>
     </div>

@@ -86,6 +86,8 @@ button, input, select { font: inherit; }
 .topbar .brand { color: inherit; }
 .topbar .brand span { font-family: var(--font); font-weight: 700; letter-spacing: -0.04em; }
 .topbar .logo-light { display: none; }
+.brand picture { display: block; line-height: 0; }
+.brand picture img { width: 34px; height: 34px; object-fit: contain; }
 .nav-right { display: flex; align-items: center; gap: 12px; }
 .seg { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 0; border-radius: 999px; border: 1px solid var(--line); background: var(--off); }
 .seg::before { content: ''; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px; background: var(--black); box-shadow: 0 2px 6px -2px rgba(0, 0, 0, 0.35); transition: transform 0.38s cubic-bezier(0.3, 0.8, 0.2, 1); }
@@ -495,4 +497,24 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
 }
 @media (prefers-reduced-motion: reduce) and (max-width: 760px) {
   .step { height: auto; position: relative; top: auto; filter: none !important; }
+}
+
+/* ---------- Phone hero: one spacing system (8 px steps, 24 px gutters) ---------- */
+@media (max-width: 760px) {
+  :root { --g: 24px; --nav-h: calc(max(14px, env(safe-area-inset-top, 0px)) + 66px); }
+  .nav { padding: max(14px, env(safe-area-inset-top, 0px)) max(var(--g), env(safe-area-inset-right, 0px)) 12px max(var(--g), env(safe-area-inset-left, 0px)); align-items: center; }
+  .nav .brand { gap: 10px; align-items: center; }
+  .nav .brand img, .brand picture img { width: 32px; height: 32px; }
+  .nav .brand span { font-size: 20px; line-height: 1; }
+  .nav .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
+  .topbar.solid .nav { width: calc(100% - 16px); margin-top: max(8px, env(safe-area-inset-top, 0px)); padding: 6px 6px 6px 16px; }
+  .topbar.solid .nav .brand img, .topbar.solid .brand picture img { width: 28px; height: 28px; }
+
+  .hero-copy { padding: 32px var(--g) 0; gap: 0; }
+  .hero h1 { font-size: min(44px, 11.4vw); line-height: 1.02; letter-spacing: -0.05em; }
+  .hero .lede { margin-top: 16px; max-width: 320px; font-size: 17px; line-height: 1.55; }
+  .hero .cities { margin-top: 24px; padding: 8px 16px; gap: 8px; font-size: 14px; }
+  .hero-video { width: calc(100% - 2 * var(--g)); margin: 32px auto 0; border-radius: 28px; aspect-ratio: 4 / 5; }
+  .hero-cta { flex: none; padding: 24px var(--g) max(40px, env(safe-area-inset-bottom, 0px)); gap: 0; }
+  .hero-cta .btn-primary { width: 100%; max-width: none; min-height: 56px; }
 }

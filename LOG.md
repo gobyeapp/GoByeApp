@@ -399,3 +399,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Owner to confirm on the real device.
 - **Website: "Demo only" banner removed from the waitlist dialog (owner request).** The word "demo" no longer appears anywhere on the page. With no `waitlist.endpoint`, submitting shows a neutral, truthful result: "Sign ups open soon. We aren't taking sign ups just yet, so {email} wasn't saved." It never says the visitor joined. A real endpoint is still required before launch, otherwise no sign ups are collected.
   - Fixed: a global `[hidden] { display: none !important }` rule. The dialog's result block (`display: flex`) had been overriding `hidden`, which showed a stray "Done" button under the form.
+- **Website: phone hero redesigned on one spacing system (owner brief).**
+  - 24 px gutters for the header, text, pill, image and CTA, with 8 px steps: header to headline 32, headline to paragraph 16, paragraph to pill 24, pill to image 32, image to CTA 24, 40 px bottom.
+  - Header: 14 px plus safe area on top; the 32 px logo and the 40 px CTA share one centre line.
+  - Headline `min(44px, 11.4vw)` stays on one line from 360 px. The paragraph is capped at 320 px with 1.55 line height. The pill has 8/16 padding.
+  - The 4:5 image card has a 28 px radius and the full gutter width, and the 56 px CTA spans the same width.
+  - Logo artefact: the header (phones) and footer now use `logo-mark-white.png`, an opaque logo on white, so no browser can show dark edges from transparency. Desktop keeps the transparent mark for the frosted bar.
+  - Checked at 360, 390 and 430 with no overflow.
