@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import type { Passenger, Result } from '@gobye/core';
+import type { Passenger, Result, SocialProvider } from '@gobye/core';
 import { useServices } from './services';
 import { KEYS, clearAll, readJson, readSecret, writeJson, writeSecret } from './storage';
 
@@ -17,7 +17,15 @@ interface SessionValue {
   onboardingSeen: boolean;
   locationPrimerSeen: boolean;
   pendingPhone: string | null;
+  /** Profile from Apple / Google for a new account, applied once the phone is verified. */
+  pendingProfile: { firstName: string; lastName: string; email?: string } | null;
   completeOnboarding(): void;
+  signUp(details: { fullName: string; email: string; phone: string; password: string }): Promise<Result<true>>;
+  signIn(identifier: string, password: string): Promise<Result<true>>;
+  /** `next` says where to go: verify the code, or ask for a phone number first (new social account). */
+  socialSignIn(provider: SocialProvider): Promise<Result<{ next: 'otp' | 'phone' }>>;
+  requestPasswordReset(email: string): Promise<Result<{ email: string; resendAfterSeconds: number }>>;
+  resetPassword(email: string, code: string, password: string): Promise<Result<true>>;
   markLocationPrimerSeen(): void;
   requestOtp(phone: string): Promise<Result<{ phone: string; resendAfterSeconds: number }>>;
   verifyOtp(code: string): Promise<Result<{ isNewUser: boolean }>>;
@@ -36,6 +44,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [stored, setStored] = useState<StoredSession>({ user: null, onboardingSeen: false, locationPrimerSeen: false });
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
+  const [pendingProfile, setPendingProfile] = useState<SessionValue['pendingProfile']>(null);
 
   useEffect(() => {
     (async () => {
@@ -66,8 +75,42 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       onboardingSeen: stored.onboardingSeen,
       locationPrimerSeen: stored.locationPrimerSeen,
       pendingPhone,
+      pendingProfile,
       completeOnboarding: () => persist({ ...stored, onboardingSeen: true }),
       markLocationPrimerSeen: () => persist({ ...stored, locationPrimerSeen: true }),
+      async signUp(details) {
+        const r = await auth.signUp(details);
+        if (!r.ok) return r;
+        setPendingProfile(null);
+        const o = await auth.requestOtp(r.value.phone!);
+        if (!o.ok) return o;
+        setPendingPhone(o.value.phone);
+        return { ok: true, value: true };
+      },
+      async signIn(identifier, password) {
+        const r = await auth.signIn(identifier, password);
+        if (!r.ok) return r;
+        setPendingProfile(null);
+        const o = await auth.requestOtp(r.value.phone!);
+        if (!o.ok) return o;
+        setPendingPhone(o.value.phone);
+        return { ok: true, value: true };
+      },
+      async socialSignIn(provider) {
+        const r = await auth.socialSignIn(provider);
+        if (!r.ok) return r;
+        if (!r.value.phone) {
+          setPendingProfile(r.value.profile ?? null);
+          return { ok: true, value: { next: 'phone' } };
+        }
+        setPendingProfile(null);
+        const o = await auth.requestOtp(r.value.phone);
+        if (!o.ok) return o;
+        setPendingPhone(o.value.phone);
+        return { ok: true, value: { next: 'otp' } };
+      },
+      requestPasswordReset: (email) => auth.requestPasswordReset(email),
+      resetPassword: (email, code, password) => auth.resetPassword(email, code, password),
       async requestOtp(phone) {
         const r = await auth.requestOtp(phone);
         if (r.ok) setPendingPhone(r.value.phone);
@@ -79,7 +122,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         if (!r.ok) return r;
         await writeSecret(KEYS.token, r.value.token);
         setToken(r.value.token);
-        persist({ ...stored, user: r.value.user });
+        // New Apple / Google account: save the provider's name and email onto the verified user.
+        if (pendingProfile && !r.value.user.firstName) {
+          const p = await auth.updateProfile(r.value.token, pendingProfile, r.value.user);
+          setPendingProfile(null);
+          if (p.ok) {
+            persist({ ...stored, onboardingSeen: true, user: p.value });
+            return { ok: true, value: { isNewUser: false } };
+          }
+        }
+        persist({ ...stored, onboardingSeen: true, user: r.value.user });
         return { ok: true, value: { isNewUser: r.value.isNewUser } };
       },
       async saveProfile(profile) {
@@ -109,7 +161,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return { ok: true, value: { requestId: r.value.requestId } };
       },
     }),
-    [status, stored, pendingPhone, token, auth, persist],
+    [status, stored, pendingPhone, pendingProfile, token, auth, persist],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

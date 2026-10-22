@@ -92,3 +92,5 @@ Inter is reused from `@expo-google-fonts/inter` (SIL OFL 1.1) and bundled by Vit
 | three (vendored: `vendor/three.module.min.js`, `vendor/RoomEnvironment.js`, `vendor/RoundedBoxGeometry.js`) | 0.160.0 | MIT (`vendor/THREE-LICENSE.txt`) | Footer 3D road (`footer3d.js`) | Real-time road and cars. Loaded on demand only when the footer comes near (about 167 KB gzipped), self-hosted so no third-party CDN is involved. |
 
 **2026-10-22:** the driver app now also uses `@react-native-async-storage/async-storage`, `expo-clipboard`, `expo-haptics`, `expo-image-picker` (licence, ID, vehicle papers, selfie), `expo-location` (When In Use only), `expo-secure-store`, `react-native-maps`, `react-native-web`, `react-dom` and `@expo/metro-runtime`, at the same versions as the rider app (rows above). No new packages were added to the repository.
+
+**2026-10-22:** `expo-video` ~57.0.5 (MIT), rider app. It plays the silent welcome loop (`assets/video/road-dark.mp4`), with the config plugin added by `expo install`. The video was rendered from the site's own three.js road scene, so there are no third-party media rights to clear.

@@ -51,3 +51,33 @@ export function validateRatingComment(input: string): Result<string | undefined>
   if (value.length > 300) return { ok: false, error: 'Comments can be up to 300 characters.' };
   return { ok: true, value: value || undefined };
 }
+
+/** Passwords: 8 to 128 characters with at least one letter and one number. */
+export function validatePassword(input: string): Result<string> {
+  if (input.length < 8) return { ok: false, error: 'Use at least 8 characters.' };
+  if (input.length > 128) return { ok: false, error: 'Use 128 characters or fewer.' };
+  if (!/[A-Za-z]/.test(input) || !/\d/.test(input)) return { ok: false, error: 'Include at least one letter and one number.' };
+  return { ok: true, value: input };
+}
+
+/** "Ada Okafor" → first and last name. Both are needed (drivers see the first name only). */
+export function validateFullName(input: string): Result<{ firstName: string; lastName: string }> {
+  if (!input.trim()) return { ok: false, error: 'Enter your first and last name.' };
+  const v = validateName(input, 'Name');
+  if (!v.ok) return v;
+  const parts = v.value.split(' ');
+  if (parts.length < 2) return { ok: false, error: 'Enter your first and last name.' };
+  return { ok: true, value: { firstName: parts[0], lastName: parts.slice(1).join(' ') } };
+}
+
+/** Sign-in identifier: an email address or a Nigerian mobile number. */
+export function parseIdentifier(input: string): Result<{ kind: 'email'; value: string } | { kind: 'phone'; value: string }> {
+  const v = input.trim();
+  if (!v) return { ok: false, error: 'Enter your email or phone number.' };
+  if (v.includes('@')) {
+    const e = validateEmail(v);
+    return e.ok && e.value ? { ok: true, value: { kind: 'email', value: e.value } } : { ok: false, error: 'Enter a valid email address.' };
+  }
+  const p = validateNigerianPhone(v);
+  return p.ok ? { ok: true, value: { kind: 'phone', value: p.value } } : { ok: false, error: 'Enter a valid email or Nigerian phone number.' };
+}

@@ -2,13 +2,13 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { formatPhone, validateOtp } from '@gobye/core';
-import { Button, Screen, ScreenHeader, Text, spacing, useToast } from '@gobye/ui';
-import { AuthStepHeader, CodeBoxes, FieldMessage } from '@/features/auth/AuthStep';
+import { Button, CodeBoxes, FieldMessage, Screen, Text, spacing, useToast } from '@gobye/ui';
+import { AuthHeading, AuthTopBar, TextLink } from '@/features/auth/AuthKit';
 import { resetTo } from '@/features/navigation/reset';
 import { useNow } from '@/state/useNow';
 import { useSession } from '@/state/session';
 
-/** R04 OTP verification, step 2 of 3: six code boxes, auto submit, resend cooldown, stable error slot. */
+/** Verify your number (owner design): six code boxes, auto submit, resend countdown, stable error slot. */
 export default function OtpScreen() {
   const { pendingPhone, verifyOtp, requestOtp } = useSession();
   const toast = useToast();
@@ -45,19 +45,26 @@ export default function OtpScreen() {
 
   return (
     <Screen
-      header={<ScreenHeader onBack={() => router.back()} />}
-      footer={<Button title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />}
+      header={<View style={styles.pad}><AuthTopBar onBack={() => router.back()} /></View>}
+      footer={
+        <>
+          <Button title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />
+          <View style={styles.center}>
+            <TextLink title="Change number" onPress={() => router.back()} />
+          </View>
+        </>
+      }
     >
-      <AuthStepHeader
-        step={2}
-        title="Enter the code"
+      <AuthHeading
+        centered
+        icon="phone"
+        title="Verify your number"
         subtitle={
           <>
-            Sent to{' '}
-            <Text variant="callout" weight="semibold">
+            Enter the 6 digit code we sent to{' '}
+            <Text variant="body" weight="semibold">
               {pendingPhone ? formatPhone(pendingPhone) : 'your phone'}
             </Text>
-            .
           </>
         }
       />
@@ -74,17 +81,29 @@ export default function OtpScreen() {
         testID="otp-input"
       />
       <FieldMessage error={error} info={submitting ? 'Checking your code…' : 'Preview: any code except 000000.'} />
-      <View style={styles.resend}>
-        <Text variant="callout" color="textSecondary">
-          Didn’t get it?
-        </Text>
-        <Button title={wait > 0 ? `Resend in ${wait}s` : 'Resend code'} variant="tertiary" size="md" disabled={wait > 0} onPress={resend} testID="resend-code" />
+      <View style={styles.center}>
+        {wait > 0 ? (
+          <Text variant="callout" color="textSecondary">
+            Resend code in{' '}
+            <Text variant="callout" weight="semibold" tabular>
+              0:{String(wait).padStart(2, '0')}
+            </Text>
+          </Text>
+        ) : (
+          <View style={styles.row}>
+            <Text variant="callout" color="textSecondary">
+              Didn’t get it?
+            </Text>
+            <TextLink title="Resend code" accent onPress={resend} testID="resend-code" />
+          </View>
+        )}
       </View>
-      <Button title="Change number" variant="tertiary" size="md" onPress={() => router.back()} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  resend: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
+  pad: { paddingHorizontal: 20 },
+  center: { alignItems: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });

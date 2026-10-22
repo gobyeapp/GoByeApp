@@ -9,9 +9,12 @@ Routes are relative to `apps/<app>/src/app/`.
 | # | Screen | Route | Key components | Primary actions | States | Status |
 |---|---|---|---|---|---|---|
 | R01 | Launch gate | `index.tsx` | — | Redirect by session | loading | Built (mock) |
-| R02 | Onboarding | `onboarding.tsx` | Photo scene cards (interim crops, D-033), progress segments, slow drift (still under Reduce Motion) | Next, Skip, Create account, Log in | default, reduced motion | Built (mock) — updated 2026-10-21 |
-| R03 | Phone sign-in | `auth/phone.tsx` | TextField (+234), Button | Send code | default, invalid, submitting, error | Built (mock) |
-| R04 | OTP verification | `auth/otp.tsx` | OtpField, Button | Verify, Resend (cooldown) | default, invalid, submitting, error, resend-cooldown | Built (mock) |
+| R02 | Welcome | `onboarding.tsx` | Always dark; recorded 3D road loop (`assets/video/road-dark.mp4`, poster under Reduce Motion), agreed-fare chip, headline | Create account, Sign in | default, reduced motion, short screen | Built (mock) — redesigned 2026-10-22 (owner design) |
+| R02a | Create account | `auth/signup.tsx` | Full name, email, phone (+234), password with show/hide, Apple / Google | Create account → verify phone | default, field errors, account exists, submitting | Built (mock) 2026-10-22 |
+| R02b | Sign in | `auth/signin.tsx` | Apple / Google, email or phone, password | Sign in → verify phone, Forgot password, Create account | default, field errors, wrong details (one neutral message) | Built (mock) 2026-10-22 |
+| R02c | Reset password | `auth/reset.tsx` | Email → 6 digit code + new password | Send code, Resend, Save | default, invalid, wrong code, cooldown | Built (mock) 2026-10-22 |
+| R03 | Your phone number (new Apple / Google account) | `auth/phone.tsx` | TextField (+234), privacy note | Send code | default, invalid, submitting, error | Built (mock) — redesigned 2026-10-22 |
+| R04 | Verify your number | `auth/otp.tsx` | Icon tile, CodeBoxes, Button | Verify, Resend (cooldown), Change number | default, invalid, submitting, error, resend-cooldown | Built (mock) — redesigned 2026-10-22 |
 | R05 | Name / profile setup | `auth/name.tsx` | TextField ×2, Checkbox (terms) | Continue | default, invalid | Built (mock) |
 | R06 | Location pre-permission | `permission-location.tsx` | Illustration, Button ("Continue") | Continue → system prompt; "Enter pickup manually" | default, denied, restricted | Built (mock) |
 | R07 | Home | `(tabs)/index.tsx` | MapCanvas (pickup pin with own photo), avatar button, "For me / Someone else" selector (PassengerSheet), bold "Where are you going?" + destination field, pickup row with edit pencil (PickupSheet), saved/recent places, Invite friends row | Search destination, edit pickup (search / map / current location), choose passenger, recenter | locating, located, permission denied/approximate, live ride, payment outstanding (blocks new booking) | Built (mock) — updated 2026-10-21 |

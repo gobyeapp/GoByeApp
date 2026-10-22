@@ -11,7 +11,8 @@ export default function LaunchGate() {
 
   if (session.status === 'loading' || !hydrated || !account.ready) return null;
   if (!session.onboardingSeen) return <Redirect href="/onboarding" />;
-  if (session.status === 'signed_out') return <Redirect href="/auth/phone" />;
+  // Signed out: the welcome (Create account / Sign in).
+  if (session.status === 'signed_out') return <Redirect href="/onboarding" />;
   if (session.status === 'needs_profile') return <Redirect href="/auth/name" />;
 
   switch (booking?.status) {

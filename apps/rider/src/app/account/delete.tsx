@@ -48,7 +48,7 @@ export default function DeleteAccount() {
       if (!mounted.current) return;
       setStep('done');
       await wait(900);
-      router.replace('/auth/phone');
+      router.replace('/onboarding');
     } catch (e) {
       if (!mounted.current) return;
       setError(e instanceof Error && e.message ? e.message : 'Something went wrong.');

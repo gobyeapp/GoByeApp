@@ -320,3 +320,11 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 
 - **Decision:** the driver app runs on simulated services: document review auto-approves after a few seconds, requests are generated near the driver while online, a rider accepts a counter about two times in three, wallet payments confirm automatically and transfers wait for the driver to confirm receipt. Every such screen carries `SimulatedBadge` copy. The pickup PIN is shown in the preview so the flow can be completed. Driver data is stored on the device per signed-in number.
 - **Why:** lets the owner walk the full driver journey before the backend exists, without presenting mock data as live (CLAUDE.md).
+
+## D-045 — Rider sign-in: email + password, Apple, Google, all with phone verification (2026-10-22, supersedes D-008 for the rider app)
+
+- **Decision (owner):** build everything in the "GoBYE Auth Flow" design. Riders create an account with full name, email, phone and password, or continue with Apple or Google. Every route ends with a 6 digit code to the rider's phone, because the driver must be able to reach them at pickup. Sign in accepts email or phone plus password, followed by the phone code. Reset password works by email code. Apple is offered whenever Google is (App Review Guideline 4.8).
+- **Preview behaviour:** accounts, SMS, email codes, Apple and Google are simulated (`createMockServices` auth, with optional `authStore` persistence). Sign-in failures use one neutral message, and a reset request always "succeeds", so neither reveals whether an account exists.
+- **Backend tasks:** server-side password hashing (Argon2id or bcrypt), rate limits on sign-in, OTP and reset; real Sign in with Apple (`expo-apple-authentication`) and Google (`expo-auth-session` / native SDK) with token verification on the server; account linking by verified email.
+- **Welcome:** the website's dark 3D road scene recorded as a 12 s seamless loop (250 KB H.264) and played with `expo-video`; a still poster shows under Reduce Motion.
+- The driver app still uses phone + code (D-008) until the owner asks for the same there.

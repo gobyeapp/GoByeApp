@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import { Icon, type IconName } from '../icons/Icon';
 import { useTheme } from '../theme/useTheme';
@@ -14,10 +14,12 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   helper?: string;
   error?: string;
   disabled?: boolean;
+  /** Control at the end of the field (e.g. show/hide password). Give it its own accessibility label. */
+  trailing?: ReactNode;
 }
 
 export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
-  { label, hideLabel, prefix, leadingIcon, helper, error, disabled, onFocus, onBlur, ...input },
+  { label, hideLabel, prefix, leadingIcon, helper, error, disabled, trailing, onFocus, onBlur, ...input },
   ref,
 ) {
   const { colors, scheme } = useTheme();
@@ -69,6 +71,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
             Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
           ]}
         />
+        {trailing}
       </View>
       {error ? (
         <View style={styles.message} accessibilityLiveRegion="polite">

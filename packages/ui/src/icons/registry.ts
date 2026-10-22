@@ -170,6 +170,14 @@ import UserSecurityRegular from '@mingcute/react-native/core-regular/user-securi
 import UserSecurityFilled from '@mingcute/react-native/core-filled/user-security';
 import TicketRegular from '@mingcute/react-native/core-regular/ticket';
 import TicketFilled from '@mingcute/react-native/core-filled/ticket';
+import AppleRegular from '@mingcute/react-native/core-regular/apple';
+import AppleFilled from '@mingcute/react-native/core-filled/apple';
+import GoogleRegular from '@mingcute/react-native/core-regular/google';
+import GoogleFilled from '@mingcute/react-native/core-filled/google';
+import EyeRegular from '@mingcute/react-native/core-regular/eye';
+import EyeFilled from '@mingcute/react-native/core-filled/eye';
+import EyeCloseRegular from '@mingcute/react-native/core-regular/eye-close';
+import EyeCloseFilled from '@mingcute/react-native/core-filled/eye-close';
 
 type IconComponent = ComponentType<IconProps>;
 
@@ -255,6 +263,10 @@ export const iconRegistry = {
   trendUp: { regular: TrendingUpRegular, filled: TrendingUpFilled, file: 'trending-up' },
   userSecurity: { regular: UserSecurityRegular, filled: UserSecurityFilled, file: 'user-security' },
   ticket: { regular: TicketRegular, filled: TicketFilled, file: 'ticket' },
+  apple: { regular: AppleRegular, filled: AppleFilled, file: 'apple' },
+  google: { regular: GoogleRegular, filled: GoogleFilled, file: 'google' },
+  eye: { regular: EyeRegular, filled: EyeFilled, file: 'eye' },
+  eyeClose: { regular: EyeCloseRegular, filled: EyeCloseFilled, file: 'eye-close' },
 } satisfies Record<string, { regular: IconComponent; filled: IconComponent; file: string }>;
 
 export type IconName = keyof typeof iconRegistry;

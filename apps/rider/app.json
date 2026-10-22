@@ -78,12 +78,13 @@
           "cameraPermission": "GoBye uses the camera so you can take a profile picture that helps your driver recognise you at pickup.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "GoBye \u2014 Your ride. Your say. (Preview build on simulated services.)"
+    "description": "GoBye — Your ride. Your say. (Preview build on simulated services.)"
   }
 }

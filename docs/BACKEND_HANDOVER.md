@@ -145,7 +145,7 @@ From `ARCHITECTURE.md` §5:
 
 ```ts
 interface GoByeServices {
-  auth: AuthService;          // requestOtp(phone), verifyOtp(phone, code), deleteAccount()
+  auth: AuthService;          // signUp, signIn(email|phone, password), socialSignIn(apple|google), requestPasswordReset, resetPassword, requestOtp(phone), verifyOtp(phone, code), deleteAccount() — D-045
   maps: MapService;           // searchPlaces(q, near), reverseGeocode(coord), getRoute(a, b)
   pricing: PricingService;    // quote(route, category) -> FareQuote
   matching: MatchingService;  // quickMatch(booking) / openNegotiation(offer) -> event stream

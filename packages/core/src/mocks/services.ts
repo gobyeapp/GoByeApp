@@ -5,7 +5,7 @@ import { MOCK_PRICING_CONFIG } from '../pricing/config';
 import { createQuote } from '../pricing/fare';
 import { realScheduler, type GoByeServices, type Scheduler, type Unsubscribe } from '../services/types';
 import type { Booking, DriverResponse, Kobo, LatLng, Passenger, Place, PricingConfig, RouteEstimate, ServiceConfig, WalletTransaction } from '../types';
-import { validateNigerianPhone, validateOtp } from '../validation';
+import { parseIdentifier, validateEmail, validateFullName, validateNigerianPhone, validateOtp, validatePassword } from '../validation';
 import { MOCK_PAYMENT_METHODS, MOCK_PLACES, makeMockDriver, mockReferrals, mockWalletTransactions, seededRandom } from './data';
 
 /**
@@ -48,6 +48,16 @@ export interface MockOptions {
   serviceConfig?: ServiceConfig;
   /** Optional persistence for the simulated wallet ledger (the app passes AsyncStorage). */
   walletStore?: { load(): Promise<WalletTransaction[] | null>; save(list: WalletTransaction[]): void };
+  /** Optional persistence for simulated accounts, so preview sign-in survives an app restart. */
+  authStore?: { load(): Promise<MockAccount[] | null>; save(list: MockAccount[]): void };
+}
+
+/** Preview-only account record (password kept in plain text on the device: never do this for real). */
+export interface MockAccount {
+  email: string;
+  phone: string;
+  password: string;
+  user: Passenger;
 }
 
 /** Road-distance factor and average Lagos traffic speed used for simulated routes. */
@@ -96,6 +106,18 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
   /** Drivers currently assigned to a trip — prevents duplicate assignment (BR-047). */
   const busyDrivers = new Set<string>();
   const knownUsers = new Map<string, Passenger>();
+  /** Simulated credential store (preview only — a real backend hashes passwords server side). */
+  const accounts = new Map<string, { email: string; phone: string; password: string }>();
+  const saveAccounts = () =>
+    options.authStore?.save([...accounts.values()].map((a) => ({ ...a, user: knownUsers.get(a.phone) as Passenger })).filter((a) => a.user));
+  void options.authStore?.load().then((list) =>
+    list?.forEach((a) => {
+      if (!accounts.has(a.email)) accounts.set(a.email, { email: a.email, phone: a.phone, password: a.password });
+      if (!knownUsers.has(a.phone)) knownUsers.set(a.phone, a.user);
+    }),
+  );
+  const resetCodes = new Map<string, string>();
+  const findAccount = (id: { kind: 'email' | 'phone'; value: string }) => [...accounts.values()].find((a) => (id.kind === 'email' ? a.email === id.value : a.phone === id.value));
 
   const schedule = (timers: unknown[], fn: () => void, ms: number) => {
     timers.push(scheduler.setTimeout(fn, ms * flags.timeScale));
@@ -149,6 +171,57 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
     },
 
     auth: {
+      async signUp(input) {
+        const name = validateFullName(input.fullName);
+        if (!name.ok) return delay(name);
+        const email = validateEmail(input.email);
+        if (!email.ok || !email.value) return delay({ ok: false as const, error: 'Enter a valid email address.' });
+        const phone = validateNigerianPhone(input.phone);
+        if (!phone.ok) return delay(phone);
+        const pw = validatePassword(input.password);
+        if (!pw.ok) return delay(pw);
+        if (findAccount({ kind: 'email', value: email.value })) return delay({ ok: false as const, error: 'There’s already an account with this email. Sign in instead.' });
+        if (findAccount({ kind: 'phone', value: phone.value })) return delay({ ok: false as const, error: 'This number is already on an account. Sign in instead.' });
+        accounts.set(email.value, { email: email.value, phone: phone.value, password: pw.value });
+        knownUsers.set(phone.value, { id: newId('usr'), role: 'passenger', ...name.value, email: email.value, phone: phone.value, rating: 5, createdAt: scheduler.now() });
+        saveAccounts();
+        return delay({ ok: true as const, value: { phone: phone.value, isSimulated: true } });
+      },
+      async signIn(identifier, password) {
+        const id = parseIdentifier(identifier);
+        if (!id.ok) return delay(id);
+        if (!password) return delay({ ok: false as const, error: 'Enter your password.' });
+        const acct = findAccount(id.value);
+        // One message for both cases, so the form never reveals which accounts exist.
+        if (!acct || acct.password !== password) return delay({ ok: false as const, error: 'That email, number or password isn’t right.' });
+        return delay({ ok: true as const, value: { phone: acct.phone, isSimulated: true } });
+      },
+      async socialSignIn(provider) {
+        // Simulated provider sheet result: a fixed profile per provider.
+        const profile = provider === 'apple' ? { firstName: 'Ada', lastName: 'Okafor', email: 'ada.okafor@privaterelay.example' } : { firstName: 'Ada', lastName: 'Okafor', email: 'ada.okafor@example.com' };
+        const acct = findAccount({ kind: 'email', value: profile.email });
+        return delay({ ok: true as const, value: { phone: acct ? acct.phone : null, profile: acct ? undefined : profile, isSimulated: true } });
+      },
+      async requestPasswordReset(emailInput) {
+        const email = validateEmail(emailInput);
+        if (!email.ok || !email.value) return delay({ ok: false as const, error: 'Enter the email on your account.' });
+        if (accounts.has(email.value)) resetCodes.set(email.value, String(100000 + Math.floor(random() * 900000)));
+        return delay({ ok: true as const, value: { email: email.value, resendAfterSeconds: 30, isSimulated: true } });
+      },
+      async resetPassword(emailInput, code, newPassword) {
+        const email = (emailInput || '').trim().toLowerCase();
+        const c = validateOtp(code);
+        if (!c.ok) return delay(c);
+        const pw = validatePassword(newPassword);
+        if (!pw.ok) return delay(pw);
+        const acct = accounts.get(email);
+        // Preview: any 6 digit code except 000000 is accepted (no email is sent).
+        if (!acct || code === '000000') return delay({ ok: false as const, error: 'That code isn’t right or has expired. Request a new one.' });
+        accounts.set(email, { ...acct, password: pw.value });
+        resetCodes.delete(email);
+        saveAccounts();
+        return delay({ ok: true as const, value: true as const });
+      },
       async requestOtp(phone) {
         const v = validateNigerianPhone(phone);
         if (!v.ok) return delay(v);
@@ -177,6 +250,9 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
         if (!user) return delay({ ok: false as const, error: 'Session expired. Sign in again.' });
         const updated: Passenger = { ...user, ...profile };
         knownUsers.set(user.phone, updated);
+        // A new Apple / Google account: remember it by email (no password) so the same provider signs in next time.
+        if (updated.email && !accounts.has(updated.email)) accounts.set(updated.email, { email: updated.email, phone: updated.phone, password: '' });
+        saveAccounts();
         return delay({ ok: true as const, value: updated });
       },
       async requestAccountDeletion() {

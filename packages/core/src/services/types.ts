@@ -48,7 +48,27 @@ export interface Session {
   isNewUser: boolean;
 }
 
+export type SocialProvider = 'apple' | 'google';
+
+/** A step that still needs the phone code before the session starts (sign up, password sign in, social). */
+export interface PhoneStep {
+  /** E.164 number the code goes to; null when the account has no phone yet (new social sign up). */
+  phone: string | null;
+  /** Prefilled profile from Apple / Google, for a new account. */
+  profile?: { firstName: string; lastName: string; email?: string };
+  isSimulated: boolean;
+}
+
 export interface AuthService {
+  /** Create an account with email + password; the phone is verified next (requestOtp → verifyOtp). */
+  signUp(input: { fullName: string; email: string; phone: string; password: string }): Promise<Result<PhoneStep>>;
+  /** Email or phone + password, then a code to the account's phone (two steps). */
+  signIn(identifier: string, password: string): Promise<Result<PhoneStep>>;
+  /** Apple / Google. Existing account → code to its phone; new account → ask for a phone first. */
+  socialSignIn(provider: SocialProvider): Promise<Result<PhoneStep>>;
+  /** Sends a 6 digit reset code by email. Always succeeds for a valid email (no account enumeration). */
+  requestPasswordReset(email: string): Promise<Result<{ email: string; resendAfterSeconds: number; isSimulated: boolean }>>;
+  resetPassword(email: string, code: string, newPassword: string): Promise<Result<true>>;
   requestOtp(phone: string): Promise<Result<OtpChallenge>>;
   verifyOtp(phone: string, code: string): Promise<Result<Session>>;
   /** `current` lets a mock (or a token-only backend) recover the signed-in user after an app restart. */

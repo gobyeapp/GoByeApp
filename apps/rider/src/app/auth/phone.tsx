@@ -2,49 +2,50 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { validateNigerianPhone } from '@gobye/core';
-import { Button, Screen, SimulatedBadge, Text, TextField, Wordmark, spacing } from '@gobye/ui';
-import { AuthStepHeader } from '@/features/auth/AuthStep';
+import { Button, Icon, Screen, Text, TextField, layout, spacing, useTheme } from '@gobye/ui';
+import { AuthHeading, AuthTopBar } from '@/features/auth/AuthKit';
 import { useSession } from '@/state/session';
 
 /**
- * R03 Phone sign in or sign up, step 1 of 3 (phone + OTP, D-008; no social login so Guideline 4.8 is not
- * triggered). The number stays in the field after an error so the passenger only fixes what's wrong.
+ * Your phone number (owner design). Used when an Apple / Google account is new: GoBye still needs a
+ * verified number so the driver can reach the rider at pickup.
  */
-export default function PhoneSignIn() {
-  const { requestOtp } = useSession();
+export default function PhoneScreen() {
+  const { colors } = useTheme();
+  const { requestOtp, pendingProfile } = useSession();
   const [phone, setPhone] = useState('');
-  const [error, setError] = useState<string | undefined>();
-  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
 
   const submit = async () => {
-    if (submitting) return;
+    if (busy) return;
     const v = validateNigerianPhone(phone);
     if (!v.ok) return setError(v.error);
-    setError(undefined);
-    setSubmitting(true);
+    setBusy(true);
     const r = await requestOtp(v.value);
-    setSubmitting(false);
+    setBusy(false);
     if (!r.ok) return setError(r.error);
     router.push('/auth/otp');
   };
 
   return (
     <Screen
+      header={<View style={styles.pad}><AuthTopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))} /></View>}
       footer={
         <>
-          <Button title="Continue" onPress={submit} loading={submitting} disabled={!phone.trim()} testID="send-code" />
-          <Text variant="caption" color="textSecondary" align="center">
-            By continuing you agree to the Terms and Privacy Policy.
+          <Button title="Send code" onPress={submit} loading={busy} disabled={!phone.trim()} testID="send-code" />
+          <Text variant="caption" weight="regular" color="textSecondary" align="center">
+            Standard SMS rates may apply.
           </Text>
         </>
       }
     >
-      <View style={styles.brand}>
-        <Wordmark size={28} />
-      </View>
-      <AuthStepHeader step={1} title="What’s your number?" subtitle="We’ll text you a 6 digit code." />
+      <AuthHeading
+        title="Your phone number"
+        subtitle={`${pendingProfile ? `Almost done, ${pendingProfile.firstName}. ` : ''}Your driver uses it to reach you at pickup. We’ll text you a 6 digit code to confirm it.`}
+      />
       <TextField
-        label="Mobile number"
+        label="Phone number"
         prefix="+234"
         placeholder="803 123 4567"
         keyboardType="phone-pad"
@@ -53,18 +54,17 @@ export default function PhoneSignIn() {
         value={phone}
         onChangeText={(t) => {
           setPhone(t);
-          if (error) setError(undefined);
+          setError(undefined);
         }}
         onSubmitEditing={submit}
         error={error}
-        editable={!submitting}
-        testID="phone-input"
         autoFocus
+        testID="phone-input"
       />
-      <View style={styles.note}>
-        <SimulatedBadge />
-        <Text variant="footnote" color="textSecondary" style={styles.flex}>
-          No SMS in this preview. Any 6 digit code works.
+      <View style={[styles.info, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Icon name="shield" size="sm" color="accent" />
+        <Text variant="callout" color="textSecondary" style={styles.flex}>
+          We only use your number for your trips and to keep your account secure.
         </Text>
       </View>
     </Screen>
@@ -72,7 +72,7 @@ export default function PhoneSignIn() {
 }
 
 const styles = StyleSheet.create({
-  brand: { marginTop: spacing.lg },
-  note: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
+  pad: { paddingHorizontal: 20 },
   flex: { flex: 1 },
+  info: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start', padding: spacing.lg, borderRadius: layout.controlRadius + 2, borderWidth: StyleSheet.hairlineWidth, marginTop: spacing.lg },
 });

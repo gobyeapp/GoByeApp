@@ -112,7 +112,7 @@ export default function Account() {
                 onPress={() =>
                   Alert.alert('Log out?', 'You’ll sign in again with your phone number.', [
                     { text: 'Cancel', style: 'cancel' },
-                    { text: 'Log out', style: 'destructive', onPress: () => void signOut().then(() => router.replace('/auth/phone')) },
+                    { text: 'Log out', style: 'destructive', onPress: () => void signOut().then(() => router.replace('/onboarding')) },
                   ])
                 }
                 testID="sign-out"

@@ -22,6 +22,8 @@ export const KEYS = {
   activeBooking: 'gobye.activeBooking',
   account: 'gobye.account',
   mockWallet: 'gobye.mockWalletLedger',
+  /** Preview only: simulated accounts (email, phone, password) so sign-in survives a restart. */
+  mockAccounts: 'gobye.mockAccounts',
 } as const;
 
 export async function readJson<T>(key: string): Promise<T | null> {
