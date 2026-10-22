@@ -4,6 +4,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Icon, Illustration, Screen, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { useCurrentLocation } from '@/state/location';
 import { useSession } from '@/state/session';
+import { useLocatePickup } from '@/features/home/useLocatePickup';
 
 const POINTS = [
   'Set your pickup automatically. You can edit it.',
@@ -23,12 +24,15 @@ export default function LocationPermission() {
   const { markLocationPrimerSeen } = useSession();
   const { next } = useLocalSearchParams<{ next?: string }>();
   const [busy, setBusy] = useState(false);
+  const { locate } = useLocatePickup();
 
   const proceed = async () => {
     if (busy) return;
     setBusy(true);
-    await request();
+    const status = await request();
     markLocationPrimerSeen();
+    // Opened from "Use my location" on Change pickup: set the pickup straight away when allowed.
+    if (next === 'pickup' && status === 'granted') await locate();
     setBusy(false);
     if (next === 'search') router.replace({ pathname: '/booking/search', params: { field: 'destination' } });
     else router.back();

@@ -23,9 +23,14 @@ export interface SheetProps {
    * hero, title and subtitle are centred above grouped content.
    */
   hero?: ReactNode;
+  /**
+   * `leading` (action sheets): left-aligned title with a small, quiet close button on the same line, so
+   * the header doesn't compete with the content. Default `center` keeps the centred title.
+   */
+  headerAlign?: 'center' | 'leading';
 }
 
-export function Sheet({ visible, onClose, title, subtitle, children, footer, testID, hero: heroProp }: SheetProps) {
+export function Sheet({ visible, onClose, title, subtitle, children, footer, testID, hero: heroProp, headerAlign = 'center' }: SheetProps) {
   const { colors, scheme } = useTheme();
   // On short screens the hero is dropped so the grouped content and the action stay in view.
   const { height } = useWindowDimensions();
@@ -49,6 +54,31 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, tes
             style={[styles.sheet, shadows.sheet, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: scheme === 'dark' ? StyleSheet.hairlineWidth : 0, paddingBottom: insets.bottom + spacing.lg }]}
           >
             <View style={[styles.grabber, { backgroundColor: colors.border }]} />
+            {headerAlign === 'leading' ? (
+              <View style={styles.leadHeader}>
+                <View style={styles.leadTitle}>
+                  <Text variant="title3" accessibilityRole="header">
+                    {title}
+                  </Text>
+                  {subtitle ? (
+                    <Text variant="footnote" color="textSecondary">
+                      {subtitle}
+                    </Text>
+                  ) : null}
+                </View>
+                <Pressable
+                  onPress={onClose}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                  hitSlop={8}
+                  testID={testID ? `${testID}-close` : undefined}
+                  style={({ pressed }) => [styles.leadClose, { backgroundColor: pressed ? colors.secondaryPressed : colors.surfaceMuted }]}
+                >
+                  <Icon name="close" size={16} color="textSecondary" />
+                </Pressable>
+              </View>
+            ) : (
+              <>
             {/* Centred title with the close action on the right (bottom-sheet reference); the spacer keeps the title optically centred. */}
             <View style={styles.sheetHeader}>
               <View style={styles.headerSide} />
@@ -67,6 +97,8 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, tes
                 <IconButton icon="close" variant="filled" accessibilityLabel="Close" onPress={onClose} />
               </View>
             </View>
+              </>
+            )}
             <ScrollView style={styles.flexShrink} contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
               {children}
             </ScrollView>
@@ -214,6 +246,9 @@ const styles = StyleSheet.create({
   sheetHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm, paddingHorizontal: spacing.lg, paddingBottom: spacing.lg },
   headerSide: { width: 48, alignItems: 'flex-end' },
   headerTitle: { flex: 1, alignItems: 'center', gap: spacing.xs, paddingTop: spacing.sm },
+  leadHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: layout.page, paddingTop: spacing.xs, paddingBottom: spacing.lg },
+  leadTitle: { flex: 1, gap: 2 },
+  leadClose: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   hero: { marginBottom: spacing.sm },
   flexShrink: { flexGrow: 0, flexShrink: 1 },
   sheetBody: { paddingHorizontal: layout.page, gap: spacing.md },

@@ -14,7 +14,8 @@ export interface CurrentLocation {
   loading: boolean;
   error: string | null;
   request(): Promise<PermissionState>;
-  refresh(): Promise<void>;
+  /** Gets a fresh fix; resolves with it, or null when the position couldn't be read. */
+  refresh(): Promise<LatLng | null>;
   openSettings(): void;
 }
 
@@ -36,15 +37,18 @@ function useLocationState(): CurrentLocation {
     return p.canAskAgain ? 'denied' : 'restricted';
   };
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<LatLng | null> => {
     setLoading(true);
     setError(null);
     try {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setCoordinate({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+      const c = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+      setCoordinate(c);
       setAccuracy(pos.coords.accuracy ?? null);
+      return c;
     } catch {
       setError('We couldn’t get your location. Check that location services are on, or set your pickup manually.');
+      return null;
     } finally {
       setLoading(false);
     }

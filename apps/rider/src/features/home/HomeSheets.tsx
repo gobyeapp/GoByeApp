@@ -1,10 +1,7 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { validateName, validateNigerianPhone } from '@gobye/core';
-import { Button, ListGroup, ListItem, RadioRow, Sheet, Text, TextField } from '@gobye/ui';
+import { Button, RadioRow, Sheet, Text, TextField } from '@gobye/ui';
 import { useBooking } from '@/state/booking';
-import { useCurrentLocation } from '@/state/location';
-import { useServices } from '@/state/services';
 
 /**
  * Passenger selector (brief §3): "Book for someone else" lives here rather than as a home tile.
@@ -80,36 +77,5 @@ export function PassengerSheet({ visible, onClose }: { visible: boolean; onClose
   );
 }
 
-/**
- * Edit pickup (brief §4): pickup is detected automatically but never locked to the device position.
- * Short choice → a sheet; the map picker is its own screen.
- */
-export function PickupSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const location = useCurrentLocation();
-  const { maps } = useServices();
-  const { setPickup } = useBooking();
-  const go = (fn: () => void) => {
-    onClose();
-    fn();
-  };
-  return (
-    <Sheet visible={visible} onClose={onClose} title="Change pickup" testID="pickup-sheet">
-      <ListGroup>
-        <ListItem title="Search for an address" leadingIcon="search" trailing="chevron" onPress={() => go(() => router.push({ pathname: '/booking/search', params: { field: 'pickup' } }))} testID="pickup-search" />
-        <ListItem title="Choose on map" subtitle="Drag the map to the exact spot" leadingIcon="map" trailing="chevron" onPress={() => go(() => router.push('/booking/pickup-map'))} testID="pickup-on-map" />
-        {location.permission === 'granted' && location.coordinate ? (
-          <ListItem
-            title="Use my location"
-            subtitle={location.accuracyMeters ? `About ±${Math.round(location.accuracyMeters)} m` : undefined}
-            leadingIcon="locate"
-            onPress={() =>
-              go(() => {
-                void maps.reverseGeocode(location.coordinate!).then((p) => setPickup({ ...p, title: 'Current location', subtitle: p.title }));
-              })
-            }
-          />
-        ) : null}
-      </ListGroup>
-    </Sheet>
-  );
-}
+// Change pickup lives in its own file; re-exported so existing imports keep working.
+export { PickupSheet } from './PickupSheet';
