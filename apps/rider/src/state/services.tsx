@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { createMockServices, type GoByeServices, type MockAccount, type WalletTransaction } from '@gobye/core';
+import { createMockServices, createRelayMatching, createRelayTrips, type GoByeServices, type MockAccount, type WalletTransaction } from '@gobye/core';
+import { getRelayRider, relay } from './relay';
 import { KEYS, readJson, writeJson } from './storage';
 
 const WALLET_KEY = KEYS.mockWallet;
@@ -23,7 +24,12 @@ const authStore = {
 const ServicesContext = createContext<GoByeServices | null>(null);
 
 export function ServicesProvider({ children, services }: { children: ReactNode; services?: GoByeServices }) {
-  const value = useMemo(() => services ?? createMockServices({ walletStore, authStore }), [services]);
+  const value = useMemo(() => {
+    if (services) return services;
+    const mock = createMockServices({ walletStore, authStore });
+    // Demo relay connected (D-049): real drivers in the driver app take the ride; nobody online → "no drivers".
+    return relay ? { ...mock, matching: createRelayMatching(relay, { rider: getRelayRider }), trips: createRelayTrips(relay) } : mock;
+  }, [services]);
   return <ServicesContext.Provider value={value}>{children}</ServicesContext.Provider>;
 }
 

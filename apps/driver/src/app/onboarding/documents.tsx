@@ -12,8 +12,7 @@ export default function Documents() {
 
   const save = () => {
     if (!complete) return;
-    updateApplication({ documents: docs });
-    goNext('documents');
+    goNext('documents', updateApplication({ documents: docs }, 'documents'));
   };
 
   return (

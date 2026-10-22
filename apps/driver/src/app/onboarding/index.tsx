@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import { ONBOARDING_STEPS, isStepComplete, nextOnboardingStep, onboardingProgress } from '@gobye/core';
-import { Button, Icon, Screen, Text, Wordmark, layout, spacing, useTheme } from '@gobye/ui';
+import { ISSUES, ONBOARDING_STEPS, isStepComplete, nextOnboardingStep, onboardingProgress, openIssues } from '@gobye/core';
+import { Button, Icon, ScreenHeader, Screen, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { STEP_META, STEP_ROUTES } from '@/features/onboarding/parts';
 import { resetTo } from '@/features/navigation/reset';
 import { useDriver } from '@/state/driver';
@@ -9,33 +9,41 @@ import { useSession } from '@/state/session';
 
 /**
  * D03–D07 overview: the registration checklist. Each step can be opened in any order once started;
- * Submit appears when everything is done. Progress is saved after every step.
+ * Submit appears when everything is done. Progress is saved after every step. When staff asked for
+ * changes, the flagged steps are marked and the action sends the application back for review.
  */
 export default function OnboardingOverview() {
   const { colors } = useTheme();
-  const { application, submitApplication } = useDriver();
+  const { application, submitApplication, resubmitApplication } = useDriver();
   const { signOut } = useSession();
   const { done, total } = onboardingProgress(application);
   const next = nextOnboardingStep(application);
+  const flagged = openIssues(application);
+  const flaggedSteps = new Set(flagged.map((i) => ISSUES[i.code].step));
+  const changes = application.status === 'changes_requested';
+  const locked = application.status === 'pending_review' || application.status === 'approved';
 
-  const submit = () => {
-    const r = submitApplication();
+  const send = () => {
+    const r = changes ? resubmitApplication() : submitApplication();
     if (!r.ok) return Alert.alert('Not ready yet', r.error);
-    resetTo('/onboarding/status');
+    resetTo('/(tabs)');
   };
+  const back = () => (router.canGoBack() ? router.back() : resetTo('/(tabs)'));
+
+  const footer = locked ? (
+    <Button title="Back to dashboard" variant="secondary" onPress={back} testID="onboarding-back" />
+  ) : changes && flagged.length ? (
+    <Button title={`Fix: ${ISSUES[flagged[0].code].title}`} onPress={() => router.push(STEP_ROUTES[ISSUES[flagged[0].code].step])} testID="onboarding-fix" />
+  ) : next ? (
+    <Button title={done === 0 ? 'Start' : 'Continue'} onPress={() => router.push(STEP_ROUTES[next])} testID="onboarding-next" />
+  ) : (
+    <Button title={changes ? 'Send back for review' : 'Submit for review'} onPress={send} testID="onboarding-submit" />
+  );
 
   return (
-    <Screen
-      footer={
-        next ? (
-          <Button title={done === 0 ? 'Start' : 'Continue'} onPress={() => router.push(STEP_ROUTES[next])} testID="onboarding-next" />
-        ) : (
-          <Button title="Submit for review" onPress={submit} testID="onboarding-submit" />
-        )
-      }
-    >
+    <Screen header={<ScreenHeader onBack={back} />} footer={footer}>
       <View style={styles.top}>
-        <Wordmark size={26} />
+        <View />
         <Pressable onPress={() => void signOut().then(() => resetTo('/welcome'))} accessibilityRole="button" hitSlop={8}>
           <Text variant="subhead" color="textSecondary">
             Log out
@@ -44,10 +52,18 @@ export default function OnboardingOverview() {
       </View>
       <View style={styles.head}>
         <Text variant="title1" accessibilityRole="header">
-          {next ? 'Become a GoBye driver' : 'Ready to submit'}
+          {changes ? (flagged.length ? 'A few things to fix' : 'Ready to send back') : locked ? 'Your registration' : next ? 'Become a GoBye driver' : 'Ready to submit'}
         </Text>
         <Text variant="callout" color="textSecondary">
-          {next ? 'Five short steps. Have your licence, ID and vehicle papers nearby.' : 'Check your details, then send them for review.'}
+          {changes
+            ? flagged.length
+              ? 'Open the marked steps, fix what we flagged, then send it back for review.'
+              : 'Everything we flagged is fixed. Send it back for review.'
+            : locked
+              ? 'Your details are with our team. You can look at them here.'
+              : next
+                ? 'Five short steps. Have your licence, ID and vehicle papers nearby.'
+                : 'Check your details, then send them for review.'}
         </Text>
       </View>
 
@@ -63,6 +79,7 @@ export default function OnboardingOverview() {
       <View style={[styles.list, { backgroundColor: colors.surfaceMuted }]}>
         {ONBOARDING_STEPS.map((step, i) => {
           const complete = isStepComplete(application, step);
+          const fix = flaggedSteps.has(step);
           const isNext = step === next;
           const meta = STEP_META[step];
           return (
@@ -70,12 +87,14 @@ export default function OnboardingOverview() {
               key={step}
               onPress={() => router.push(STEP_ROUTES[step])}
               accessibilityRole="button"
-              accessibilityLabel={`${meta.title}, ${complete ? 'done' : isNext ? 'next' : 'to do'}`}
+              accessibilityLabel={`${meta.title}, ${fix ? 'needs a fix' : complete ? 'done' : isNext ? 'next' : 'to do'}`}
               testID={`step-${step}`}
               style={({ pressed }) => [styles.row, { backgroundColor: colors.card, opacity: pressed ? 0.8 : 1 }, i === 0 && styles.first, i === ONBOARDING_STEPS.length - 1 && styles.last]}
             >
-              <View style={[styles.num, { backgroundColor: complete ? colors.success : isNext ? colors.primary : colors.surfaceMuted }]}>
-                {complete ? (
+              <View style={[styles.num, { backgroundColor: fix ? colors.warningSurface : complete ? colors.success : isNext ? colors.primary : colors.surfaceMuted }]}>
+                {fix ? (
+                  <Icon name="warning" size="xs" color="warning" />
+                ) : complete ? (
                   <Icon name="check" size="xs" color="onPrimary" />
                 ) : (
                   <Text variant="caption" weight="bold" style={{ color: isNext ? colors.onPrimary : colors.textSecondary }}>
@@ -86,7 +105,7 @@ export default function OnboardingOverview() {
               <View style={styles.texts}>
                 <Text variant="headline">{meta.title}</Text>
                 <Text variant="footnote" color="textSecondary">
-                  {complete ? 'Done. Tap to edit.' : meta.summary}
+                  {fix ? 'Needs a fix. Tap to update.' : complete ? 'Done. Tap to edit.' : meta.summary}
                 </Text>
               </View>
               <Icon name={meta.icon} size="sm" color={complete ? 'textSecondary' : 'text'} />

@@ -57,7 +57,7 @@ Routes are relative to `apps/<app>/src/app/`.
 | D06 | Vehicle information | `onboarding/vehicle.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D07 | Vehicle documents upload | `onboarding/documents.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D08 | Verification status (pending / approved / rejected) | `onboarding/status.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
-| D09 | Dashboard (map, online toggle, earnings today) | `(tabs)/index.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D09 | Dashboard (map, online toggle, earnings today); before approval a verification card: Register → Review → Drive, steps to do, flagged fixes, checks waiting on an outside office (D-049) | `(tabs)/index.tsx`, `features/verification/VerificationCard.tsx` | Built 2026-10-22; card 2026-10-22 (simulated or demo relay; web QA walked, not device-tested) |
 | D10 | Location explanation (When In Use + precise) | `permission-location.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D11 | Incoming Quick Match request | `request/[id].tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D12 | Incoming negotiation (accept / counter / decline) | `negotiation/[id].tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |

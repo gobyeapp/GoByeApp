@@ -241,7 +241,16 @@ function Arrived({ trip }: { trip: DriverTrip }) {
         }}
         testID="pin-input"
       />
-      <FieldMessage error={error} info={`Preview: ${trip.rider.firstName}’s PIN is ${trip.pickupPin}.`} />
+      <FieldMessage
+        error={error}
+        info={
+          d.relayTrip
+            ? trip.pickupPin
+              ? `Ask ${trip.rider.firstName} for the PIN on their screen.`
+              : `Waiting for ${trip.rider.firstName}’s PIN to reach you…`
+            : `Preview: ${trip.rider.firstName}’s PIN is ${trip.pickupPin}.`
+        }
+      />
       {locked ? (
         <Button title="Contact support" variant="secondary" leadingIcon="support" onPress={() => Linking.openURL('mailto:support@gobye.app')} />
       ) : (

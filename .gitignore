@@ -40,3 +40,8 @@ yarn-error.*
 # generated native folders (Continuous Native Generation)
 apps/*/ios/
 apps/*/android/
+
+# Demo relay (npm run demo:relay)
+.env.local
+**/.env.local
+tools/demo-relay/data.json

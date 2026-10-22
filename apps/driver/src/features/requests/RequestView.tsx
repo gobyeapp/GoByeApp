@@ -27,6 +27,7 @@ export function RequestView({ id }: { id: string }) {
   const req: IncomingRequest | null = d.request?.id === id ? d.request : null;
   const shown = req ?? (initial?.id === id ? initial : null);
   const [counter, setCounter] = useState<Kobo | null>(null);
+  const [accepting, setAccepting] = useState(false);
   const left = req ? Math.max(0, req.expiresAt - now) : 0;
   const total = shown ? shown.expiresAt - shown.createdAt : 1;
   const waiting = d.counter?.status === 'waiting';
@@ -55,9 +56,19 @@ export function RequestView({ id }: { id: string }) {
   const negotiate = shown.kind === 'negotiate';
   const options = negotiate ? counterSuggestions(shown) : [];
 
-  const accept = () => {
-    const r = d.acceptRequest();
-    if (!r.ok) toast(r.error, 'error');
+  const accept = async () => {
+    if (accepting) return;
+    setAccepting(true);
+    const r = await d.acceptRequest();
+    setAccepting(false);
+    if (r.ok) return;
+    toast(r.error, 'error');
+    // Another driver claimed it: nothing left to answer, back to the map.
+    if (/another driver/i.test(r.error)) {
+      closing.current = true;
+      d.declineRequest();
+      router.back();
+    }
   };
   const sendCounter = () => {
     if (!counter) return;
@@ -189,7 +200,7 @@ export function RequestView({ id }: { id: string }) {
           </>
         ) : (
           <>
-            <Button title={negotiate ? `Accept ${formatNaira(shown.amount)}` : 'Accept'} onPress={accept} testID="accept-request" />
+            <Button title={negotiate ? `Accept ${formatNaira(shown.amount)}` : 'Accept'} onPress={accept} loading={accepting} loadingLabel="Accepting" testID="accept-request" />
             <Button title="Decline" variant="tertiary" onPress={decline} testID="decline-request" />
           </>
         )}

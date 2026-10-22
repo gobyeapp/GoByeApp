@@ -1,21 +1,25 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { earningsToday, formatNaira, nairaAccessibilityLabel, trackingIssueMessage, type DriverLocationError } from '@gobye/core';
-import { Button, Icon, IconButton, SimulatedBadge, Text, layout, shadows, spacing, useTheme } from '@gobye/ui';
+import { Button, ConnectionPill, Icon, IconButton, SimulatedBadge, Text, layout, shadows, spacing, useTheme, useToast } from '@gobye/ui';
 import { MapCanvas, type MapCanvasHandle } from '@gobye/ui/src/map/MapCanvas';
 import { formatRemaining, passName } from '@/features/common/format';
+import { STEP_ROUTES } from '@/features/onboarding/parts';
+import { VerificationAction, VerificationCard } from '@/features/verification/VerificationCard';
 import { useDriver } from '@/state/driver';
 import { openLocationSettings } from '@/state/location';
+import { useRelayStatus } from '@/state/relay';
 import { useHaptics } from '@/state/settings';
 import { useNow } from '@/state/useNow';
 
 /**
  * D09 Drive (dashboard). Full-bleed map with the driver's own position, today's earnings at the top,
  * and one panel at the bottom: status, access pass and the single Go online / Go offline control.
- * Requests open full screen on their own (RequestWatcher).
+ * Requests open full screen on their own (RequestWatcher). Until the driver is approved the panel is
+ * the verification card (stage, what's left, what's flagged, what's delayed) and Go online is off (D-049).
  */
 export default function Drive() {
   const { colors, scheme } = useTheme();
@@ -29,6 +33,21 @@ export default function Drive() {
   const online = d.location.activity !== 'offline';
   const today = earningsToday(d.history, now);
   const issues = d.issues.filter((i) => i !== 'background_unavailable');
+  const approved = d.verification === 'approved';
+  const relay = useRelayStatus();
+  const toast = useToast();
+  const { height } = useWindowDimensions();
+
+  const submit = () => {
+    const r = d.submitApplication();
+    if (!r.ok) return toast(r.error, 'error');
+    haptic('success');
+  };
+  const resubmit = () => {
+    const r = d.resubmitApplication();
+    if (!r.ok) return toast(r.error, 'error');
+    haptic('success');
+  };
 
   const explain = (error: DriverLocationError) => {
     switch (error) {
@@ -101,6 +120,40 @@ export default function Drive() {
         onLayout={(e) => setPanelH(e.nativeEvent.layout.height)}
         style={[styles.panel, { backgroundColor: colors.background, borderColor: colors.border, borderWidth: scheme === 'dark' ? StyleSheet.hairlineWidth : 0 }, scheme === 'light' && shadows.card]}
       >
+        {d.tripNotice ? (
+          <View style={[styles.issue, { backgroundColor: colors.surfaceMuted }]} accessibilityLiveRegion="polite" testID="trip-notice">
+            <Icon name="info" size="sm" color="text" />
+            <Text variant="footnote" style={styles.flex}>
+              {d.tripNotice}
+            </Text>
+            <Pressable onPress={d.clearTripNotice} accessibilityRole="button" accessibilityLabel="Dismiss" hitSlop={8}>
+              <Icon name="close" size="xs" color="textSecondary" />
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!approved ? (
+          <>
+            <ScrollView style={{ maxHeight: Math.round(height * (height < 700 ? 0.5 : 0.55)) }} contentContainerStyle={styles.cardScroll} showsVerticalScrollIndicator={false} bounces={false}>
+              <ConnectionPill state={relay.state} host={relay.host} testID="relay-pill" />
+              <VerificationCard showAction={false} application={d.application} onOpenStep={(step) => router.push(STEP_ROUTES[step])} onSubmit={submit} onResubmit={resubmit} />
+              <Pressable onPress={() => router.push('/onboarding')} accessibilityRole="link" hitSlop={6} style={styles.allSteps}>
+                <Text variant="footnote" weight="semibold" color="textSecondary">
+                  See all registration steps
+                </Text>
+              </Pressable>
+            </ScrollView>
+            <VerificationAction application={d.application} onOpenStep={(step) => router.push(STEP_ROUTES[step])} onSubmit={submit} onResubmit={resubmit} />
+            <View style={styles.locked}>
+              <Icon name="lock" size="xs" color="textSecondary" />
+              <Text variant="caption" weight="regular" color="textSecondary" testID="online-locked">
+                Go online opens once you’re approved.
+              </Text>
+            </View>
+          </>
+        ) : (
+        <>
+        <ConnectionPill state={relay.state} host={relay.host} testID="relay-pill" />
         <View style={styles.status}>
           <StatusDot online={online} />
           <View style={styles.flex}>
@@ -155,6 +208,8 @@ export default function Drive() {
           onPress={toggle}
           testID="online-toggle"
         />
+        </>
+        )}
       </View>
     </View>
   );
@@ -200,6 +255,9 @@ const styles = StyleSheet.create({
   },
   status: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xs },
   issue: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: layout.controlRadius },
+  cardScroll: { gap: spacing.md },
+  allSteps: { alignSelf: 'center', minHeight: 32, justifyContent: 'center' },
+  locked: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
   pass: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, borderRadius: layout.controlRadius },
   passIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   dotWrap: { width: 14, height: 14, alignItems: 'center', justifyContent: 'center' },

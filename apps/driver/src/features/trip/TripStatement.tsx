@@ -35,7 +35,7 @@ const PAYMENT: Record<DriverTrip['paymentStatus'], { kind: StatusKind; label: st
   not_due: { kind: 'neutral', label: 'Not due' },
 };
 
-const CANCEL_LABEL: Record<string, string> = { rider_no_show: 'Rider didn’t come', driver_cancelled: 'You cancelled' };
+const CANCEL_LABEL: Record<string, string> = { rider_no_show: 'Rider didn’t come', driver_cancelled: 'You cancelled', rider_cancelled: 'Rider cancelled', admin_cancelled: 'Cancelled by GoBye support' };
 
 /**
  * D16 Trip detail as a branded earnings statement, matching the rider's receipt: aubergine band with the

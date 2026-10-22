@@ -24,8 +24,7 @@ export default function Licence() {
     const e = validateExpiry(expiry, Date.now());
     setErrors({ number: n.ok ? undefined : n.error, expiry: e.ok ? undefined : e.error });
     if (!n.ok || !e.ok || !photo) return;
-    updateApplication({ licence: { number: n.value, expiry: e.value, photoUri: photo } });
-    goNext('licence');
+    goNext('licence', updateApplication({ licence: { number: n.value, expiry: e.value, photoUri: photo } }, 'licence'));
   };
 
   return (

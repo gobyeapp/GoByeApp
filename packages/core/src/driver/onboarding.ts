@@ -1,4 +1,5 @@
 import type { Result, VehicleCategoryId, VerificationStatus } from '../types';
+import type { VerificationCheck, VerificationIssue } from './verification';
 
 /**
  * Driver registration (D03–D08). Pure rules shared by the driver app and, later, the backend.
@@ -60,6 +61,12 @@ export interface DriverApplication {
   submittedAt?: number;
   /** Reason shown when status is `rejected`. */
   rejectionReason?: string;
+  /** Review checks (identity, licence, vehicle, papers, background) once submitted (D-049). */
+  checks?: VerificationCheck[];
+  /** Items staff flagged; resolved when the driver saves the matching step. */
+  issues?: VerificationIssue[];
+  /** Staff note shown with a request for changes or a decision. */
+  reviewNote?: string;
 }
 
 export const emptyApplication: DriverApplication = { documents: {}, status: 'not_started' };
@@ -151,14 +158,15 @@ export function onboardingProgress(app: DriverApplication): { done: number; tota
 export function submitApplication(app: DriverApplication, now: number): Result<DriverApplication> {
   if (app.status === 'approved') return fail('Your account is already approved.');
   if (app.status === 'pending_review') return fail('Your documents are already being reviewed.');
+  if ((app.issues ?? []).some((i) => !i.resolvedAt)) return fail('Fix the items we flagged first.');
   const missing = nextOnboardingStep(app);
   if (missing) return fail('Finish every step before you submit.');
-  return ok({ ...app, status: 'pending_review', submittedAt: now, rejectionReason: undefined });
+  return ok({ ...app, status: 'pending_review', submittedAt: now, rejectionReason: undefined, reviewNote: undefined });
 }
 
 /** Status for a partly filled application that hasn't been submitted. */
 export function draftStatus(app: DriverApplication): VerificationStatus {
-  if (app.status === 'pending_review' || app.status === 'approved' || app.status === 'rejected') return app.status;
+  if (app.status === 'pending_review' || app.status === 'approved' || app.status === 'rejected' || app.status === 'changes_requested') return app.status;
   return onboardingProgress(app).done === 0 ? 'not_started' : 'in_progress';
 }
 

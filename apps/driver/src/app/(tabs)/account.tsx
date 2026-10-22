@@ -2,11 +2,12 @@ import { router } from 'expo-router';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatPhone, summariseEarnings } from '@gobye/core';
-import { Avatar, Icon, SettingsGroup, SettingsRow, Text, VehicleSummary, layout, spacing, useTheme } from '@gobye/ui';
+import { Avatar, ConnectionPill, Icon, SettingsGroup, SettingsRow, Text, VehicleSummary, layout, spacing, useTheme } from '@gobye/ui';
 import { confirmAction } from '@/features/common/confirm';
 import { passName } from '@/features/common/format';
 import { resetTo } from '@/features/navigation/reset';
 import { useDriver } from '@/state/driver';
+import { useRelayStatus } from '@/state/relay';
 import { useSession } from '@/state/session';
 import { useSettings } from '@/state/settings';
 
@@ -26,6 +27,7 @@ export default function Account() {
   const p = d.application.personal;
   const name = p ? `${p.firstName} ${p.lastName}` : 'Driver';
   const done = summariseEarnings(d.history, 0).trips;
+  const relay = useRelayStatus();
 
   const logOut = () =>
     confirmAction({
@@ -50,6 +52,9 @@ export default function Account() {
         <Avatar uri={d.application.identity?.selfieUri} name={name} size={76} />
         <View style={styles.center}>
           <Text variant="headline">{name}</Text>
+          <View style={styles.pill}>
+            <ConnectionPill state={relay.state} host={relay.host} testID="account-relay" />
+          </View>
           <View style={styles.inline}>
             <Icon name="star" variant="filled" size="xs" color="accent" />
             <Text variant="footnote" color="textSecondary">
@@ -66,6 +71,7 @@ export default function Account() {
       ) : null}
 
       <SettingsGroup title="Driving">
+ {d.verification !== 'approved' ? <SettingsRow icon="shield" title="Verification" value={d.verification === 'changes_requested' ? 'Needs a fix' : d.verification === 'pending_review' ? 'In review' : d.verification === 'rejected' ? 'Not approved' : 'Registering'} onPress={() => router.push('/onboarding/status')} testID="row-verification" /> : null}
         <SettingsRow icon="certificate" title="Documents" subtitle="Licence, ID and vehicle papers" onPress={() => router.push('/account/documents')} testID="row-documents" />
         <SettingsRow icon="ticket" title="Access pass" value={d.hasAccess ? passName(d.subscription) : 'None'} onPress={() => router.push('/access')} />
         <SettingsRow icon="bank" title="Payout account" value={d.payout ? d.payout.bankName : 'Add'} onPress={() => router.push('/account/payout')} testID="row-payout" />
@@ -118,6 +124,7 @@ const styles = StyleSheet.create({
   title: { paddingTop: spacing.xs },
   identity: { alignItems: 'center', gap: spacing.md },
   center: { alignItems: 'center', gap: 2 },
+  pill: { marginTop: spacing.xs },
   inline: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   vehicle: { borderRadius: layout.cardRadius, padding: spacing.lg },
   danger: { borderTopWidth: StyleSheet.hairlineWidth, marginTop: spacing.lg, paddingTop: spacing.lg, paddingHorizontal: spacing.xs },

@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatNaira, nairaAccessibilityLabel } from '@gobye/core';
-import { Button, EmptyState, MapSheet, SkeletonGroup, SkeletonRow, Text, layout, spacing, useTheme, useToast } from '@gobye/ui';
+import { Button, ConnectionPill, EmptyState, MapSheet, SkeletonGroup, SkeletonRow, Text, layout, spacing, useTheme, useToast } from '@gobye/ui';
 import { SearchingPulse, SimulatedNote } from '@/features/booking/components';
 import { useCancelRide, useConfirmBeforeBack } from '@/features/booking/useCancelRide';
 import { MapCanvas } from '@/features/map/MapCanvas';
@@ -11,6 +11,7 @@ import { resetTo } from '@/features/navigation/reset';
 import { useBooking } from '@/state/booking';
 import { useHaptics } from '@/state/haptics';
 import { useCategoryName } from '@/state/config';
+import { useRelayStatus } from '@/state/relay';
 
 const MATCHED = ['matched', 'driver_en_route', 'driver_arrived', 'in_progress'];
 
@@ -25,6 +26,7 @@ export default function Searching() {
   const booking = useBooking();
   const catName = useCategoryName();
   const b = booking.booking;
+  const relayState = useRelayStatus();
   const cancel = useCancelRide();
   useConfirmBeforeBack(true, cancel);
 
@@ -103,7 +105,7 @@ export default function Searching() {
                 <SkeletonRow />
               </View>
             </SkeletonGroup>
-            <SimulatedNote text="Test drivers only" />
+            {relayState.state === 'off' ? <SimulatedNote text="Test drivers only" /> : <ConnectionPill state={relayState.state} host={relayState.host} />}
             <Pressable onPress={cancel} accessibilityRole="button" style={styles.cancel} testID="cancel-search" hitSlop={4}>
               <Text variant="subhead" weight="semibold" color="danger">
                 Cancel ride

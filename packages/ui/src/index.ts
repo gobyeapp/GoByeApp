@@ -27,3 +27,4 @@ export * from './components/shared/SettingsGroup';
 // Account journeys (sign up / sign in / reset) shared by both apps.
 export * from './components/shared/auth/Journey';
 export * from './components/shared/auth/AuthKit';
+export * from './components/shared/ConnectionPill';

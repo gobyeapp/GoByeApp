@@ -568,3 +568,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Checks:** typecheck; `npm test` core 138, rider 34, driver 8; rider and driver iOS/Android exports; driver web walk-through at 390×844. Not device-tested.
 - **Next:** device testing of both apps (Expo Go / development build), then backend contracts when the owner is ready.
 
+## 2026-10-22 — Connected demo and the driver verification card (D-049)
+
+- **Driver dashboard before approval:** every signed-in driver reaches the tabs. The Drive tab shows a verification card (Register → Review → Drive; steps still to do; items staff flagged, with the fix and a Fix button; checks waiting on an outside office with the reason and since when; the next action). Go online stays locked until approved. Registration handles `changes_requested` (fix → send back for review). Without a relay the review is simulated on the phone (checks run, the FRSC licence check waits, then approval).
+- **Core:** `driver/verification.ts` (checks, waiting reasons, issue catalogue, `simulatedReview`, `requestChanges`, `resolveIssuesForStep`, `resubmitApplication`, `verificationSummary`); new status `changes_requested`; `relay/` (types, PostgREST-style client and in-memory relay, rider relay matching / trips, driver helpers, connection status). UI: `ConnectionPill`.
+- **Demo relay:** `npm run demo:relay` (`tools/demo-relay/server.mjs`, writes each app's `.env.local`); optional Supabase SQL `supabase/migrations/20261022_demo_relay.sql` (test data only; drop after).
+- **Rider:** relay-backed matching and trip tracking when configured, people row, ride sync (PIN, chosen driver, payment, cancel), ends a ride cancelled by the driver or staff with a message, connection pill.
+- **Driver:** people and application sync, staff decisions merged back, real requests from riders (claim, accept or counter), trip sync (PIN from the rider, position, stages, payment), connection pill.
+- **Admin:** Connected demo workspace (Overview with counts and activity, Driver applications review with checks / request changes / approve / reject, Rides with timeline and cancel, People).
+- **Checks:** typecheck all; tests core 149, rider 36, driver 14, admin pass; rider and driver native exports; admin build; a three-app walk against one local relay passed end to end (see TEST_PLAN). Not tried on phones yet.
+- **Next:** try it on two phones and a laptop on the same Wi-Fi (docs/DEMO_CONNECTED.md).
+

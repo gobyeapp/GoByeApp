@@ -30,6 +30,8 @@ import {
 import { useAccount } from './account';
 import { useServiceConfig } from './config';
 import { useServices } from './services';
+import { cancelRideOnRelay } from '@/features/relay/sync';
+import { getRelayRider, relay } from './relay';
 import { KEYS, readJson, writeJson } from './storage';
 
 /**
@@ -64,6 +66,11 @@ interface BookingValue {
   retry(): void;
   cancelFee(): Kobo;
   cancel(reason?: string): Result<true, string>;
+  /**
+   * The ride was ended by someone else (the driver, or GoBye staff in the admin) through the demo relay:
+   * record it as a no-fee cancellation and close the booking.
+   */
+  endRemotely(reason: string): void;
   /** Payment stage (after the trip): choose/switch method. */
   choosePaymentMethod(method: PaymentMethod): void;
   /**
@@ -296,8 +303,18 @@ export function BookingProvider({ children }: { children: ReactNode }) {
         const s = dispatch({ type: 'CANCEL', cancellation: { by: 'passenger', reason, fee, at: now } });
         if (s.error) return { ok: false, error: 'This ride can’t be cancelled now. Contact Support for help.' };
         if (b.driver) services.matching.releaseDriver(b.driver.id);
+        cancelRideOnRelay(relay, b, reason, getRelayRider());
         dispatch({ type: 'CLEAR' });
         return { ok: true, value: true };
+      },
+      endRemotely(reason) {
+        const b = stateRef.current.booking;
+        if (!b) return;
+        // A ride already under way can't be "cancelled" by the reducer; it is simply closed.
+        dispatch({ type: 'CANCEL', cancellation: { by: 'driver', reason, fee: 0 as Kobo, at: Date.now() } });
+        if (b.driver) services.matching.releaseDriver(b.driver.id);
+        dispatch({ type: 'CLEAR' });
+        setDestination(null);
       },
       choosePaymentMethod(method) {
         const b = stateRef.current.booking;

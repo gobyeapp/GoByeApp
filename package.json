@@ -16,6 +16,7 @@
     "test": "npm run test --workspaces --if-present",
     "doctor": "npm run doctor --workspaces --if-present",
     "admin": "npm run dev --workspace apps/admin",
-    "admin:build": "npm run build --workspace apps/admin"
+    "admin:build": "npm run build --workspace apps/admin",
+    "demo:relay": "node tools/demo-relay/server.mjs"
   }
 }

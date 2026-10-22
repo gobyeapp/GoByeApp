@@ -92,6 +92,10 @@ In the preview: sign in with any Nigerian mobile number (e.g. `0803 123 4567`) a
 - ⏳ Not yet run on physical devices or emulators ([`docs/DEVICE_TEST_MATRIX.md`](docs/DEVICE_TEST_MATRIX.md))
 - ⏳ Driver app (Phase 4), real maps/payments/backend (Phases 5–6)
 
+## Connected demo (rider + driver + admin)
+
+Run `npm run demo:relay`, then start the apps with `npx expo start -c` and the admin with `npm run admin`: they share test records over your Wi-Fi. Steps and the Supabase option: [docs/DEMO_CONNECTED.md](docs/DEMO_CONNECTED.md).
+
 ## Management platform
 
 The staff platform specification is in [`docs/management/`](docs/management/README.md) (11 files: foundation, every workspace module with users, screens, fields, actions, approvals, status changes, effects, jobs, states and acceptance checks, the connections between workspaces, and the implementation and verification plan). The clickable prototype is `apps/admin` (see [`apps/admin/BUILDING.md`](apps/admin/BUILDING.md)). It runs on a deterministic **test dataset** with simulated latency and failures; nothing is connected to a real provider, bank or person.

@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
-import { ONBOARDING_STEPS, type OnboardingStepId } from '@gobye/core';
+import { ONBOARDING_STEPS, isStepComplete, nextOnboardingStep, type DriverApplication, type OnboardingStepId } from '@gobye/core';
 import { AuthStepHeader, Button, Icon, Screen, ScreenHeader, Text, layout, spacing, useTheme, type IconName } from '@gobye/ui';
 
 export const STEP_ROUTES: Record<OnboardingStepId, `/onboarding/${OnboardingStepId}`> = {
@@ -22,10 +22,14 @@ export const STEP_META: Record<OnboardingStepId, { title: string; icon: IconName
   documents: { title: 'Vehicle papers', icon: 'certificate', summary: 'Licence, insurance, roadworthiness' },
 };
 
-/** After saving a step: go to the next incomplete one, or back to the checklist when all are done. */
-export function goNext(step: OnboardingStepId) {
-  const i = ONBOARDING_STEPS.indexOf(step);
-  const next = ONBOARDING_STEPS[i + 1];
+/**
+ * After saving a step: go to the next step still to do, or back to the checklist when everything is in
+ * (also after fixing an item staff flagged, so the driver can send it back for review).
+ */
+export function goNext(step: OnboardingStepId, app?: DriverApplication) {
+  if (app && !nextOnboardingStep(app)) return router.replace('/onboarding');
+  const after = ONBOARDING_STEPS.slice(ONBOARDING_STEPS.indexOf(step) + 1);
+  const next = app ? after.find((s) => !isStepComplete(app, s)) ?? nextOnboardingStep(app) : after[0];
   if (next) router.replace(STEP_ROUTES[next]);
   else router.replace('/onboarding');
 }

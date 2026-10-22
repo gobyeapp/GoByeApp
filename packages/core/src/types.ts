@@ -30,6 +30,8 @@ export type VerificationStatus =
   | 'not_started'
   | 'in_progress'
   | 'pending_review'
+  /** Staff sent it back: the driver fixes the flagged items and resubmits (D-049). */
+  | 'changes_requested'
   | 'approved'
   | 'rejected';
 

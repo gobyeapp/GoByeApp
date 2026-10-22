@@ -251,3 +251,12 @@ Not yet executed: any device/emulator test, VoiceOver/TalkBack walkthroughs, fon
 | 2026-10-22 | `npx expo export --platform android --platform ios` rider and driver | Bundles built |
 | 2026-10-22 | Driver web QA, Playwright at 390×844 | Welcome (light and dark), sign up → code → driver pass → registration with About you done, approval, trips, statement (completed and cancelled), sign in → code all pass. Not device-tested. |
 
+### Connected demo and driver verification card (2026-10-22, D-049)
+
+| Date | Check | Result |
+|---|---|---|
+| 2026-10-22 | `npm run typecheck` (core, ui, rider, driver, admin) | Pass |
+| 2026-10-22 | `npm test` → core / rider / driver / admin | **149** / **36** / **14** / admin vitest all files pass (new: relay client and rides, verification rules, rider relay sync, driver card states and relay application flow, admin demo logic) |
+| 2026-10-22 | Rider and driver `npx expo export --platform android --platform ios`; `npm run admin:build` | Built |
+| 2026-10-22 | Three-app walk in Chromium against one local relay (rider web, driver web, admin web) | Driver sign-up → card → submit → admin request changes → driver fix and resubmit → admin approve → pass → online → rider sign-up and Quick Match → driver accepts the real request → PIN from the rider → arrived / trip / complete synced both ways → rider pays → driver sees Received → admin rides and activity feed. All passed. Not device-tested; phones on Wi-Fi still to be tried. |
+

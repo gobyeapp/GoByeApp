@@ -139,6 +139,10 @@ App Review needs Rider and approved Driver demo accounts, a reviewer OTP honoure
 
 ---
 
+## 13a. Demo relay (D-049, not the backend)
+
+The connected demo uses `packages/core/src/relay` and `tools/demo-relay` (docs/DEMO_CONNECTED.md). Its tables show which party writes which field (rider: PIN, chosen driver, payment; driver: claim, position, stages; staff: review, cancellation) and the review model in `driver/verification.ts` (checks, outside-delay reasons, issues, `changes_requested`). Treat it as a reference for flows and copy, not as the API: the backend needs auth, server-side matching, pushed updates and a PIN that never leaves the server.
+
 ## 14. Mock service interfaces (current) and how to swap them
 
 From `ARCHITECTURE.md` §5:

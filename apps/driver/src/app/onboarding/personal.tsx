@@ -23,8 +23,7 @@ export default function Personal() {
     const e = validateEmail(email);
     setErrors({ first: f.ok ? undefined : f.error, last: l.ok ? undefined : l.error, email: e.ok ? undefined : e.error });
     if (!f.ok || !l.ok || !e.ok) return;
-    updateApplication({ personal: { firstName: f.value, lastName: l.value, email: e.value, city } });
-    goNext('personal');
+    goNext('personal', updateApplication({ personal: { firstName: f.value, lastName: l.value, email: e.value, city } }, 'personal'));
   };
 
   return (

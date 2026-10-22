@@ -3,10 +3,11 @@ import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatPhone } from '@gobye/core';
-import { Avatar, Bone, Icon, SkeletonGroup, Text, layout, spacing, useTheme } from '@gobye/ui';
+import { Avatar, Bone, ConnectionPill, Icon, SkeletonGroup, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { ProfilePhotoSheet } from '@/features/account/ProfilePhotoSheet';
 import { SettingsGroup, SettingsGroupSkeleton, SettingsRow } from '@/features/account/ui';
 import { useAccount } from '@/state/account';
+import { useRelayStatus } from '@/state/relay';
 import { useSession } from '@/state/session';
 
 const APPEARANCE_LABEL = { system: 'System', light: 'Light', dark: 'Dark' } as const;
@@ -29,6 +30,7 @@ export default function Account() {
   const { user, status, signOut } = useSession();
   const { settings, updateSettings, ready } = useAccount();
   const [photoOpen, setPhotoOpen] = useState(false);
+  const relay = useRelayStatus();
   const name = user ? `${user.firstName} ${user.lastName}`.trim() : '';
   const loading = status === 'loading' || !ready;
 
@@ -125,9 +127,13 @@ export default function Account() {
             <SettingsRow icon="delete" title="Delete account" destructive trailing="none" onPress={() => router.push('/account/delete')} testID="row-delete" />
           </View>
 
-          <Text variant="caption" color="textSecondary" align="center">
-            GoBye preview 0.1.0
-          </Text>
+          <View style={styles.foot}>
+            {/* Where this demo's rides go: the shared demo relay (driver app and admin see them) or this phone only. */}
+            <ConnectionPill state={relay.state} host={relay.host} testID="relay-status" />
+            <Text variant="caption" color="textSecondary" align="center">
+              GoBye preview 0.1.0
+            </Text>
+          </View>
         </>
       )}
       <ProfilePhotoSheet visible={photoOpen} onClose={() => setPhotoOpen(false)} />
@@ -138,6 +144,7 @@ export default function Account() {
 const styles = StyleSheet.create({
   content: { paddingHorizontal: layout.page, paddingBottom: spacing.xxl, gap: spacing.lg },
   title: { paddingTop: spacing.xs },
+  foot: { alignItems: 'center', gap: spacing.sm },
   identity: { alignItems: 'center', gap: spacing.md },
   identityInner: { alignItems: 'center', gap: spacing.sm, alignSelf: 'center' },
   identityText: { alignItems: 'center', gap: 2 },

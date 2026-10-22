@@ -347,3 +347,13 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Shared code:** the journey building blocks (`JourneyFlow`, `JourneyField`, `PasswordRules`, `ChoiceTile`, `SocialButtons`, `MemberPass`, …) moved from the rider app into `@gobye/ui` (D-043), so both apps use one implementation.
 - **Trip detail:** a branded earnings statement (aubergine band, what the driver earned, payment received or pending, timeline, rider, ₦0 commission, copyable reference), matching the rider receipt.
 - **Backend:** unchanged contracts; all simulated (D-044, D-045). Accounts persist on the device in the preview (`authStore`).
+
+## D-049 — Connected demo: rider, driver and admin share test records through a demo relay (2026-10-22, owner)
+
+- **Decision (owner: "make sure rider and driver are now connected to admin end to end even though this is a demo"):** a small REST relay with the Supabase / PostgREST query shape connects the three apps. Locally `npm run demo:relay` (same Wi-Fi, writes each app's `.env.local`); remotely the optional `demo_*` tables in Supabase. Without a relay address every app still runs fully simulated on its own.
+- **What is shared:** sign-ups (riders and drivers), driver applications and staff review (checks, waiting reasons, requests for changes, approve, reject), rides (Quick Match claims, negotiated offers and driver answers, the pickup PIN, driver position, every stage, payment status, cancellations by rider, driver or staff) and an activity feed. See docs/DEMO_CONNECTED.md.
+- **Driver dashboard before approval (owner):** signed-in drivers always reach the dashboard. Until approved a verification card shows the stage (Register → Review → Drive), the registration steps still to do, items staff flagged with how to fix them, and checks held up by an outside office (NIMC, FRSC, inspection slot, insurer, background check) with the reason and since when. Go online stays locked until approval. Without a relay the review is simulated on the phone, including an FRSC wait.
+- **New status:** `changes_requested` (staff sent it back; fixing a step resolves its items; the driver resubmits).
+- **Safety and honesty:** test data only, labelled as demo in every app. Photos never leave the phone; ID and licence numbers are masked to the last four. The pickup PIN travels through the relay in the demo only (a real backend never exposes it like this). The Supabase demo tables are writable with the anon key and must be dropped after the demo; the service role key is never used in an app.
+- **Not production:** polling every 2–3 s, no auth, no conflict handling beyond "first driver to claim wins". The real backend contract stays in BACKEND_HANDOVER.md.
+

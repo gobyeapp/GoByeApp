@@ -14,6 +14,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SystemUI from 'expo-system-ui';
 import { ToastProvider, useTheme } from '@gobye/ui';
 import { AccountProvider, useAccount } from '@/state/account';
+import { RelaySync } from '@/features/relay/RelaySync';
 import { BookingProvider } from '@/state/booking';
 import { ServiceConfigProvider } from '@/state/config';
 import { WalletProvider } from '@/state/wallet';
@@ -39,6 +40,7 @@ export default function RootLayout() {
                       <BookingProvider>
                         <ToastProvider>
                           <AppStack />
+                          <RelaySync />
                         </ToastProvider>
                       </BookingProvider>
                   </LocationProvider>

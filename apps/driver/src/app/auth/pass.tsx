@@ -10,8 +10,8 @@ import { useSession } from '@/state/session';
 
 /**
  * End of Create account (driver): the driver pass rises in with a slight tilt that settles (still under
- * Reduce Motion). "Start registration" saves what the driver already told us (name, email, city) as
- * About you, so registration opens on the licence step.
+ * Reduce Motion). "Go to my dashboard" saves what the driver already told us (name, email, city) as
+ * About you, then opens the Drive tab, where a card shows what's left to register (licence next).
  */
 export default function DriverPassScreen() {
   const { colors } = useTheme();
@@ -38,9 +38,9 @@ export default function DriverPassScreen() {
 
   const start = () => {
     if (!application.personal && profile?.firstName && profile.lastName && profile.city) {
-      updateApplication({ personal: { firstName: profile.firstName, lastName: profile.lastName, email: profile.email || undefined, city: profile.city } });
+      updateApplication({ personal: { firstName: profile.firstName, lastName: profile.lastName, email: profile.email || undefined, city: profile.city } }, 'personal');
     }
-    resetTo('/');
+    resetTo('/(tabs)');
   };
 
   return (
@@ -56,7 +56,7 @@ export default function DriverPassScreen() {
       <Animated.View style={[styles.pass, passStyle]}>
         <MemberPass tag="DRIVER PASS" testID="driver-pass" name={name} city={profile?.city ?? 'Lagos'} placeLabel="Drives in" since={since} note="Phone verified. Registration comes next." />
       </Animated.View>
-      <Button variant="brand" title="Start registration" onPress={start} testID="pass-done" />
+      <Button variant="brand" title="Go to my dashboard" onPress={start} testID="pass-done" />
     </View>
   );
 }

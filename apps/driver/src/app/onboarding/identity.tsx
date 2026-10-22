@@ -24,8 +24,7 @@ export default function Identity() {
     const v = validateIdentityNumber(type, number);
     setError(v.ok ? undefined : v.error);
     if (!v.ok || !selfie) return;
-    updateApplication({ identity: { type, number: v.value, selfieUri: selfie } });
-    goNext('identity');
+    goNext('identity', updateApplication({ identity: { type, number: v.value, selfieUri: selfie } }, 'identity'));
   };
 
   return (

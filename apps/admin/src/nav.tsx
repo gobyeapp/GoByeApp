@@ -34,6 +34,13 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    title: 'Demo',
+    items: [
+      // Connected demo (D-049): rider app, driver app and admin on the shared demo relay.
+      { path: '/demo', label: 'Connected demo', icon: 'link', anyOf: ['overview.view', 'drivers.view', 'trips.view', 'live.view'], page: L(() => import('@/workspaces/demo/Demo')) },
+    ],
+  },
+  {
     title: 'Operations',
     items: [
       { path: '/live', label: 'Live operations', icon: 'radar', anyOf: ['live.view'], page: L(() => import('@/workspaces/operations/Live')), badge: (d) => d.trips.filter((t) => (t.status === 'en_route' && (t.pickupDelaySeconds ?? 0) > 300) || t.status === 'searching').length },

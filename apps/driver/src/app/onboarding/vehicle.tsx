@@ -26,8 +26,7 @@ export default function Vehicle() {
     const pl = validatePlate(plate);
     setErrors({ make: mk.ok ? undefined : mk.error, model: md.ok ? undefined : md.error, year: yr.ok ? undefined : yr.error, colour: cl.ok ? undefined : cl.error, plate: pl.ok ? undefined : pl.error });
     if (!mk.ok || !md.ok || !yr.ok || !cl.ok || !pl.ok) return;
-    updateApplication({ vehicle: { category, make: mk.value, model: md.value, year: yr.value, colour: cl.value, plate: pl.value } });
-    goNext('vehicle');
+    goNext('vehicle', updateApplication({ vehicle: { category, make: mk.value, model: md.value, year: yr.value, colour: cl.value, plate: pl.value } }, 'vehicle'));
   };
 
   return (
