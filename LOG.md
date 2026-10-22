@@ -588,4 +588,5 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - Owner: the home page was too long to scroll. Additional features and Safety are now sideways sliders (swipe, mouse drag, arrow keys, previous / next buttons and a progress line; the row bleeds to the screen edge so the next tile peeks in). On phones the photo mosaic ("Built for the way your city moves") and the comparison cards also become sliders. On laptops the three safety cards still fit in one row. Section spacing 120 → 96 px.
 - Page height: phone 11,646 → 8,645 px (−26%); desktop 9,070 → 8,562 px. Checked in Chromium at 1440×900 and 390×844, the For riders / For drivers switch (sliders reset to the first tile), keyboard and drag. No console errors.
+- Same sliders on the "For drivers" view of the page (Built for the way you drive, Your car / your hours, Keep more of every fare, Safer trips). Phone height with drivers selected: 8,535 px. Site files now load with a version (`?v=2026102202`) so browsers fetch the new styles and script instead of a cached copy. Redeploy the site (Vercel) for visitors to see it.
 
