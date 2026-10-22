@@ -167,55 +167,96 @@
   </div>
 </footer>
 
-<dialog class="sheet" id="waitlist" aria-labelledby="wl-title">
+<dialog class="sheet wl" id="waitlist" aria-labelledby="wl-title">
   <div class="sheet-body">
     <div class="sheet-hero">
       <button class="x" type="button" id="wl-close" aria-label="Close"><span class="icon" data-icon="close"></span></button>
-      <span class="sheet-mark"><img src="assets/logo-mark-inverse.png" alt="" width="28" height="28" /></span>
       <p class="sheet-eyebrow">EARLY ACCESS</p>
       <h2 id="wl-title">Join the waitlist</h2>
-      <p class="sheet-sub">Be first to hear when GoBYE launches in your city.</p>
+      <div class="route" id="wl-route" aria-hidden="true">
+        <div class="route-line"><span class="route-fill"></span></div>
+        <span class="stop" style="--x:0"></span><span class="stop" style="--x:1"></span><span class="stop" style="--x:2"></span><span class="stop" style="--x:3"></span>
+        <span class="route-car"><span class="icon" data-icon="car"></span></span>
+        <div class="route-labels"><span>You</span><span>Role</span><span>City</span><span>Contact</span></div>
+      </div>
+      <p class="sr" id="wl-live" aria-live="polite"></p>
     </div>
 
     <form id="waitlist-form" novalidate>
-      <div class="field">
-        <label for="wl-name">Full name</label>
-        <div class="input-ico"><span class="icon" data-icon="user" aria-hidden="true"></span><input id="wl-name" name="name" type="text" autocomplete="name" autocapitalize="words" placeholder="Ada Okafor" required maxlength="80" aria-describedby="wl-name-err" /></div>
-        <span class="err" id="wl-name-err" hidden></span>
-      </div>
-      <div class="field">
-        <label for="wl-email">Email address</label>
-        <div class="input-ico"><span class="icon" data-icon="mail" aria-hidden="true"></span><input id="wl-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required aria-describedby="wl-email-err" /></div>
-        <span class="err" id="wl-email-err" hidden></span>
-      </div>
-      <div class="field">
-        <label for="wl-phone">Phone number</label>
-        <div class="input-ico phone"><span class="icon" data-icon="phone" aria-hidden="true"></span><span class="cc" aria-hidden="true">+234</span><input id="wl-phone" name="phone" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="803 123 4567" required maxlength="18" aria-describedby="wl-phone-err" /></div>
-        <span class="err" id="wl-phone-err" hidden></span>
-      </div>
-      <fieldset class="field" id="wl-city" aria-describedby="wl-city-err">
-        <legend>City</legend>
-        <div class="chips" id="wl-city-opts"></div>
-        <span class="err" id="wl-city-err" hidden></span>
-      </fieldset>
-      <fieldset class="field" id="wl-intent" aria-describedby="wl-intent-err">
-        <legend>I want to</legend>
-        <div class="choice">
-          <label><input type="radio" name="intent" value="ride" id="wl-ride" /><span class="icon" data-icon="mapPin" aria-hidden="true"></span><span>Ride</span></label>
-          <label><input type="radio" name="intent" value="drive" id="wl-drive" /><span class="icon" data-icon="steering" aria-hidden="true"></span><span>Drive</span></label>
+      <div class="wsteps" id="wl-steps">
+        <div class="wtrack">
+          <section class="wstep" data-step="0" aria-labelledby="wl-q0">
+            <h3 class="q" id="wl-q0">First, what should we call you?</h3>
+            <p class="hint">Your early access pass will carry your name.</p>
+            <div class="field">
+              <label class="sr" for="wl-name">Full name</label>
+              <div class="input-ico big"><span class="icon" data-icon="user" aria-hidden="true"></span><input id="wl-name" name="name" type="text" autocomplete="name" autocapitalize="words" placeholder="Your full name" required maxlength="80" aria-describedby="wl-name-err" /></div>
+              <span class="err" id="wl-name-err" hidden></span>
+            </div>
+          </section>
+
+          <section class="wstep" data-step="1" aria-labelledby="wl-q1">
+            <h3 class="q" id="wl-q1">How will you use GoBYE<span class="first"></span>?</h3>
+            <p class="hint">Pick one. You can always do both later.</p>
+            <fieldset class="field" id="wl-intent" aria-describedby="wl-intent-err">
+              <legend class="sr">I want to</legend>
+              <div class="role">
+                <label><input type="radio" name="intent" value="ride" id="wl-ride" /><img src="assets/ui/destination.webp" alt="" draggable="false" /><span class="tick" aria-hidden="true"><span class="icon" data-icon="check"></span></span><b>Ride</b><span>Fares agreed before you go.</span></label>
+                <label><input type="radio" name="intent" value="drive" id="wl-drive" /><img src="assets/ui/sedan.webp" alt="" draggable="false" /><span class="tick" aria-hidden="true"><span class="icon" data-icon="check"></span></span><b>Drive</b><span>Keep the full fare. 0% commission.</span></label>
+              </div>
+              <span class="err" id="wl-intent-err" hidden></span>
+            </fieldset>
+          </section>
+
+          <section class="wstep" data-step="2" aria-labelledby="wl-q2">
+            <h3 class="q" id="wl-q2">Where should we start?</h3>
+            <p class="hint">We launch in Lagos and Abuja first.</p>
+            <fieldset class="field" id="wl-city" aria-describedby="wl-city-err">
+              <legend class="sr">City</legend>
+              <div class="cities-pick" id="wl-city-opts"></div>
+              <span class="err" id="wl-city-err" hidden></span>
+            </fieldset>
+          </section>
+
+          <section class="wstep" data-step="3" aria-labelledby="wl-q3">
+            <h3 class="q" id="wl-q3">How do we reach you?</h3>
+            <p class="hint">Only for launch news. No spam, ever.</p>
+            <div class="field">
+              <label for="wl-email">Email address</label>
+              <div class="input-ico"><span class="icon" data-icon="mail" aria-hidden="true"></span><input id="wl-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required aria-describedby="wl-email-err" /></div>
+              <span class="err" id="wl-email-err" hidden></span>
+            </div>
+            <div class="field">
+              <label for="wl-phone">Phone number</label>
+              <div class="input-ico phone"><span class="icon" data-icon="phone" aria-hidden="true"></span><span class="cc" aria-hidden="true">+234</span><input id="wl-phone" name="phone" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="803 123 4567" required maxlength="18" aria-describedby="wl-phone-err" /></div>
+              <span class="err" id="wl-phone-err" hidden></span>
+            </div>
+          </section>
         </div>
-        <span class="err" id="wl-intent-err" hidden></span>
-      </fieldset>
+      </div>
+
       <div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label></div>
       <p class="form-error" id="wl-error" role="alert" hidden></p>
-      <button class="btn btn-primary wl-submit" type="submit" id="wl-submit"><span>Join the waitlist</span><span class="btn-arrow" aria-hidden="true"><span class="icon" data-icon="arrow"></span></span></button>
+      <div class="wl-actions">
+        <button class="round-back" type="button" id="wl-back" aria-label="Back"><span class="icon flip" data-icon="arrow" aria-hidden="true"></span></button>
+        <button class="btn btn-primary wl-submit" type="submit" id="wl-submit"><span class="lbl">Continue</span><span class="btn-arrow" aria-hidden="true"><span class="icon" data-icon="arrow"></span></span></button>
+      </div>
       <p class="form-note"><span class="icon" data-icon="shield" aria-hidden="true"></span>We’ll only use your details for GoBYE launch news.</p>
     </form>
 
     <div class="result" id="wl-result" hidden role="status" aria-live="polite">
-      <div class="badge"></div>
       <h3></h3>
-      <p></p>
+      <p class="result-msg"></p>
+      <div class="pass" id="wl-pass" hidden>
+        <div class="pass-top"><img src="assets/logo-mark-inverse.png" alt="" width="26" height="26" /><b>GoBYE</b><span>EARLY ACCESS PASS</span></div>
+        <div class="pass-body">
+          <div class="kv wide"><small>Name</small><span id="pass-name"></span></div>
+          <div class="kv"><small>Joining as</small><span id="pass-role"></span></div>
+          <div class="kv"><small>City</small><span id="pass-city"></span></div>
+        </div>
+        <div class="pass-cut" aria-hidden="true"></div>
+        <div class="pass-foot"><span class="ok-dot" aria-hidden="true"><span class="icon" data-icon="check"></span></span><span id="pass-note"></span></div>
+      </div>
       <button class="btn btn-primary" type="button" id="wl-done">Done</button>
     </div>
   </div>

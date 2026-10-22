@@ -130,41 +130,23 @@
     var useSupabase = isUrl(sb.url) && !!sb.anonKey;
     var noEndpoint = !useSupabase && !C.waitlist.endpoint; // nothing can be stored until one is set
     var opened = null;
-    var submitIdle = $('#wl-submit').innerHTML; // restored after each attempt
+    var STEPS = 4;
+    var step = 0;
+    var steps = form.querySelectorAll('.wstep');
+    var track = form.querySelector('.wtrack');
+    var view = $('#wl-steps');
+    var route = $('#wl-route');
+    var btn = $('#wl-submit');
+    var back = $('#wl-back');
+    var NAMES = ['Your name', 'Ride or drive', 'Your city', 'How to reach you'];
+
+    var cityLine = { Lagos: 'Launching first', Abuja: 'Launching first' };
     $('#wl-city-opts').innerHTML = C.waitlist.cities.map(function (c, i) {
-      return '<label class="chip"><input type="radio" name="city" value="' + esc(c) + '" id="wl-city-' + i + '">' + esc(c) + '</label>';
+      var other = !cityLine[c];
+      return '<label class="ctile' + (other ? ' wide' : '') + '"><input type="radio" name="city" value="' + esc(c) + '" id="wl-city-' + i + '">' +
+        icon('mapPin') + '<span><b>' + esc(c) + '</b><small>' + (other ? 'Tell us where you are' : cityLine[c]) + '</small></span></label>';
     }).join('');
 
-    function open(e) {
-      opened = e && e.currentTarget;
-      showForm();
-      // Start from the audience the visitor is reading about; they can still change it.
-      var want = opened && opened.getAttribute && opened.getAttribute('data-intent');
-      if (want) { var r = document.getElementById(want === 'drive' ? 'wl-drive' : 'wl-ride'); if (r) r.checked = true; }
-      else if (!form.querySelector('input[name="intent"]:checked')) {
-        var pre = document.getElementById(audience === 'driver' ? 'wl-drive' : 'wl-ride');
-        if (pre) pre.checked = true;
-      }
-      if (typeof dlg.showModal === 'function') dlg.showModal();
-      else dlg.setAttribute('open', '');
-      setTimeout(function () { $('#wl-name').focus(); }, 30);
-    }
-    function close() {
-      if (typeof dlg.close === 'function') dlg.close();
-      else dlg.removeAttribute('open');
-      if (opened) opened.focus();
-    }
-    function showForm() {
-      form.hidden = false;
-      $('#wl-result').hidden = true;
-      $('#wl-error').hidden = true;
-    }
-    function fieldError(id, msg) {
-      var input = document.getElementById(id);
-      var err = document.getElementById(id + '-err');
-      if (input) input.setAttribute('aria-invalid', msg ? 'true' : 'false');
-      if (err) { err.textContent = msg || ''; err.hidden = !msg; }
-    }
     // Nigerian mobile numbers: accept 0803..., 803..., +234 803..., 234803...; store as +2348031234567.
     function normPhone(v) {
       var d = String(v || '').replace(/\D/g, '');
@@ -172,75 +154,137 @@
       if (d.charAt(0) === '0') d = d.slice(1);
       return /^[789][01]\d{8}$/.test(d) ? '+234' + d : null;
     }
-    function validate() {
-      var name = $('#wl-name').value.replace(/\s+/g, ' ').trim();
-      var phone = normPhone($('#wl-phone').value);
-      var email = $('#wl-email').value.trim();
-      var city = (form.querySelector('input[name="city"]:checked') || {}).value;
-      var intent = (form.querySelector('input[name="intent"]:checked') || {}).value;
-      var ok = true;
-      if (name.length < 2) { fieldError('wl-name', 'Enter your full name'); ok = false; } else fieldError('wl-name');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { fieldError('wl-email', 'Enter an email address like name@example.com'); ok = false; } else fieldError('wl-email');
-      if (!phone) { fieldError('wl-phone', 'Enter a Nigerian mobile number, like 0803 123 4567'); ok = false; } else fieldError('wl-phone');
-      if (!city) { fieldError('wl-city', 'Choose a city'); ok = false; } else fieldError('wl-city');
-      if (!intent) { fieldError('wl-intent', 'Choose ride or drive'); ok = false; } else fieldError('wl-intent');
-      return ok ? { full_name: name, email: email, phone: phone, city: city, intent: intent, source: 'website' } : null;
+    var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    function fieldError(id, msg) {
+      var input = document.getElementById(id);
+      var err = document.getElementById(id + '-err');
+      if (input) input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      if (err) { err.textContent = msg || ''; err.hidden = !msg; }
+      if (msg) fitHeight();
     }
-    function result(kind, title, body) {
+    var val = {
+      name: function () { return $('#wl-name').value.replace(/\s+/g, ' ').trim(); },
+      intent: function () { return (form.querySelector('input[name="intent"]:checked') || {}).value; },
+      city: function () { return (form.querySelector('input[name="city"]:checked') || {}).value; },
+    };
+    // Checks one step; returns true when it may move on.
+    function check(n) {
+      if (n === 0) { if (val.name().length < 2) { fieldError('wl-name', 'Enter your full name'); return false; } fieldError('wl-name'); return true; }
+      if (n === 1) { if (!val.intent()) { fieldError('wl-intent', 'Choose ride or drive'); return false; } fieldError('wl-intent'); return true; }
+      if (n === 2) { if (!val.city()) { fieldError('wl-city', 'Choose a city'); return false; } fieldError('wl-city'); return true; }
+      var ok = true;
+      if (!EMAIL.test($('#wl-email').value.trim())) { fieldError('wl-email', 'Enter an email address like name@example.com'); ok = false; } else fieldError('wl-email');
+      if (!normPhone($('#wl-phone').value)) { fieldError('wl-phone', 'Enter a Nigerian mobile number, like 0803 123 4567'); ok = false; } else fieldError('wl-phone');
+      return ok;
+    }
+
+    function fitHeight() {
+      var cur = steps[step];
+      if (cur) view.style.height = cur.offsetHeight + 'px';
+    }
+    function setRoute(n) {
+      var pct = Math.min(n, STEPS - 1) / (STEPS - 1);
+      route.style.setProperty('--p', String(pct));
+      route.querySelectorAll('.stop').forEach(function (s, i) { s.classList.toggle('done', i < n || n >= STEPS); });
+      route.classList.toggle('arrived', n >= STEPS);
+    }
+    function go(n, focus) {
+      step = Math.max(0, Math.min(STEPS - 1, n));
+      track.style.transform = 'translateX(' + (-100 * step) + '%)';
+      steps.forEach(function (s, i) { var on = i === step; s.toggleAttribute('inert', !on); s.setAttribute('aria-hidden', String(!on)); });
+      back.hidden = step === 0;
+      $('.lbl', btn).textContent = step === STEPS - 1 ? 'Get my pass' : 'Continue';
+      var first = val.name().split(' ')[0];
+      form.querySelector('.first').textContent = first ? ', ' + first : '';
+      setRoute(step);
+      $('#wl-live').textContent = 'Step ' + (step + 1) + ' of ' + STEPS + ': ' + NAMES[step];
+      fitHeight();
+      if (focus !== false) setTimeout(function () {
+        var t = steps[step].querySelector('input:checked') || steps[step].querySelector('input:not([type="radio"])') || steps[step].querySelector('input');
+        if (t) t.focus({ preventScroll: true });
+      }, reduce() ? 0 : 380);
+    }
+
+    function open(e) {
+      opened = e && e.currentTarget;
+      form.hidden = false;
+      $('#wl-result').hidden = true;
+      $('#wl-error').hidden = true;
+      // Start from the audience the visitor is reading about, or the link they used; they can still change it.
+      var want = opened && opened.getAttribute && opened.getAttribute('data-intent');
+      var pre = document.getElementById((want || (audience === 'driver' ? 'drive' : 'ride')) === 'drive' ? 'wl-drive' : 'wl-ride');
+      if (pre && (want || !val.intent())) pre.checked = true;
+      if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+      go(0);
+    }
+    function close() {
+      if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');
+      if (opened) opened.focus();
+    }
+    function result(kind, title, body, d) {
       form.hidden = true;
       var r = $('#wl-result');
       r.hidden = false;
-      $('.badge', r).className = 'badge ' + kind;
-      $('.badge', r).innerHTML = icon(kind === 'ok' ? 'check' : 'info');
+      r.className = 'result ' + kind;
       $('h3', r).textContent = title;
-      $('p', r).textContent = body;
+      $('.result-msg', r).textContent = kind === 'ok' ? '' : body;
+      var pass = $('#wl-pass');
+      pass.hidden = kind !== 'ok';
+      if (kind === 'ok' && d) {
+        $('#pass-name').textContent = d.full_name || '';
+        $('#pass-role').textContent = d.intent === 'drive' ? 'Driver' : 'Rider';
+        $('#pass-city').textContent = d.city;
+        $('#pass-note').textContent = body;
+        setRoute(STEPS);
+      }
       $('#wl-done').focus();
     }
 
     document.querySelectorAll('[data-open-waitlist]').forEach(function (b) { b.addEventListener('click', open); });
-    // Clear each error as soon as that field is fixed.
-    $('#wl-email').addEventListener('input', function () {
-      if ($('#wl-email').getAttribute('aria-invalid') === 'true' && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('#wl-email').value.trim())) fieldError('wl-email');
-    });
-    $('#wl-name').addEventListener('input', function () { if ($('#wl-name').value.trim().length >= 2) fieldError('wl-name'); });
-    $('#wl-phone').addEventListener('input', function () { if (normPhone($('#wl-phone').value)) fieldError('wl-phone'); });
-    form.addEventListener('change', function (e) {
-      if (e.target.name === 'city') fieldError('wl-city');
-      if (e.target.name === 'intent') fieldError('wl-intent');
-    });
     $('#wl-close').addEventListener('click', close);
     $('#wl-done').addEventListener('click', close);
+    back.addEventListener('click', function () { go(step - 1); });
     dlg.addEventListener('click', function (e) { if (e.target === dlg) close(); });
     dlg.addEventListener('cancel', function (e) { e.preventDefault(); close(); });
+    window.addEventListener('resize', fitHeight);
 
+    // Clear each error as soon as that field is fixed; a tap on a card or city moves on by itself.
+    $('#wl-name').addEventListener('input', function () { if (val.name().length >= 2) fieldError('wl-name'); });
+    $('#wl-email').addEventListener('input', function () { if ($('#wl-email').getAttribute('aria-invalid') === 'true' && EMAIL.test($('#wl-email').value.trim())) fieldError('wl-email'); });
+    $('#wl-phone').addEventListener('input', function () { if (normPhone($('#wl-phone').value)) fieldError('wl-phone'); });
+    form.addEventListener('change', function (e) {
+      if (e.target.name === 'intent') { fieldError('wl-intent'); if (step === 1) setTimeout(function () { go(2); }, 260); }
+      if (e.target.name === 'city') { fieldError('wl-city'); if (step === 2) setTimeout(function () { go(3); }, 260); }
+    });
+    // A click on an already selected card also moves on.
+    form.addEventListener('click', function (e) {
+      var lab = e.target.closest && e.target.closest('.role label, .ctile');
+      if (!lab) return;
+      var inp = lab.querySelector('input');
+      if (inp && inp.checked && e.detail > 0) { var s = step; setTimeout(function () { if (step === s && check(s)) go(s + 1); }, 260); }
+    });
+
+    var submitIdle = btn.innerHTML;
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var data = validate();
-      if (!data) {
-        var bad = form.querySelector('[aria-invalid="true"]');
-        if (bad) (bad.tagName === 'FIELDSET' ? bad.querySelector('input') : bad).focus();
-        return;
-      }
-      var btn = $('#wl-submit');
+      if (step < STEPS - 1) { if (check(step)) go(step + 1); return; }
+      if (!check(3)) { var bad = steps[3].querySelector('[aria-invalid="true"]'); if (bad) bad.focus(); return; }
+      for (var i = 0; i < 3; i++) if (!check(i)) { go(i); return; }
+      var data = { full_name: val.name(), email: $('#wl-email').value.trim(), phone: normPhone($('#wl-phone').value), city: val.city(), intent: val.intent(), source: 'website' };
       btn.disabled = true;
-      btn.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Joining</span>';
+      btn.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Saving your pass</span>';
       $('#wl-error').hidden = true;
-      var done = function () { btn.disabled = false; btn.innerHTML = submitIdle; };
+      var done = function () { btn.disabled = false; btn.innerHTML = submitIdle; $('.lbl', btn).textContent = 'Get my pass'; };
+      var place = data.city === 'Another city' ? 'your city' : data.city;
+      var okNote = 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.';
 
       if (noEndpoint) {
-        // Prototype: nothing is sent or stored. Never shown as a registration.
-        setTimeout(function () {
-          done();
-          result('soon', 'Sign ups open soon', 'We aren’t taking sign ups just yet, so ' + data.email + ' wasn’t saved. Please check back soon.');
-        }, 700);
+        // Nothing can be stored; never shown as a registration.
+        setTimeout(function () { done(); result('soon', 'Sign ups open soon', 'We aren’t taking sign ups just yet, so your details weren’t saved. Please check back soon.'); }, 700);
         return;
       }
       // Bots fill the hidden field; humans never see it. Pretend it worked and store nothing.
-      if (form.querySelector('[name="company"]') && form.querySelector('[name="company"]').value) {
-        setTimeout(function () { done(); result('ok', 'You’re on the list', 'Thanks.'); }, 600);
-        return;
-      }
-      var place = data.city === 'Another city' ? 'your city' : data.city;
+      if (form.querySelector('[name="company"]').value) { setTimeout(function () { done(); result('ok', 'You’re on the list', okNote, data); }, 600); return; }
       var req = useSupabase
         ? fetch(sb.url.replace(/\/+$/, '') + '/rest/v1/' + encodeURIComponent(sb.table || 'waitlist'), {
             method: 'POST',
@@ -252,18 +296,19 @@
         .then(function (res) {
           done();
           // Already signed up: the database refused a duplicate email, so they are on the list.
-          if (res.status === 409) { result('ok', 'You’re already on the list', 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.'); return; }
+          if (res.status === 409) { result('ok', 'You’re already on the list', okNote, data); return; }
           if (!res.ok) throw new Error(String(res.status));
           // Success only after the backend confirms it stored the sign up.
-          result('ok', 'You’re on the list', 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.');
+          result('ok', 'You’re on the list', okNote, data);
         })
         .catch(function () {
           done();
           var er = $('#wl-error');
           er.hidden = false;
-          er.textContent = 'We couldn’t add you just now. Your details are still here; try again in a moment.';
+          er.textContent = 'We couldn’t save your pass just now. Your details are still here; try again in a moment.';
         });
     });
+    go(0, false);
   }
 
   /* ---------- Hero video: pause control, reduced motion, blocked autoplay ---------- */

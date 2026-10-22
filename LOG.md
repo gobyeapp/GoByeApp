@@ -427,3 +427,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Supabase:** `20261022_waitlist.sql` now creates `full_name` and `phone` (not null, checked). For tables created earlier, `20261022b_waitlist_contact.sql` adds both columns with NOT VALID checks (enforced for new rows) and grants anon insert on them.
   - **Tested:** Playwright against the Supabase stand-in with six phone formats, an invalid number and a short name. The payload is `{full_name, email, phone, city, intent, source}`.
   - Phone numbers are personal data: the privacy notice (Q-063) is now more pressing.
+- **Website: waitlist redesigned as a four step journey (owner: "be very creative with the form").**
+  - **Route header:** a route with four stops (You, Role, City, Contact); a white car chip drives along an orange fill and turns orange on arrival.
+  - **One question per step, sliding horizontally:**
+    1. Name ("First, what should we call you?").
+    2. Ride or Drive as illustrated cards with the 3D pin and car; the question uses the visitor's first name.
+    3. City tiles.
+    4. Email and phone.
+  - **Navigation:** tapping a card or tile moves on by itself; there is a back button; Enter continues; errors appear per step; the height animates to each step.
+  - **Success:** an "Early access pass" ticket with name, role and city, a perforation and the confirmation line.
+  - **Accessibility:** inactive steps are `inert`, a live region announces "Step n of 4", and reduced motion removes the transitions.
+  - The Supabase payload is unchanged. Tested on desktop and phone: per-step errors, auto advance, back, the payload, the pass content and 409 handling.
