@@ -539,3 +539,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Checked:** every step on 390×844 and 375×667 with nothing cut off and no scrolling; tests updated (rider 33); typecheck passes; the rider iOS + Android export builds.
 - **Buttons: arrow chip removed everywhere (owner).** The welcome, sign-in / sign-up / reset / verify CTAs, Start riding and driver Get started no longer show the arrow. The `trailingIcon` option stays in `Button` but is unused.
 - **Rider: Apple and Google made prominent again; fare chip removed from the welcome (owner).** The welcome adds "or continue with" Apple and Google (solid logos via the new `Button` option `leadingIconFilled`). The first step of Create account and Sign in now leads with full-width Continue with Apple / Google, then "or", then the field. Those steps no longer open the keyboard, so nothing hides the buttons. The "Agreed fare ₦7,200" chip is gone. Checked at 390×844 and 375×667.
+
+## 2026-10-22 — Auth: typing stays visible, lean copy, two-button welcome
+
+- **Typing visibility (Journey):** while the keyboard is up the plum hero collapses to a slim bar (title, step count, thin progress), Apple/Google and secondary links hide, steps sit in a ScrollView inside a KeyboardAvoidingView, so the field being typed in stays above the keyboard. Verified on web only for layout; keyboard behaviour needs device testing.
+- **Welcome:** Apple/Google removed (owner request); only Create account and Sign in. The road is a fixed band (0.62 × width, capped at 34% of height) with equal flexible space above and below; body copy shortened.
+- **Copy:** removed eyebrows and repeated hints across sign up, sign in, reset, phone and OTP; one short question per step ("What’s your name?", "Where will you ride?", "How do we reach you?", "Set a password"; sign in shows the account on step 2; reset "Which email?" → "Enter the code" → "New password"). Preview note shortened to "Preview · simulated".
+- Checks: `npm run typecheck`, `npm test` (rider 33, core 136, all pass), rider `npx expo export --platform android --platform ios` OK.

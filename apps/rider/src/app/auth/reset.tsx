@@ -98,7 +98,6 @@ export default function ResetPassword() {
 
   return (
     <JourneyFlow
-      eyebrow="ACCOUNT HELP"
       title="Reset password"
       labels={STEPS}
       step={step}
@@ -108,10 +107,10 @@ export default function ResetPassword() {
         setStep(step - 1);
       }}
       cta={{ title: step === 0 ? 'Send code' : step === 1 ? 'Continue' : 'Save new password', onPress: submit, loading: busy, testID: 'reset-submit' }}
-      footnote={<PreviewNote text="Preview: no email is sent. Any code except 000000 works." />}
+      footnote={<PreviewNote text="Preview · any code but 000000 works" />}
       steps={[
         <>
-          <StepTitle title="Which account?" hint="Enter the email on your account and we’ll send you a 6 digit code." />
+          <StepTitle title="Which email?" />
           <JourneyField
             ref={emailRef}
             icon="mail"
@@ -134,16 +133,8 @@ export default function ResetPassword() {
         </>,
         <>
           <StepTitle
-            title="Check your email"
-            hint={
-              <>
-                We sent a 6 digit code to{' '}
-                <Text variant="callout" weight="semibold">
-                  {sentTo ?? 'your email'}
-                </Text>
-                .
-              </>
-            }
+            title="Enter the code"
+            hint={sentTo ? `Sent to ${sentTo}` : undefined}
           />
           <CodeBoxes
             value={code}
@@ -177,7 +168,7 @@ export default function ResetPassword() {
           </View>
         </>,
         <>
-          <StepTitle title="Choose a new password" hint="At least 8 characters, with a letter and a number." />
+          <StepTitle title="New password" />
           <JourneyField
             ref={pwRef}
             icon="lock"

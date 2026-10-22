@@ -4,8 +4,7 @@ import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { OTHER_NIGERIAN_STATES, passwordStrength, validateEmail, validateFullName, validateNigerianPhone, validatePassword, type SocialProvider } from '@gobye/core';
 import { Icon, RadioRow, Sheet, Text, useTheme, useToast } from '@gobye/ui';
-import { OrDivider, SocialButtons } from '@/features/auth/AuthKit';
-import { ChoiceTile, JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
+import { ChoiceTile, JourneyField, JourneyFlow, PreviewNote, SocialFirst, StepTitle } from '@/features/auth/Journey';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 
@@ -137,7 +136,6 @@ export default function SignUp() {
   return (
     <>
       <JourneyFlow
-        eyebrow="JOIN GOBYE"
         title="Create your account"
         labels={[...STEPS]}
         step={step}
@@ -147,9 +145,8 @@ export default function SignUp() {
         footnote={<PreviewNote />}
         steps={[
                 <>
-                  <StepTitle title={'First, what should we call you?'} hint="Your rider pass will carry your name. Drivers see your first name only." />
-                  <SocialButtons onPress={withProvider} busy={social} />
-                  <OrDivider tight />
+                  <StepTitle title="What’s your name?" />
+                  <SocialFirst onPress={withProvider} busy={social} />
                   <JourneyField
                     ref={nameRef}
                     icon="account"
@@ -170,15 +167,15 @@ export default function SignUp() {
                   />
                 </>,
                 <>
-                  <StepTitle title={`Where will you ride${first ? `, ${first}` : ''}?`} hint="GoBye launches in Lagos and Abuja first." />
+                  <StepTitle title={`Where will you ride${first ? `, ${first}` : ''}?`} />
                   <View style={styles.tiles} accessibilityRole="radiogroup" accessibilityLabel="City">
-                    <ChoiceTile icon="destination" title="Lagos" subtitle="Launching first" selected={city === 'Lagos'} onPress={() => pickCity('Lagos')} testID="city-lagos" />
-                    <ChoiceTile icon="destination" title="Abuja" subtitle="Launching first" selected={city === 'Abuja'} onPress={() => pickCity('Abuja')} testID="city-abuja" />
+                    <ChoiceTile icon="destination" title="Lagos" selected={city === 'Lagos'} onPress={() => pickCity('Lagos')} testID="city-lagos" />
+                    <ChoiceTile icon="destination" title="Abuja" selected={city === 'Abuja'} onPress={() => pickCity('Abuja')} testID="city-abuja" />
                     <ChoiceTile
                       wide
                       icon="map"
                       title={city === 'Another city' && state ? state : 'Another city'}
-                      subtitle={city === 'Another city' && state ? 'We’ll tell you when GoBye arrives' : 'Choose your state'}
+                      subtitle={city === 'Another city' && state ? undefined : 'Choose your state'}
                       selected={city === 'Another city'}
                       onPress={() => pickCity('Another city')}
                       testID="city-other"
@@ -194,7 +191,7 @@ export default function SignUp() {
                   ) : null}
                 </>,
                 <>
-                  <StepTitle title={'How do we reach you?'} hint="Receipts go to your email. Your driver calls this number at pickup." />
+                  <StepTitle title="How do we reach you?" />
                   <JourneyField
                     ref={emailRef}
                     icon="mail"
@@ -244,7 +241,7 @@ export default function SignUp() {
                   ) : null}
                 </>,
                 <>
-                  <StepTitle title={'Last, secure your account'} hint="You’ll sign in with your email or phone and this password." />
+                  <StepTitle title="Set a password" />
                   <JourneyField
                     ref={passRef}
                     icon="lock"
@@ -286,7 +283,7 @@ export default function SignUp() {
                     </Text>
                   </View>
                   <Text variant="footnote" color="textSecondary">
-                    By creating an account you agree to the Terms and Privacy notice.
+                    You agree to the Terms and Privacy notice.
                   </Text>
 
                   {errors.form ? (

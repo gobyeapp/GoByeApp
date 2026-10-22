@@ -8,7 +8,7 @@ import { resetTo } from '@/features/navigation/reset';
 import { useNow } from '@/state/useNow';
 import { useSession } from '@/state/session';
 
-/** Verify your number (owner design): six code boxes, auto submit, resend countdown, stable error slot. */
+/** Enter the code (owner design): six code boxes, auto submit, resend countdown, stable error slot. */
 export default function OtpScreen() {
   const { pendingPhone, verifyOtp, requestOtp } = useSession();
   // Coming from Create account: finish on the rider pass.
@@ -60,10 +60,10 @@ export default function OtpScreen() {
       <AuthHeading
         centered
         icon="phone"
-        title="Verify your number"
+        title="Enter the code"
         subtitle={
           <>
-            Enter the 6 digit code we sent to{' '}
+            Sent to{' '}
             <Text variant="body" weight="semibold">
               {pendingPhone ? formatPhone(pendingPhone) : 'your phone'}
             </Text>

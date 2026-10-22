@@ -12,7 +12,7 @@ import { useSession } from '@/state/session';
  */
 export default function PhoneScreen() {
   const { colors } = useTheme();
-  const { requestOtp, pendingProfile } = useSession();
+  const { requestOtp } = useSession();
   const [phone, setPhone] = useState('');
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -42,7 +42,7 @@ export default function PhoneScreen() {
     >
       <AuthHeading
         title="Your phone number"
-        subtitle={`${pendingProfile ? `Almost done, ${pendingProfile.firstName}. ` : ''}Your driver uses it to reach you at pickup. We’ll text you a 6 digit code to confirm it.`}
+        subtitle="We’ll text you a code."
       />
       <TextField
         label="Phone number"

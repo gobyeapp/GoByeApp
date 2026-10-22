@@ -98,7 +98,7 @@ describe('Create account and Sign in', () => {
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signin-submit'));
     });
-    expect(screen.getByText('Signing in as ada@example.com')).toBeTruthy();
+    expect(screen.getByText('ada@example.com')).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('signin-password'), 'wrongpass1');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signin-submit'));

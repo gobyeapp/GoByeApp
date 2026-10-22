@@ -4,8 +4,8 @@ import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { formatPhone, parseIdentifier, type SocialProvider } from '@gobye/core';
 import { Icon, Text, spacing, useToast } from '@gobye/ui';
-import { OrDivider, SocialButtons, TextLink } from '@/features/auth/AuthKit';
-import { JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
+import { TextLink } from '@/features/auth/AuthKit';
+import { JourneyField, JourneyFlow, PreviewNote, SocialFirst, StepTitle, WhenNotTyping } from '@/features/auth/Journey';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 
@@ -78,7 +78,6 @@ export default function SignIn() {
 
   return (
     <JourneyFlow
-      eyebrow="WELCOME BACK"
       title="Sign in"
       labels={STEPS}
       step={step}
@@ -91,9 +90,7 @@ export default function SignIn() {
       footnote={<PreviewNote />}
       steps={[
         <>
-          <StepTitle title="Good to see you again" hint="Continue with Apple or Google, or use your email or phone." />
-          <SocialButtons onPress={withProvider} busy={social} />
-          <OrDivider tight />
+          <SocialFirst onPress={withProvider} busy={social} />
           <JourneyField
             ref={idRef}
             icon="account"
@@ -114,15 +111,17 @@ export default function SignIn() {
             error={errors.id}
             testID="signin-id"
           />
-          <View style={styles.switch}>
-            <Text variant="callout" color="textSecondary">
-              New to GoBye?
-            </Text>
-            <TextLink title="Create account" onPress={() => router.replace('/auth/signup')} testID="to-signup" />
-          </View>
+          <WhenNotTyping>
+            <View style={styles.switch}>
+              <Text variant="callout" color="textSecondary">
+                New to GoBye?
+              </Text>
+              <TextLink title="Create account" onPress={() => router.replace('/auth/signup')} testID="to-signup" />
+            </View>
+          </WhenNotTyping>
         </>,
         <>
-          <StepTitle title="Enter your password" hint={who ? `Signing in as ${who}` : undefined} />
+          {who ? <StepTitle title={who} /> : null}
           <JourneyField
             ref={pwRef}
             icon="lock"

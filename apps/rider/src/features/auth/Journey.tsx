@@ -1,9 +1,11 @@
-import { forwardRef, useEffect, useRef, useState, type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { createContext, forwardRef, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
+import type { SocialProvider } from '@gobye/core';
+import { OrDivider, SocialButtons } from './AuthKit';
 import { BRAND_NAME, BrandMark, Button, Icon, Text, brand, fontFamily, spacing, useTheme, type IconName } from '@gobye/ui';
 
 /**
@@ -95,16 +97,41 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
 }
 
 /** The plum header: close, eyebrow, title and the route. */
-export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, arrived, compact }: { eyebrow: string; title: string; step: number; labels: string[]; onClose: () => void; topInset: number; arrived?: boolean; compact?: boolean }) {
+export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, arrived, compact, collapsed }: { eyebrow?: string; title: string; step: number; labels: string[]; onClose: () => void; topInset: number; arrived?: boolean; compact?: boolean; collapsed?: boolean }) {
+  if (collapsed) {
+    // While typing: a slim bar (title, step count, thin progress) so the field and keyboard get the room.
+    const p = labels.length > 1 ? step / (labels.length - 1) : 0;
+    return (
+      <View style={[styles.heroSlim, { paddingTop: topInset + spacing.sm }]}>
+        <PlumBackground />
+        <View style={styles.slimRow}>
+          <Text style={styles.slimTitle} accessibilityRole="header" numberOfLines={1}>
+            {title}
+          </Text>
+          <Text variant="caption" style={styles.slimStep}>
+            {step + 1} / {labels.length} · {labels[step]}
+          </Text>
+          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={10} style={({ pressed }) => [styles.xSlim, { opacity: pressed ? 0.7 : 1 }]}>
+            <Icon name="close" size={15} color="#FFFFFF" />
+          </Pressable>
+        </View>
+        <View style={styles.slimTrack} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[styles.slimFill, { width: `${Math.max(6, p * 100)}%` }]} />
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={[styles.hero, { paddingTop: topInset + (compact ? spacing.sm : spacing.lg) }, compact && styles.heroCompact]}>
       <PlumBackground />
       <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8} style={({ pressed }) => [styles.x, { top: topInset + spacing.md, opacity: pressed ? 0.7 : 1 }]} testID="journey-close">
         <Icon name="close" size={17} color="#FFFFFF" />
       </Pressable>
-      <Text variant="caption" style={styles.eyebrow}>
-        {eyebrow}
-      </Text>
+      {eyebrow ? (
+        <Text variant="caption" style={styles.eyebrow}>
+          {eyebrow}
+        </Text>
+      ) : null}
       <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]} accessibilityRole="header">
         {title}
       </Text>
@@ -112,6 +139,26 @@ export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, a
     </View>
   );
 }
+
+/** Keyboard open or not (Will* events on iOS for a smoother hand-off, Did* on Android). */
+export function useKeyboardOpen(): boolean {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const showE = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideE = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const a = Keyboard.addListener(showE, () => setOpen(true));
+    const b = Keyboard.addListener(hideE, () => setOpen(false));
+    return () => {
+      a.remove();
+      b.remove();
+    };
+  }, []);
+  return open;
+}
+
+const KeyboardOpenContext = createContext(false);
+/** Inside a JourneyFlow step: true while the keyboard is up (steps hide extras so the field stays in view). */
+export const useJourneyKeyboard = () => useContext(KeyboardOpenContext);
 
 /**
  * A whole journey screen with no scrolling (owner: "everything should be a focus point"): the plum hero,
@@ -129,7 +176,7 @@ export function JourneyFlow({
   cta,
   footnote,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   labels: string[];
   step: number;
@@ -144,6 +191,7 @@ export function JourneyFlow({
   const { height } = useWindowDimensions();
   const reduce = useReducedMotion();
   const compact = height < 740;
+  const typing = useKeyboardOpen();
   const [w, setW] = useState(0);
   const x = useSharedValue(0);
   useEffect(() => {
@@ -167,36 +215,41 @@ export function JourneyFlow({
   }, []);
 
   return (
-    <KeyboardAvoidingView style={[styles.flowRoot, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <JourneyHero eyebrow={eyebrow} title={title} step={step} labels={labels} onClose={onClose} topInset={insets.top} compact={compact} />
+    <KeyboardOpenContext.Provider value={typing}>
+    <KeyboardAvoidingView style={[styles.flowRoot, { backgroundColor: colors.background }]} behavior="padding">
+      <JourneyHero eyebrow={eyebrow} title={title} step={step} labels={labels} onClose={onClose} topInset={insets.top} compact={compact} collapsed={typing} />
       <View ref={viewportRef} style={styles.viewport} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         <Animated.View style={[styles.flowTrack, { width: w * steps.length || undefined }, track]}>
           {steps.map((node, i) => (
             <View
               key={i}
-              style={[styles.flowStep, { width: w || undefined, maxWidth: w || undefined, paddingTop: compact ? 18 : 26 }]}
+              style={[styles.flowStepBox, { width: w || undefined, maxWidth: w || undefined }]}
               accessibilityElementsHidden={i !== step}
               importantForAccessibility={i === step ? 'auto' : 'no-hide-descendants'}
               pointerEvents={i === step ? 'auto' : 'none'}
             >
-              {node}
+              {/* A safety net only: steps are sized to fit, but with the keyboard up on a small phone the rider can still reach everything. */}
+              <ScrollView contentContainerStyle={[styles.flowStep, { paddingTop: typing ? 16 : compact ? 18 : 26 }]} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
+                {node}
+              </ScrollView>
             </View>
           ))}
         </Animated.View>
       </View>
-      <View style={[styles.flowActions, { paddingBottom: Math.max(insets.bottom, spacing.md) + (compact ? 0 : 4) }]}>
+      <View style={[styles.flowActions, { paddingBottom: typing ? spacing.sm : Math.max(insets.bottom, spacing.md) + (compact ? 0 : 4) }]}>
         <View style={styles.flowRow}>
           {step > 0 ? <RoundBack onPress={onBack} disabled={cta.loading} /> : null}
           <Button variant="brand" title={cta.title} loading={cta.loading} loadingLabel={cta.loadingLabel} disabled={cta.disabled} onPress={cta.onPress} style={styles.flex} testID={cta.testID} />
         </View>
-        {footnote ? <View style={styles.flowFoot}>{footnote}</View> : null}
+        {footnote && !typing ? <View style={styles.flowFoot}>{footnote}</View> : null}
       </View>
     </KeyboardAvoidingView>
+    </KeyboardOpenContext.Provider>
   );
 }
 
 /** One quiet line under the CTA: what's simulated in this preview. */
-export function PreviewNote({ text = 'Preview: accounts, SMS, Apple and Google are simulated.' }: { text?: string }) {
+export function PreviewNote({ text = 'Preview · simulated' }: { text?: string }) {
   return (
     <View style={styles.preview} accessible accessibilityLabel={text}>
       <Icon name="info" size={12} color="textSecondary" />
@@ -205,6 +258,23 @@ export function PreviewNote({ text = 'Preview: accounts, SMS, Apple and Google a
       </Text>
     </View>
   );
+}
+
+/** Apple / Google, then "or". Hidden while the keyboard is up so the field being typed in stays in view. */
+export function SocialFirst({ onPress, busy }: { onPress: (p: SocialProvider) => void; busy: SocialProvider | null }) {
+  const typing = useJourneyKeyboard();
+  if (typing) return null;
+  return (
+    <>
+      <SocialButtons onPress={onPress} busy={busy} />
+      <OrDivider tight />
+    </>
+  );
+}
+
+/** Only while not typing (secondary links and notes). */
+export function WhenNotTyping({ children }: { children: ReactNode }) {
+  return useJourneyKeyboard() ? null : <>{children}</>;
 }
 
 /** Step heading + hint, the website's `.q` and `.hint`. */
@@ -407,7 +477,8 @@ const styles = StyleSheet.create({
   viewport: { flex: 1, overflow: 'hidden' },
   flowTrack: { flexDirection: 'row', flex: 1 },
   // Each step is exactly one viewport wide: content can never widen it and shift the steps after it.
-  flowStep: { paddingHorizontal: 20, gap: 14, flexShrink: 0, overflow: 'hidden' },
+  flowStepBox: { flexShrink: 0, overflow: 'hidden' },
+  flowStep: { paddingHorizontal: 20, paddingBottom: 12, gap: 14 },
   flowActions: { paddingHorizontal: 20, paddingTop: spacing.sm, gap: 6 },
   flowRow: { flexDirection: 'row', gap: 10 },
   flowFoot: { alignItems: 'center' },
@@ -418,6 +489,13 @@ const styles = StyleSheet.create({
   x: { position: 'absolute', right: 18, width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', zIndex: 2 },
   eyebrow: { color: PLUM.eyebrow, fontFamily: 'Inter_700Bold', letterSpacing: 3, fontSize: 11 },
   heroCompact: { paddingBottom: 10 },
+  heroSlim: { paddingHorizontal: 20, paddingBottom: 10, overflow: 'hidden', gap: 8 },
+  slimRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  slimTitle: { flex: 1, color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: -0.4 },
+  slimStep: { color: PLUM.eyebrow, fontFamily: 'Inter_600SemiBold' },
+  xSlim: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
+  slimTrack: { height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.16)', overflow: 'hidden' },
+  slimFill: { height: 3, borderRadius: 2, backgroundColor: brand.tangerine },
   heroTitleCompact: { fontSize: 24, lineHeight: 28, marginTop: 4 },
   heroTitle: { color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 30, lineHeight: 32, letterSpacing: -1.3, marginTop: 8 },
   route: { height: 54, marginTop: 18 },

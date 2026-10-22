@@ -1,13 +1,12 @@
 import { Image } from 'expo-image';
-import { Component, useState, type ReactNode } from 'react';
-import type { SocialProvider } from '@gobye/core';
+import { Component, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing, useToast } from '@gobye/ui';
+import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing } from '@gobye/ui';
 import { useSession } from '@/state/session';
 
 const VIDEO = require('../../assets/video/road-dark.mp4');
@@ -19,28 +18,16 @@ const c = darkColors;
 /**
  * R02 Welcome (owner's "GoBYE Auth Flow" design). The 3D road scene from the website, recorded as a
  * silent 12 s seamless loop (250 KB) so it plays smoothly on any phone; under Reduce Motion the still
- * poster shows instead. No glows or gradients: dark tokens only. Create account or Sign in.
+ * poster shows instead. No glows or gradients: dark tokens only. Two ways in: Create account or Sign in (Apple / Google live inside those flows).
  */
 export default function Welcome() {
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const reduce = useReducedMotion();
-  const { completeOnboarding, socialSignIn } = useSession();
-  const toast = useToast();
-  const [social, setSocial] = useState<SocialProvider | null>(null);
-  // The road takes whatever height is left after the text and buttons (380 on tall phones, 120 on the smallest).
+  const { completeOnboarding } = useSession();
   const compact = height < 700;
-  const stage = Math.round(Math.min(380, Math.max(110, height - (compact ? 520 : 540))));
-
-
-  const withProvider = async (p: SocialProvider) => {
-    setSocial(p);
-    completeOnboarding();
-    const r = await socialSignIn(p);
-    setSocial(null);
-    if (!r.ok) return toast(r.error, 'error');
-    router.push(r.value.next === 'otp' ? '/auth/otp' : '/auth/phone');
-  };
+  // The clip is near-square with the road across its middle; a band about 0.62 × width tall keeps the road and trims dead sky.
+  const stageH = Math.round(Math.min(width * 0.62, height * 0.34));
 
   const go = (to: '/auth/signup' | '/auth/signin') => {
     completeOnboarding();
@@ -55,7 +42,9 @@ export default function Welcome() {
         <Text style={[styles.word, { color: c.text }]}>{BRAND_NAME}</Text>
       </View>
 
-      <View style={[styles.stage, { height: stage }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      {/* Equal flexible space above and below the road, so it sits centred between the brand and the headline on any height. */}
+      <View style={styles.spacer} />
+      <View style={[styles.stage, { height: stageH }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <Image source={POSTER} style={StyleSheet.absoluteFill} contentFit="cover" />
         {reduce ? null : (
           <VideoGuard>
@@ -63,30 +52,20 @@ export default function Welcome() {
           </VideoGuard>
         )}
       </View>
+      <View style={styles.spacer} />
 
       <Animated.View entering={reduce ? undefined : FadeInDown.duration(360)} style={styles.copy}>
         <Text variant="largeTitle" style={[styles.headline, compact && styles.headlineCompact, { color: c.text }]} accessibilityRole="header">
           Your next move starts here.
         </Text>
         <Text variant={compact ? 'callout' : 'body'} style={{ color: c.textSecondary }}>
-          City rides, airport transfers and smarter ways to move around Lagos and Abuja, with the fare agreed before you go.
+          City rides and airport transfers across Lagos and Abuja.
         </Text>
       </Animated.View>
 
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
         <Button variant="brand" title="Create account" appearance="dark" onPress={() => go('/auth/signup')} testID="welcome-create" />
         <Button title="Sign in" appearance="dark" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
-        <View style={styles.or} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <View style={[styles.line, { backgroundColor: c.border }]} />
-          <Text variant="caption" style={{ color: c.textSecondary }}>
-            or continue with
-          </Text>
-          <View style={[styles.line, { backgroundColor: c.border }]} />
-        </View>
-        <View style={styles.socialRow}>
-          <Button title="Apple" appearance="dark" variant="secondary" size="md" leadingIcon="apple" leadingIconFilled loading={social === 'apple'} disabled={!!social} onPress={() => withProvider('apple')} style={styles.flex} testID="welcome-apple" />
-          <Button title="Google" appearance="dark" variant="secondary" size="md" leadingIcon="google" leadingIconFilled loading={social === 'google'} disabled={!!social} onPress={() => withProvider('google')} style={styles.flex} testID="welcome-google" />
-        </View>
       </View>
     </View>
   );
@@ -119,15 +98,12 @@ class VideoGuard extends Component<{ children: ReactNode }, { failed: boolean }>
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: layout.page, paddingTop: spacing.xl },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: layout.page, paddingTop: spacing.lg },
   word: { fontFamily: 'Inter_700Bold', fontSize: 22, lineHeight: 28, letterSpacing: -0.6 },
-  stage: { marginTop: spacing.md, overflow: 'hidden' },
-  copy: { paddingHorizontal: layout.page, gap: spacing.md },
+  spacer: { flex: 1, minHeight: spacing.md },
+  stage: { overflow: 'hidden' },
+  copy: { paddingHorizontal: layout.page, gap: spacing.md, marginBottom: spacing.xxl },
   headline: { fontSize: 34, lineHeight: 41, letterSpacing: -1 },
   headlineCompact: { fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
-  flex: { flex: 1 },
-  or: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
-  line: { flex: 1, height: StyleSheet.hairlineWidth },
-  socialRow: { flexDirection: 'row', gap: spacing.md },
-  actions: { marginTop: 'auto', paddingHorizontal: layout.page, gap: spacing.md },
+  actions: { paddingHorizontal: layout.page, gap: spacing.md },
 });
