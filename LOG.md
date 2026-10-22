@@ -584,3 +584,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - `Button` brand variant: solid tangerine, dark label, no gradient / highlight / glow. `PlumBackground` (auth and journey headers, member pass top): solid aubergine. Route progress: solid tangerine fill. Rider in-trip panel: solid sheet with rounded top and hairline edge (no fade). No `LinearGradient` / `RadialGradient` left in the rider app, driver app or `@gobye/ui`.
 - Checks: typecheck; tests core 149, rider 36, driver 14, admin pass; rider and driver iOS/Android exports; web screenshots of the welcome and auth screens.
 
+## 2026-10-22 — Website home page shortened with sideways sliders
+
+- Owner: the home page was too long to scroll. Additional features and Safety are now sideways sliders (swipe, mouse drag, arrow keys, previous / next buttons and a progress line; the row bleeds to the screen edge so the next tile peeks in). On phones the photo mosaic ("Built for the way your city moves") and the comparison cards also become sliders. On laptops the three safety cards still fit in one row. Section spacing 120 → 96 px.
+- Page height: phone 11,646 → 8,645 px (−26%); desktop 9,070 → 8,562 px. Checked in Chromium at 1440×900 and 390×844, the For riders / For drivers switch (sliders reset to the first tile), keyboard and drag. No console errors.
+

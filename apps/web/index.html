@@ -85,7 +85,16 @@
       <p class="eyebrow" data-a="features.eyebrow">ADDITIONAL FEATURES</p>
       <h2 class="title" id="features-title" data-a-lines="features.lines">Everything a trip needs,<br>in one place.</h2>
     </div>
-    <ul class="bento" id="rail" aria-label="Features"></ul>
+    <div class="slider" data-slider>
+      <ul class="slider-track bento" id="rail" tabindex="0" aria-label="Features. Scroll sideways for more."></ul>
+      <div class="slider-bar wrap" hidden>
+        <div class="slider-progress" aria-hidden="true"><span></span></div>
+        <div class="slider-btns">
+          <button class="round slider-prev" type="button" aria-label="Previous feature"><span class="icon flip" data-icon="arrow" aria-hidden="true"></span></button>
+          <button class="round slider-next" type="button" aria-label="Next feature"><span class="icon" data-icon="arrow" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="sec people" aria-labelledby="people-title">
@@ -93,7 +102,16 @@
       <p class="eyebrow" data-a="people.eyebrow">MADE FOR LAGOS AND ABUJA</p>
       <h2 class="title" id="people-title" data-a-lines="people.lines">Built for the way<br>your city moves.</h2>
     </div>
-    <div class="wrap mosaic" id="mosaic"></div>
+    <div class="slider slider-phone" data-slider>
+      <div class="wrap mosaic" id="mosaic"></div>
+      <div class="slider-bar wrap" hidden>
+        <div class="slider-progress" aria-hidden="true"><span></span></div>
+        <div class="slider-btns">
+          <button class="round slider-prev" type="button" aria-label="Previous photo"><span class="icon flip" data-icon="arrow" aria-hidden="true"></span></button>
+          <button class="round slider-next" type="button" aria-label="Next photo"><span class="icon" data-icon="arrow" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="sec trust" id="trust" aria-labelledby="trust-title" hidden>
@@ -113,7 +131,16 @@
       <p class="eyebrow" data-a="compare.eyebrow">DESIGNED FOR RIDERS</p>
       <h2 class="title" id="compare-title" data-a-lines="compare.lines">A better trip,<br>from booking to receipt.</h2>
     </div>
-    <div class="vs" id="vs"></div>
+    <div class="slider slider-phone" data-slider>
+      <div class="vs" id="vs"></div>
+      <div class="slider-bar wrap" hidden>
+        <div class="slider-progress" aria-hidden="true"><span></span></div>
+        <div class="slider-btns">
+          <button class="round slider-prev" type="button" aria-label="Previous card"><span class="icon flip" data-icon="arrow" aria-hidden="true"></span></button>
+          <button class="round slider-next" type="button" aria-label="Next card"><span class="icon" data-icon="arrow" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="sec safety" id="safety" aria-labelledby="safety-title">
@@ -121,7 +148,16 @@
       <p class="eyebrow" data-a="safety.eyebrow">SAFETY</p>
       <h2 class="title" id="safety-title" data-a-lines="safety.lines">Safe from pickup<br>to drop off.</h2>
     </div>
-    <div class="wrap safe-grid" id="safe-grid"></div>
+    <div class="slider" data-slider>
+      <div class="slider-track safe-grid" id="safe-grid" tabindex="0" role="list" aria-label="Safety features. Scroll sideways for more."></div>
+      <div class="slider-bar wrap" hidden>
+        <div class="slider-progress" aria-hidden="true"><span></span></div>
+        <div class="slider-btns">
+          <button class="round slider-prev" type="button" aria-label="Previous safety feature"><span class="icon flip" data-icon="arrow" aria-hidden="true"></span></button>
+          <button class="round slider-next" type="button" aria-label="Next safety feature"><span class="icon" data-icon="arrow" aria-hidden="true"></span></button>
+        </div>
+      </div>
+    </div>
   </section>
 
 </main>

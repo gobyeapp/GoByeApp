@@ -625,6 +625,71 @@
     document.querySelectorAll('[data-a]:not(.hero [data-a]):not(.hero h1), .mosaic, .stack-pin .head .display, #deck, .features .title, #rail, #safe-grid, #statement, .compare .title, #vs').forEach(function (el) { el.classList.add('swap-target'); });
   }
 
+  /* ---------- Sideways sliders: arrows, a progress line, mouse drag and arrow keys ---------- */
+  function setupSliders() {
+    document.querySelectorAll('[data-slider]').forEach(function (box) {
+      var track = box.querySelector('.slider-track, .mosaic, .vs');
+      var bar = box.querySelector('.slider-bar');
+      if (!track || !bar) return;
+      var prev = bar.querySelector('.slider-prev'), next = bar.querySelector('.slider-next'), thumb = bar.querySelector('.slider-progress span');
+      var step = function () {
+        var first = track.firstElementChild;
+        var gap = parseFloat(getComputedStyle(track).columnGap) || 16;
+        return first ? first.getBoundingClientRect().width + gap : track.clientWidth * 0.8;
+      };
+      var go = function (dir) { track.scrollBy({ left: dir * step(), behavior: reduce() ? 'auto' : 'smooth' }); };
+      var sync = function () {
+        var max = track.scrollWidth - track.clientWidth;
+        var scrolls = max > 4 && getComputedStyle(track).overflowX !== 'visible';
+        bar.hidden = !scrolls;
+        if (!scrolls) return;
+        var r = Math.max(0.12, track.clientWidth / track.scrollWidth);
+        thumb.style.width = r * 100 + '%';
+        thumb.style.transform = 'translateX(' + (track.scrollLeft / max) * ((1 - r) / r) * 100 + '%)';
+        if (prev) prev.disabled = track.scrollLeft <= 2;
+        if (next) next.disabled = track.scrollLeft >= max - 2;
+      };
+      if (prev) prev.addEventListener('click', function () { go(-1); });
+      if (next) next.addEventListener('click', function () { go(1); });
+      track.addEventListener('scroll', sync, { passive: true });
+      window.addEventListener('resize', sync);
+      track.addEventListener('keydown', function (e) {
+        if (e.target !== track) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
+        if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
+      });
+      // Mouse drag (touch already scrolls natively). A drag doesn't count as a click on a tile.
+      var down = null, moved = false;
+      track.addEventListener('pointerdown', function (e) {
+        if (e.pointerType !== 'mouse' || e.button !== 0) return;
+        down = { x: e.clientX, left: track.scrollLeft }; moved = false;
+      });
+      window.addEventListener('pointermove', function (e) {
+        if (!down) return;
+        var dx = e.clientX - down.x;
+        if (!moved && Math.abs(dx) < 6) return;
+        moved = true; track.classList.add('dragging');
+        track.scrollLeft = down.left - dx;
+      });
+      window.addEventListener('pointerup', function () {
+        if (!down) return;
+        down = null;
+        if (moved) {
+          var left = track.scrollLeft, s = step(), max = track.scrollWidth - track.clientWidth;
+          track.classList.remove('dragging');
+          // Settle on the nearest tile; near the end, stay at the end.
+          track.scrollTo({ left: left > max - s / 2 ? max : Math.round(left / s) * s, behavior: reduce() ? 'auto' : 'smooth' });
+        }
+      });
+      track.addEventListener('click', function (e) { if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; } }, true);
+      track.addEventListener('dragstart', function (e) { e.preventDefault(); });
+      // Content changes with the audience toggle: re-measure and go back to the first tile.
+      if ('MutationObserver' in window) new MutationObserver(function () { track.scrollLeft = 0; sync(); }).observe(track, { childList: true });
+      sync();
+      setTimeout(sync, 400);
+    });
+  }
+
   window.GOBYE_RENDER_TRUST = renderTrust;
   function init() {
     bindText();
@@ -635,6 +700,7 @@
     if (document.getElementById('cta-waitlist')) renderLaunch();
     setupReveal();
     setupAudience();
+    setupSliders();
     setupNav();
     setupScroll();
     renderFooter();
