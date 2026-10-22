@@ -1,5 +1,5 @@
 import { createMockServices, type MockAccount } from '../mocks/services';
-import { parseIdentifier, validateFullName, validatePassword } from '../validation';
+import { OTHER_NIGERIAN_STATES, parseIdentifier, passwordStrength, validateFullName, validatePassword } from '../validation';
 
 const fast = () => createMockServices({ flags: { latency: [0, 0] } });
 
@@ -22,6 +22,21 @@ describe('auth rules', () => {
     expect(parseIdentifier('0803 123 4567')).toEqual({ ok: true, value: { kind: 'phone', value: '+2348031234567' } });
     expect(parseIdentifier('ada@').ok).toBe(false);
     expect(parseIdentifier('').ok).toBe(false);
+  });
+});
+
+describe('sign-up journey helpers', () => {
+  it('rates password strength as the rider types', () => {
+    expect(passwordStrength('')).toBe('empty');
+    expect(passwordStrength('gobye')).toBe('weak');
+    expect(passwordStrength('gobye2026')).toBe('okay');
+    expect(passwordStrength('Gobye2026')).toBe('strong');
+    expect(passwordStrength('gobye2026rides')).toBe('strong');
+  });
+
+  it('lists the 35 other states, without Lagos or the FCT', () => {
+    expect(OTHER_NIGERIAN_STATES).toHaveLength(35);
+    expect(OTHER_NIGERIAN_STATES).not.toContain('Lagos');
   });
 });
 

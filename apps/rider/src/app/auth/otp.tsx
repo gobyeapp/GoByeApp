@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { formatPhone, validateOtp } from '@gobye/core';
@@ -11,6 +11,8 @@ import { useSession } from '@/state/session';
 /** Verify your number (owner design): six code boxes, auto submit, resend countdown, stable error slot. */
 export default function OtpScreen() {
   const { pendingPhone, verifyOtp, requestOtp } = useSession();
+  // Coming from Create account: finish on the rider pass.
+  const { next } = useLocalSearchParams<{ next?: string }>();
   const toast = useToast();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | undefined>();
@@ -29,7 +31,7 @@ export default function OtpScreen() {
     setSubmitting(false);
     if (!r.ok) return setError(r.error);
     setVerified(true);
-    resetTo(r.value.isNewUser ? '/auth/name' : '/(tabs)');
+    resetTo(r.value.isNewUser ? '/auth/name' : next === 'pass' ? '/auth/pass' : '/(tabs)');
   };
 
   const resend = async () => {
@@ -48,7 +50,7 @@ export default function OtpScreen() {
       header={<View style={styles.pad}><AuthTopBar onBack={() => router.back()} /></View>}
       footer={
         <>
-          <Button title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />
+          <Button variant="brand" trailingIcon="arrowRight" title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />
           <View style={styles.center}>
             <TextLink title="Change number" onPress={() => router.back()} />
           </View>

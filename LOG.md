@@ -518,3 +518,16 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **PDF (Share receipt):** same design in HTML for expo-print: embedded 96 px mark (offline-safe), Inter with a system fallback, colours kept in print. The share title includes the reference.
   - **Shared rules:** `receiptReference()` in core with a test; payment labels come from `PAYMENT_METHOD_LABELS`.
   - **Checked:** web QA in light and dark at 390 px and 320 px; a sample PDF rendered for review. Typecheck passes, all tests pass (core 134), and the rider iOS + Android export builds.
+- **Rider: Create account rebuilt as the website's "Join the waitlist" journey (owner: "adopt the waitlist… down to the button and all").**
+  - **Header:** a plum hero (website `.sheet-hero` gradient with warm and violet glows) holding the eyebrow "JOIN GOBYE", "Create your account", a close button and the route progress: a tangerine fill, four stops (You · City · Contact · Secure) and a car chip that drives to the current step.
+  - **Steps:**
+    - Name, with Apple and Google underneath.
+    - City tiles (Lagos, Abuja, Another city → a sheet of the other 35 states). Tiles move on by themselves.
+    - Email and phone.
+    - Password with a strength meter.
+  - Steps slide on a track and the viewport height follows each step. Fields are 60 pt, rounded 18, with a plum focus ring and icon; a round 56 pt back button sits beside the CTA.
+  - **End:** after phone verification comes a new rider pass (`auth/pass`): plum top with the mark and "RIDER PASS", then name, city and member since, a perforation and "Phone verified". It rises in with a slight tilt, then "Start riding".
+  - **Buttons:** new shared `Button` variant `brand`, the website's tangerine CTA (#FFB27E→#FF9652→#FF8438, dark ink label, white arrow chip, warm glow). It's used on every auth step: welcome Create account, Continue, Create account, Sign in, Send code, Verify, Save new password, Start riding.
+  - **Core:** `OTHER_NIGERIAN_STATES` (same list as the website) and `passwordStrength`, with tests. The session remembers `homeCity`.
+  - **Checked:** web QA in light and dark through the whole journey (Oyo via the state sheet) to the pass. Typecheck passes; tests core 136, rider 33, driver 2; the rider iOS + Android export builds.
+  - **Brand note:** this journey uses gradients and tangerine CTAs at the owner's request, an exception to the app's monochrome rule (D-047).

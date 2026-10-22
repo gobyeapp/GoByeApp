@@ -7,6 +7,8 @@ type SessionStatus = 'loading' | 'signed_out' | 'needs_profile' | 'signed_in';
 
 interface StoredSession {
   user: Passenger | null;
+  /** Where the rider said they'll ride (sign-up journey): Lagos, Abuja or another state. */
+  homeCity?: string;
   onboardingSeen: boolean;
   locationPrimerSeen: boolean;
 }
@@ -17,6 +19,8 @@ interface SessionValue {
   onboardingSeen: boolean;
   locationPrimerSeen: boolean;
   pendingPhone: string | null;
+  homeCity: string | null;
+  setHomeCity(city: string): void;
   /** Profile from Apple / Google for a new account, applied once the phone is verified. */
   pendingProfile: { firstName: string; lastName: string; email?: string } | null;
   completeOnboarding(): void;
@@ -75,6 +79,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       onboardingSeen: stored.onboardingSeen,
       locationPrimerSeen: stored.locationPrimerSeen,
       pendingPhone,
+      homeCity: stored.homeCity ?? null,
+      setHomeCity: (city) => persist({ ...stored, homeCity: city }),
       pendingProfile,
       completeOnboarding: () => persist({ ...stored, onboardingSeen: true }),
       markLocationPrimerSeen: () => persist({ ...stored, locationPrimerSeen: true }),

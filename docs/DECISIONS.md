@@ -334,3 +334,8 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Decision:** the trip-complete screen no longer offers "Pay later". An unpaid trip is paid there (wallet or bank transfer, with the method switch and Add money still available), and Android back shows "Pay for this trip to finish it." instead of leaving.
 - **Exception:** when the rider has already sent a payment that is awaiting confirmation (a transfer not yet seen, or a result that didn't come back), "Check later" remains. Leaving keeps the trip on Home as "Payment pending", because asking to pay again would invite a double payment.
 - **Risk noted:** a rider who can't pay right now (no wallet balance, no bank access) is held on this screen. Support contact and the refund/dispute process should be reachable here once the backend exists.
+
+## D-047 — Sign-up journey and auth CTAs follow the website waitlist look (2026-10-22, owner)
+
+- **Decision:** Create account copies the website's waitlist journey: a plum gradient header with route progress, one question per step, choice tiles, a round back button and a rider pass at the end. Every sign-in and sign-up primary button uses the website's tangerine gradient CTA (`Button variant="brand"`).
+- **Scope:** an owner-requested exception to D-034 (a monochrome interface with brand accents only), limited to the welcome and auth screens. Booking, trip and payment screens stay monochrome.

@@ -4,6 +4,7 @@ import { createMockServices } from '@gobye/core';
 import { ToastProvider } from '@gobye/ui';
 import SignUp from '@/app/auth/signup';
 import SignIn from '@/app/auth/signin';
+import { AccountProvider } from '@/state/account';
 import { ServicesProvider } from '@/state/services';
 import { SessionProvider } from '@/state/session';
 
@@ -22,7 +23,9 @@ async function mount(el: React.ReactElement) {
     <SafeAreaProvider initialMetrics={metrics}>
       <ServicesProvider services={services}>
         <SessionProvider>
-          <ToastProvider>{el}</ToastProvider>
+          <AccountProvider>
+            <ToastProvider>{el}</ToastProvider>
+          </AccountProvider>
         </SessionProvider>
       </ServicesProvider>
     </SafeAreaProvider>,
@@ -32,31 +35,56 @@ async function mount(el: React.ReactElement) {
 beforeEach(() => mockPush.mockReset());
 
 describe('Create account and Sign in', () => {
-  it('shows each problem under its own field and keeps what was typed', async () => {
+  it('walks the journey one question at a time and keeps what was typed', async () => {
     await mount(<SignUp />);
     await fireEvent.changeText(screen.getByTestId('signup-name'), 'Ada');
-    await fireEvent.changeText(screen.getByTestId('signup-email'), 'ada@');
-    await fireEvent.changeText(screen.getByTestId('signup-password'), 'short');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signup-submit'));
     });
     expect(screen.getByText('Enter your first and last name.')).toBeTruthy();
-    expect(screen.getByText('Enter a valid email address.')).toBeTruthy();
-    expect(screen.getByText('Use at least 8 characters.')).toBeTruthy();
     expect(screen.getByTestId('signup-name').props.value).toBe('Ada');
-    expect(mockPush).not.toHaveBeenCalled();
-  });
-
-  it('creates the account, then goes to phone verification', async () => {
-    await mount(<SignUp />);
     await fireEvent.changeText(screen.getByTestId('signup-name'), 'Ada Okafor');
-    await fireEvent.changeText(screen.getByTestId('signup-email'), 'ada@example.com');
-    await fireEvent.changeText(screen.getByTestId('signup-phone'), '0803 123 4567');
-    await fireEvent.changeText(screen.getByTestId('signup-password'), 'gobye2026');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signup-submit'));
     });
-    expect(mockPush).toHaveBeenCalledWith('/auth/otp');
+    // City: Continue without a choice asks for one; a tile moves on by itself.
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    expect(screen.getByText('Choose where you’ll ride.')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('city-lagos'));
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    await fireEvent.changeText(screen.getByTestId('signup-email'), 'ada@');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    expect(screen.getByText('Enter a valid email address.')).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('creates the account after the last step, then verifies the phone and ends on the pass', async () => {
+    await mount(<SignUp />);
+    await fireEvent.changeText(screen.getByTestId('signup-name'), 'Ada Okafor');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('city-abuja'));
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    await fireEvent.changeText(screen.getByTestId('signup-email'), 'ada@example.com');
+    await fireEvent.changeText(screen.getByTestId('signup-phone'), '0803 123 4567');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    await fireEvent.changeText(screen.getByTestId('signup-password'), 'gobye2026');
+    expect(screen.getByText('Good')).toBeTruthy();
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    expect(mockPush).toHaveBeenCalledWith({ pathname: '/auth/otp', params: { next: 'pass' } });
   });
 
   it('signs in to that account and rejects a wrong password with a neutral message', async () => {

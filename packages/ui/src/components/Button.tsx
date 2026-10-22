@@ -1,11 +1,13 @@
 import { ActivityIndicator, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Icon, type IconName } from '../icons/Icon';
 import { useTheme } from '../theme/useTheme';
 import { darkColors, lightColors, minTouch, spacing } from '../theme/tokens';
 import { Text } from './Text';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive';
+/** `brand`: the website's tangerine CTA (gradient, dark label, white arrow chip) for signature moments such as sign-up. */
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive' | 'brand';
 
 export interface ButtonProps {
   title: string;
@@ -65,8 +67,11 @@ export function Button({
 
   // A disabled primary button switches to a neutral fill with readable grey text, instead of a faded
   // colour that looks half-enabled in dark mode (device feedback 2026-10-21).
-  const disabledPrimary = disabled && !loading && variant === 'primary';
+  const disabledPrimary = disabled && !loading && (variant === 'primary' || variant === 'brand');
   const palette = {
+    brand: disabledPrimary
+      ? { bg: colors.secondary, pressed: colors.secondary, fg: 'textSecondary' as const, border: 'transparent' }
+      : { bg: BRAND_CTA.mid, pressed: BRAND_CTA.mid, fg: 'text' as const, border: BRAND_CTA.border },
     primary: disabledPrimary
       ? { bg: colors.secondary, pressed: colors.secondary, fg: 'textSecondary' as const, border: 'transparent' }
       : { bg: colors.primary, pressed: colors.primaryPressed, fg: 'onPrimary' as const, border: 'transparent' },
@@ -74,7 +79,10 @@ export function Button({
     tertiary: { bg: 'transparent', pressed: colors.surfaceMuted, fg: 'primary' as const, border: 'transparent' },
     destructive: { bg: colors.dangerSurface, pressed: colors.secondaryPressed, fg: 'danger' as const, border: 'transparent' },
   }[variant];
+  const brandOn = variant === 'brand' && !disabledPrimary;
   const raised = variant === 'primary' && !disabledPrimary && scheme === 'light';
+  // Label colour: the brand CTA always uses its dark ink on tangerine, in both themes.
+  const fg = brandOn ? BRAND_CTA.ink : colors[palette.fg];
   const height = size === 'lg' ? 56 : minTouch;
   const chip = trailingIcon && !loading;
   const chipSize = size === 'lg' ? 40 : 32;
@@ -88,7 +96,7 @@ export function Button({
 
   return (
     // Scale lives on a wrapper (layout `style` from callers goes there too), so the pressable keeps plain styles.
-    <Animated.View style={[pressStyle, style]}>
+    <Animated.View style={[pressStyle, brandOn && styles.brandShadow, style]}>
     <Pressable
       testID={testID}
       onPress={onPress}
@@ -106,29 +114,45 @@ export function Button({
           paddingHorizontal: chip ? chipSize + spacing.md + 4 : size === 'lg' ? spacing.xxl : spacing.xl,
           backgroundColor: pressed ? palette.pressed : palette.bg,
           borderColor: palette.border,
-          borderWidth: palette.border === 'transparent' ? 0 : StyleSheet.hairlineWidth,
+          borderWidth: palette.border === 'transparent' ? 0 : brandOn ? 1 : StyleSheet.hairlineWidth,
+          overflow: brandOn ? 'hidden' : undefined,
           opacity: disabled && !loading && !disabledPrimary ? 0.45 : 1,
         },
         raised && (pressed ? styles.shadowPressed : styles.shadow),
+        brandOn && pressed && { opacity: 0.92 },
       ]}
     >
+      {brandOn ? (
+        // Website .btn-primary: #ffb27e → #ff9652 → #ff8438 top to bottom, with a 1 px light top edge.
+        <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
+          <Defs>
+            <LinearGradient id="gobye-cta" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0" stopColor={BRAND_CTA.top} />
+              <Stop offset="0.52" stopColor={BRAND_CTA.mid} />
+              <Stop offset="1" stopColor={BRAND_CTA.bottom} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100" height="100" fill="url(#gobye-cta)" />
+          <Rect x="0" y="0" width="100" height="1.6" fill="#FFFFFF" opacity={0.45} />
+        </Svg>
+      ) : null}
       {loading && loadingLabel ? (
         <View style={styles.row}>
-          <ActivityIndicator color={colors[palette.fg]} accessibilityElementsHidden />
-          <Text variant="headline" style={[styles.title, { color: colors[palette.fg] }]}>
+          <ActivityIndicator color={fg} accessibilityElementsHidden />
+          <Text variant="headline" style={[styles.title, { color: fg }]}>
             {loadingLabel}
           </Text>
         </View>
       ) : loading ? (
-        <ActivityIndicator color={colors[palette.fg]} accessibilityElementsHidden />
+        <ActivityIndicator color={fg} accessibilityElementsHidden />
       ) : (
         <View style={styles.row}>
-          {leadingIcon ? <Icon name={leadingIcon} size="sm" color={colors[palette.fg]} /> : null}
-          <Text variant="headline" style={[styles.title, { color: colors[palette.fg] }]}>
+          {leadingIcon ? <Icon name={leadingIcon} size="sm" color={fg} /> : null}
+          <Text variant="headline" style={[styles.title, { color: fg }]}>
             {title}
           </Text>
           {trailingText ? (
-            <Text variant="headline" tabular style={{ color: colors[palette.fg] }}>
+            <Text variant="headline" tabular style={{ color: fg }}>
               {trailingText}
             </Text>
           ) : null}
@@ -136,17 +160,20 @@ export function Button({
       )}
       {chip ? (
         <View
-          style={[styles.chip, { width: chipSize, height: chipSize, borderRadius: chipSize / 2, marginTop: -chipSize / 2, right: (height - chipSize) / 2, backgroundColor: colors[palette.fg] }]}
+          style={[styles.chip, { width: chipSize, height: chipSize, borderRadius: chipSize / 2, marginTop: -chipSize / 2, right: (height - chipSize) / 2, backgroundColor: brandOn ? '#FFFFFF' : disabledPrimary ? colors.border : fg }]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          <Icon name={trailingIcon} size={size === 'lg' ? 18 : 16} color={variant === 'primary' && !disabledPrimary ? colors.primary : colors.background} />
+          <Icon name={trailingIcon} size={size === 'lg' ? 18 : 16} color={brandOn ? BRAND_CTA.ink : disabledPrimary ? colors.textSecondary : variant === 'primary' ? colors.primary : colors.background} />
         </View>
       ) : null}
     </Pressable>
     </Animated.View>
   );
 }
+
+/** The website CTA palette (styles.css .btn-primary). */
+const BRAND_CTA = { top: '#FFB27E', mid: '#FF9652', bottom: '#FF8438', ink: '#1C0E05', border: 'rgba(214, 92, 18, 0.2)' };
 
 const styles = StyleSheet.create({
   base: {
@@ -156,6 +183,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   shadow: { shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
+  brandShadow: { borderRadius: 999, shadowColor: '#FF751F', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
   shadowPressed: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   title: { textAlign: 'center', letterSpacing: -0.1 },

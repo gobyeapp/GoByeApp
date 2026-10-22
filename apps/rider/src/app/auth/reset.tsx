@@ -59,7 +59,7 @@ export default function ResetPassword() {
     return (
       <Screen
         header={<View style={styles.pad}><AuthTopBar onBack={back} /></View>}
-        footer={<Button title="Send code" trailingIcon="arrowRight" onPress={send} loading={busy} disabled={!email.trim()} testID="reset-send" />}
+        footer={<Button variant="brand" title="Send code" trailingIcon="arrowRight" onPress={send} loading={busy} disabled={!email.trim()} testID="reset-send" />}
       >
         <AuthHeading centered icon="mail" title="Reset password" subtitle="Enter the email on your account and we’ll send you a 6 digit code." />
         <TextField label="Email address" leadingIcon="mail" placeholder="name@example.com" value={email} onChangeText={(t) => { setEmail(t); setErrors({}); }} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} textContentType="emailAddress" autoComplete="email" error={errors.email} onSubmitEditing={send} testID="reset-email" />
@@ -72,7 +72,7 @@ export default function ResetPassword() {
       header={<View style={styles.pad}><AuthTopBar onBack={back} /></View>}
       footer={
         <>
-          <Button title="Save new password" onPress={save} loading={busy} disabled={code.length < 6 || !password} testID="reset-save" />
+          <Button variant="brand" title="Save new password" onPress={save} loading={busy} disabled={code.length < 6 || !password} testID="reset-save" />
           <Text variant="caption" weight="regular" color="textSecondary" align="center">
             Can’t find it? Check your spam or promotions folder.
           </Text>

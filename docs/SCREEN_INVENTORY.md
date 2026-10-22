@@ -10,7 +10,8 @@ Routes are relative to `apps/<app>/src/app/`.
 |---|---|---|---|---|---|---|
 | R01 | Launch gate | `index.tsx` | — | Redirect by session | loading | Built (mock) |
 | R02 | Welcome | `onboarding.tsx` | Always dark; recorded 3D road loop (`assets/video/road-dark.mp4`, poster under Reduce Motion), agreed-fare chip, headline | Create account, Sign in | default, reduced motion, short screen | Built (mock) — redesigned 2026-10-22 (owner design) |
-| R02a | Create account | `auth/signup.tsx` | Full name, email, phone (+234), password with show/hide, Apple / Google | Create account → verify phone | default, field errors, account exists, submitting | Built (mock) 2026-10-22 |
+| R02a | Create account (journey) | `auth/signup.tsx` | Plum hero + route progress; steps You (name, Apple/Google) · City (tiles, state sheet) · Contact (email, phone) · Secure (password, strength) | Continue / Create account (brand CTA), round Back, Close | default, per-step errors, account exists, submitting | Built (mock) — rebuilt 2026-10-22 as the website waitlist journey (D-047) |
+| R02d | Rider pass | `auth/pass.tsx` | RiderPass (plum top, name, city, member since, perforation, verified) | Start riding | default, reduced motion | Built (mock) 2026-10-22 |
 | R02b | Sign in | `auth/signin.tsx` | Apple / Google, email or phone, password | Sign in → verify phone, Forgot password, Create account | default, field errors, wrong details (one neutral message) | Built (mock) 2026-10-22 |
 | R02c | Reset password | `auth/reset.tsx` | Email → 6 digit code + new password | Send code, Resend, Save | default, invalid, wrong code, cooldown | Built (mock) 2026-10-22 |
 | R03 | Your phone number (new Apple / Google account) | `auth/phone.tsx` | TextField (+234), privacy note | Send code | default, invalid, submitting, error | Built (mock) — redesigned 2026-10-22 |

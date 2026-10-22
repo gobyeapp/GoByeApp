@@ -83,3 +83,16 @@ export function parseIdentifier(input: string): Result<{ kind: 'email'; value: s
   const p = validateNigerianPhone(v);
   return p.ok ? { ok: true, value: { kind: 'phone', value: p.value } } : { ok: false, error: 'Enter a valid email or Nigerian phone number.' };
 }
+
+/** States other than Lagos and the FCT (those two are GoBye's launch cities). Same list as the website waitlist. */
+export const OTHER_NIGERIAN_STATES = ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'] as const;
+
+export type PasswordStrength = 'empty' | 'weak' | 'okay' | 'strong';
+
+/** Live feedback while typing. "okay" meets the rule (validatePassword); "strong" is 12+ or mixes in a symbol/case. */
+export function passwordStrength(input: string): PasswordStrength {
+  if (!input) return 'empty';
+  if (!validatePassword(input).ok) return 'weak';
+  const extra = (/[^A-Za-z0-9]/.test(input) ? 1 : 0) + (/[a-z]/.test(input) && /[A-Z]/.test(input) ? 1 : 0);
+  return input.length >= 12 || extra >= 1 ? 'strong' : 'okay';
+}

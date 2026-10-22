@@ -33,7 +33,7 @@ export default function PhoneScreen() {
       header={<View style={styles.pad}><AuthTopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))} /></View>}
       footer={
         <>
-          <Button title="Send code" trailingIcon="arrowRight" onPress={submit} loading={busy} disabled={!phone.trim()} testID="send-code" />
+          <Button variant="brand" title="Send code" trailingIcon="arrowRight" onPress={submit} loading={busy} disabled={!phone.trim()} testID="send-code" />
           <Text variant="caption" weight="regular" color="textSecondary" align="center">
             Standard SMS rates may apply.
           </Text>

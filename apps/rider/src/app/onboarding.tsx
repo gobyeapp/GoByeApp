@@ -72,7 +72,7 @@ export default function Welcome() {
       </Animated.View>
 
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        <Button title="Create account" appearance="dark" trailingIcon="arrowRight" onPress={() => go('/auth/signup')} testID="welcome-create" />
+        <Button variant="brand" title="Create account" appearance="dark" trailingIcon="arrowRight" onPress={() => go('/auth/signup')} testID="welcome-create" />
         <Button title="Sign in" appearance="dark" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
       </View>
     </View>
