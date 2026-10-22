@@ -1,20 +1,26 @@
-import { StyleSheet, View } from 'react-native';
-import { Badge, Card, EmptyState, Screen, Text, Wordmark, spacing } from '@gobye/ui';
+import { Redirect } from 'expo-router';
+import { nextOnboardingStep } from '@gobye/core';
+import { useDriver } from '@/state/driver';
+import { useSession } from '@/state/session';
 
-/** D01 placeholder — the Driver app is Phase 4 (docs/IMPLEMENTATION_PLAN.md). */
-export default function DriverHome() {
-  return (
-    <Screen>
-      <View style={styles.header}>
-        <Wordmark size={32} />
-        <Text variant="title3">Driver</Text>
-      </View>
-      <EmptyState icon="steering" title="GoBye Driver is coming next" body="Driver sign up, requests and trips are in progress." />
-      <Card>
-        <Badge label="In development" icon="info" tone="warning" />
-      </Card>
-    </Screen>
-  );
+/** D01 Launch gate: routes by session, registration status and any trip in progress (state recovery). */
+export default function LaunchGate() {
+  const session = useSession();
+  const driver = useDriver();
+
+  if (session.status === 'loading' || !driver.ready) return null;
+  if (session.status === 'signed_out') return <Redirect href={session.welcomeSeen ? '/auth/phone' : '/welcome'} />;
+
+  const trip = driver.activeTrip;
+  if (trip) return <Redirect href={trip.stage === 'completed' ? '/trip-complete' : '/trip'} />;
+
+  switch (driver.verification) {
+    case 'approved':
+      return <Redirect href="/(tabs)" />;
+    case 'pending_review':
+    case 'rejected':
+      return <Redirect href="/onboarding/status" />;
+    default:
+      return <Redirect href={nextOnboardingStep(driver.application) === 'personal' ? '/onboarding/personal' : '/onboarding'} />;
+  }
 }
-
-const styles = StyleSheet.create({ header: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginTop: spacing.xxl } });

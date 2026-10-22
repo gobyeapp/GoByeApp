@@ -232,3 +232,12 @@ Not yet executed: any device/emulator test, VoiceOver/TalkBack walkthroughs, fon
 | 2026-10-21 | Independent code review (separate agent) | 16 findings; all HIGH/MEDIUM fixed (double debit after restart, receipt lost after restart, stale fare after pickup change, trapped on unpaid trip, booking while unpaid, passenger lost, deposit re-check, profile save after restart, transfer "failed" vs pending) |
 
 **Not executed:** any run on a real device or simulator. The brief asks for device verification of navigation, appearance persistence, editable pickup, profile-photo changes, payment states and the single car category — these rows are open in `DEVICE_TEST_MATRIX.md`.
+
+### Driver app end to end (2026-10-22)
+
+| Date | Command | Result |
+|---|---|---|
+| 2026-10-22 | `npm run typecheck` (all 4 workspaces) | 0 errors |
+| 2026-10-22 | `npm test` → core / rider / driver | **120** / **24** / **2** passed (new `driver.test.ts`: onboarding validation and order, requests, counters, trip stages, PIN lock, no-show timing, earnings) |
+| 2026-10-22 | `npx expo export --platform android --platform ios` rider and driver | Bundles built |
+| 2026-10-22 | Driver web QA build, Playwright walk-through at 390×844, light and dark | Sign-up, approval, pass, online, request (Quick Match and negotiation), PIN, end trip, payment, tabs all pass; no console errors. Not device-tested. |

@@ -310,3 +310,13 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Secrets:** the service_role key is never shipped to the browser or committed. It was shared in chat on 2026-10-22 and must be rotated.
 - **Migration:** `supabase/migrations/20261022_waitlist.sql`, run manually in the SQL Editor because this workspace cannot reach the project.
 - **Open:** a privacy notice must be linked from the form before launch (Q-063). There is no rate limiting beyond Supabase defaults.
+
+## D-043 — Shared app building blocks live in `@gobye/ui` (2026-10-22)
+
+- **Decision:** generic pieces first built in the rider app (sign-in steps, map surface, floating tab tray, journey bar, completion mark, vehicle summary, settings groups) moved into `@gobye/ui` so the driver app reuses them. The rider's old paths re-export them. `@gobye/ui` stays independent of `@gobye/core` (structural `VehicleLike` / `LatLng` types) and of expo-router (structural tab-bar props); `MapCanvas` is imported from `@gobye/ui/src/map/MapCanvas` so apps without react-native-maps don't pull it in.
+- **Why:** one look and one behaviour across both apps; fixes land once.
+
+## D-044 — Driver preview: verification, requests and payments are simulated (2026-10-22)
+
+- **Decision:** the driver app runs on simulated services: document review auto-approves after a few seconds, requests are generated near the driver while online, a rider accepts a counter about two times in three, wallet payments confirm automatically and transfers wait for the driver to confirm receipt. Every such screen carries `SimulatedBadge` copy. The pickup PIN is shown in the preview so the flow can be completed. Driver data is stored on the device per signed-in number.
+- **Why:** lets the owner walk the full driver journey before the backend exists, without presenting mock data as live (CLAUDE.md).

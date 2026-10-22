@@ -16,3 +16,11 @@ export * from './brand';
 export * from './components/patterns';
 export * from './components/skeletons';
 export * from './components/SearchField';
+// Shared app building blocks (first built in the rider app, used by both apps).
+export * from './components/shared/AuthStep';
+export * from './components/shared/CompletionMark';
+export * from './components/shared/JourneyBar';
+export * from './components/shared/VehicleSummary';
+export * from './components/shared/FloatingTabBar';
+// MapCanvas is NOT exported here (it needs react-native-maps): import from '@gobye/ui/src/map/MapCanvas'.
+export * from './components/shared/SettingsGroup';

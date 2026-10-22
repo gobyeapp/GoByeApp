@@ -33,5 +33,5 @@ Status values: `Not started` · `In progress` · `Done (mock)` · `Done` · `Blo
 
 1. Run the Rider app on real devices via Expo Go (SDK 57) — iOS and Android — and record results in `DEVICE_TEST_MATRIX.md`; fix layout issues found.
 2. Product owner decisions still needed: Q-001 cash, Q-042 payment provider & real fees, Q-043 package billing, Q-044 Google Maps cost projection (then accept D-025), Q-046 name/tagline, Q-047 palette, Q-048 font, Q-049 navigation. (Resolved 2026-10-21: Q-002, Q-012; partly: Q-001, Q-007, Q-008.)
-3. Phase 4 — Driver app: onboarding & verification (D02–D08), dashboard with online toggle and background-location explanation (D09–D10), requests & negotiation (D11–D12), trip lifecycle (D13–D14), earnings/account (D15–D17). Add `expo-task-manager` and a development build profile.
+3. Phase 4 — Driver app (UI built end to end on simulated services 2026-10-22; remaining: device testing, development build with `expo-task-manager` for background location, backend contracts): onboarding & verification (D02–D08), dashboard with online toggle and background-location explanation (D09–D10), requests & negotiation (D11–D12), trip lifecycle (D13–D14), earnings/account (D15–D17). Add `expo-task-manager` and a development build profile.
 4. Accessibility audit on device (VoiceOver, TalkBack, largest text sizes, Reduce Motion).

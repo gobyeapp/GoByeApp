@@ -12,7 +12,11 @@
       "supportsTablet": false,
       "icon": "./assets/images/icon.png",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "GoBye Driver uses your location while you’re online or on a trip to match you with nearby riders and show riders where you are.",
+        "NSLocationTemporaryUsageDescriptionDictionary": {
+          "driving": "GoBye Driver needs your precise location so riders and pickups line up."
+        }
       }
     },
     "android": {
@@ -24,7 +28,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": []
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -40,12 +50,29 @@
           }
         }
       ],
-      "expo-font"
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "GoBye Driver uses your location while you’re online or on a trip to match you with nearby riders and show riders where you are.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GoBye Driver uses your photos so you can add your licence, ID and vehicle documents.",
+          "cameraPermission": "GoBye Driver uses the camera to photograph your licence, ID, vehicle documents and a selfie for verification.",
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "GoBye Driver \u2014 preview shell. Driver features are planned for Phase 4."
+    "description": "GoBye Driver — sign up, verification, access pass, requests, trips and earnings (preview on simulated services)."
   }
 }

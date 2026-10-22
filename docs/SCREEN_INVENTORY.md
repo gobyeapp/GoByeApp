@@ -45,23 +45,23 @@ Routes are relative to `apps/<app>/src/app/`.
 
 | # | Screen | Route (planned) | Status |
 |---|---|---|---|
-| D01 | Launch gate | `index.tsx` | Placeholder shell (Phase 4 not started) |
-| D02 | Welcome / sign-in (phone + OTP) | `auth/*` | Planned |
-| D03 | Registration: personal details | `onboarding/personal.tsx` | Planned |
-| D04 | Driver's licence | `onboarding/licence.tsx` | Planned |
-| D05 | Identity document | `onboarding/identity.tsx` | Planned |
-| D06 | Vehicle information | `onboarding/vehicle.tsx` | Planned |
-| D07 | Vehicle documents upload | `onboarding/documents.tsx` | Planned |
-| D08 | Verification status (pending / approved / rejected) | `onboarding/status.tsx` | Planned |
-| D09 | Dashboard (map, online toggle, earnings today) | `(tabs)/index.tsx` | Planned |
-| D10 | Background-location explanation | `permission-background.tsx` | Planned |
-| D11 | Incoming Quick Match request | `request/[id].tsx` | Planned |
-| D12 | Incoming negotiation (accept / counter / decline) | `negotiation/[id].tsx` | Planned |
-| D13 | Active trip (to pickup → arrived → confirm passenger → in progress → complete) | `trip.tsx` | Planned |
-| D14 | Trip complete: payment status & earnings | `trip-complete.tsx` | Planned |
-| D15 | Earnings & payouts | `(tabs)/earnings.tsx` | Planned |
-| D16 | Trip history | `(tabs)/trips.tsx` | Planned |
-| D17 | Account: ratings, documents, notifications, support, settings, delete account | `(tabs)/account.tsx`, `account/*` | Planned |
+| D01 | Launch gate (+ D02a welcome `welcome.tsx`, access pass `access.tsx`, trip detail `history/[id].tsx`) | `index.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D02 | Welcome / sign-in (phone + OTP) | `auth/*` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D03 | Registration: personal details | `onboarding/personal.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D04 | Driver's licence | `onboarding/licence.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D05 | Identity document | `onboarding/identity.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D06 | Vehicle information | `onboarding/vehicle.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D07 | Vehicle documents upload | `onboarding/documents.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D08 | Verification status (pending / approved / rejected) | `onboarding/status.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D09 | Dashboard (map, online toggle, earnings today) | `(tabs)/index.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D10 | Location explanation (When In Use + precise) | `permission-location.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D11 | Incoming Quick Match request | `request/[id].tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D12 | Incoming negotiation (accept / counter / decline) | `negotiation/[id].tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D13 | Active trip (to pickup → arrived → confirm passenger PIN → in progress → complete) | `trip.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D14 | Trip complete: payment status & earnings | `trip-complete.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D15 | Earnings & payouts | `(tabs)/earnings.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D16 | Trip history | `(tabs)/trips.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D17 | Account: ratings, documents, notifications, support, settings, delete account | `(tabs)/account.tsx`, `account/*` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 
 ### Rider routes added during implementation
 

@@ -15,7 +15,8 @@
     "@mingcute/react-native": "*",
     "react-native-reanimated": "*",
     "react-native-gesture-handler": "*",
-    "react-native-safe-area-context": "*"
+    "react-native-safe-area-context": "*",
+    "react-native-maps": "*"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -37,6 +38,9 @@
       "optional": true
     },
     "react-native-safe-area-context": {
+      "optional": true
+    },
+    "react-native-maps": {
       "optional": true
     }
   }

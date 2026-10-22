@@ -1,7 +1,11 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import type { LatLng } from '@gobye/core';
-import { Avatar, Icon, Text, brand, useTheme } from '@gobye/ui';
+import type { LatLng } from './types';
+import { Icon } from '../icons/Icon';
+import { Avatar } from '../components/patterns';
+import { Text } from '../components/Text';
+import { brand } from '../theme/tokens';
+import { useTheme } from '../theme/useTheme';
 import type { MapCanvasHandle, MapCanvasProps } from './MapCanvas';
 
 export type { MapCanvasHandle, MapCanvasProps } from './MapCanvas';

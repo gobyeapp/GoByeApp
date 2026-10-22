@@ -152,6 +152,24 @@ import Briefcase2Regular from '@mingcute/react-native/core-regular/briefcase-2';
 import Briefcase2Filled from '@mingcute/react-native/core-filled/briefcase-2';
 import WorldRegular from '@mingcute/react-native/core-regular/world';
 import WorldFilled from '@mingcute/react-native/core-filled/world';
+import PowerRegular from '@mingcute/react-native/core-regular/power';
+import PowerFilled from '@mingcute/react-native/core-filled/power';
+import ChartBarRegular from '@mingcute/react-native/core-regular/chart-bar';
+import ChartBarFilled from '@mingcute/react-native/core-filled/chart-bar';
+import CalendarRegular from '@mingcute/react-native/core-regular/calendar';
+import CalendarFilled from '@mingcute/react-native/core-filled/calendar';
+import FileCertificateRegular from '@mingcute/react-native/core-regular/file-certificate';
+import FileCertificateFilled from '@mingcute/react-native/core-filled/file-certificate';
+import RoadRegular from '@mingcute/react-native/core-regular/road';
+import RoadFilled from '@mingcute/react-native/core-filled/road';
+import Key2Regular from '@mingcute/react-native/core-regular/key-2';
+import Key2Filled from '@mingcute/react-native/core-filled/key-2';
+import TrendingUpRegular from '@mingcute/react-native/core-regular/trending-up';
+import TrendingUpFilled from '@mingcute/react-native/core-filled/trending-up';
+import UserSecurityRegular from '@mingcute/react-native/core-regular/user-security';
+import UserSecurityFilled from '@mingcute/react-native/core-filled/user-security';
+import TicketRegular from '@mingcute/react-native/core-regular/ticket';
+import TicketFilled from '@mingcute/react-native/core-filled/ticket';
 
 type IconComponent = ComponentType<IconProps>;
 
@@ -228,6 +246,15 @@ export const iconRegistry = {
   warning: { regular: WarningRegular, filled: WarningFilled, file: 'warning' },
   work: { regular: Briefcase2Regular, filled: Briefcase2Filled, file: 'briefcase-2' },
   world: { regular: WorldRegular, filled: WorldFilled, file: 'world' },
+  power: { regular: PowerRegular, filled: PowerFilled, file: 'power' },
+  chart: { regular: ChartBarRegular, filled: ChartBarFilled, file: 'chart-bar' },
+  calendar: { regular: CalendarRegular, filled: CalendarFilled, file: 'calendar' },
+  certificate: { regular: FileCertificateRegular, filled: FileCertificateFilled, file: 'file-certificate' },
+  road: { regular: RoadRegular, filled: RoadFilled, file: 'road' },
+  key: { regular: Key2Regular, filled: Key2Filled, file: 'key-2' },
+  trendUp: { regular: TrendingUpRegular, filled: TrendingUpFilled, file: 'trending-up' },
+  userSecurity: { regular: UserSecurityRegular, filled: UserSecurityFilled, file: 'user-security' },
+  ticket: { regular: TicketRegular, filled: TicketFilled, file: 'ticket' },
 } satisfies Record<string, { regular: IconComponent; filled: IconComponent; file: string }>;
 
 export type IconName = keyof typeof iconRegistry;
