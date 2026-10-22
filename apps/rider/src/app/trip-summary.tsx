@@ -69,6 +69,7 @@ export default function TripSummary() {
         destination: b.destination,
         driver: d,
         categoryName: catName(b.quote.category),
+        startedAt: b.startedAt,
         completedAt,
         distanceMeters: b.route.distanceMeters,
         durationSeconds: duration,

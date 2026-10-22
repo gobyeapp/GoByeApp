@@ -1,4 +1,4 @@
-import { chargedAmount, dayLabel, filterHistory, groupByDay, needsAttention, periodStart, summariseHistory } from '../booking/history';
+import { receiptReference, chargedAmount, dayLabel, filterHistory, groupByDay, needsAttention, periodStart, summariseHistory } from '../booking/history';
 import { MOCK_PLACES } from '../mocks/data';
 import { kobo, naira } from '../money';
 import type { PaymentStatus, TripReceipt } from '../types';
@@ -72,5 +72,13 @@ describe('rider trip history', () => {
     const groups = groupByDay(filterHistory(list, { period: 'week', filter: 'all', now: NOW }), NOW);
     expect(groups.map((g) => g.title.slice(0, 3))).toEqual(['Tod', 'Yes', 'Mon']);
     expect(dayLabel(NOW, NOW)).toBe('Today');
+  });
+});
+
+describe('receipt reference', () => {
+  it('is short, upper case and stable', () => {
+    expect(receiptReference('bk-lz3x9a-4f7q2m')).toBe('GB-9A4F7Q2M');
+    expect(receiptReference('bk-1')).toBe('GB-00000BK1');
+    expect(receiptReference('bk-lz3x9a-4f7q2m')).toBe(receiptReference('bk-lz3x9a-4f7q2m'));
   });
 });

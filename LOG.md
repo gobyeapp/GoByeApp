@@ -507,3 +507,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Checked:** web QA in light, dark and pressed. Typecheck and all tests pass, and the rider and driver iOS + Android exports build.
 - **Rider: "Pay later" removed (owner).** Trip-complete shows only the payment actions. "Check later" appears only while a payment already sent awaits confirmation (D-046). Android back on an unpaid trip shows "Pay for this trip to finish it." The test was updated.
 - **Fix attempt for "TypeError: Cannot read property 'split' of null" (owner's Expo Go log, no stack trace).** `formatPhone` is now null-safe: Account masks the number with `.split`, and a profile restored from older stored data can have no number. The welcome video now lives in its own component behind an error boundary, so a player failure leaves the still poster instead of crashing the welcome. Waiting on the owner's stack trace if it recurs.
+- **Rider: receipt redesigned as a branded ticket (owner: "capture our branding and premium").**
+  - **In app (R15 Receipt / R18 Ride details):**
+    - Header: aubergine `brandBanner` band with the inverse mark, GoBye and "TRIP RECEIPT", plus the long date.
+    - Amount: large total with "Total paid" only when confirmed, a payment status badge and a method pill.
+    - Body: perforated tear lines with edge notches; a journey timeline (ink pickup, tangerine drop-off, with times); a Distance / Duration / Service strip; driver with rating, car and plate.
+    - Fare breakdown: fee shown as separate from the fare, then the total, and the "GoBye takes no commission" note.
+    - Footer: copyable reference `GB-XXXXXXXX`, and the rider's stars if rated.
+    - Actions: Share receipt (primary), Rate trip, Get help.
+  - **PDF (Share receipt):** same design in HTML for expo-print: embedded 96 px mark (offline-safe), Inter with a system fallback, colours kept in print. The share title includes the reference.
+  - **Shared rules:** `receiptReference()` in core with a test; payment labels come from `PAYMENT_METHOD_LABELS`.
+  - **Checked:** web QA in light and dark at 390 px and 320 px; a sample PDF rendered for review. Typecheck passes, all tests pass (core 134), and the rider iOS + Android export builds.

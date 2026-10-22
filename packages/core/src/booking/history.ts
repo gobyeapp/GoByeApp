@@ -92,3 +92,9 @@ export function groupByDay(list: TripReceipt[], now: number): { title: string; d
   }
   return out;
 }
+
+/** Short, readable receipt reference: "GB-" + the last 8 characters of the booking id, upper case. */
+export function receiptReference(bookingId: string): string {
+  const tail = bookingId.replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase();
+  return `GB-${tail.padStart(8, '0')}`;
+}
