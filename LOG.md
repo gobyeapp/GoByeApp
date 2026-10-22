@@ -495,3 +495,13 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Core:** `validatePassword`, `validateFullName`, `parseIdentifier`; the mock auth gains signUp, signIn, socialSignIn, requestPasswordReset and resetPassword, with optional `authStore` persistence (the rider app saves simulated accounts to AsyncStorage). 8 new core tests and 4 screen tests.
   - **Checked:** web QA at 390 px (light and dark) and 320×568 for every screen and error state; typecheck passes; tests core 133, rider 33, driver 2; rider iOS + Android export with the video bundled. Note: Playwright's Chromium has no H.264, so the web check showed the poster frame; the loop itself was checked frame by frame and its seam matches a normal frame step. Not tested on a device.
   - **Decision:** D-045 (supersedes D-008 for riders). The driver app keeps phone + code.
+- **Buttons refined across both apps (owner: "the buttons are not premium").**
+  - **Shared `Button`:** now a pill, 56 pt tall at `lg`, with tighter letter spacing.
+    - Primary: solid ink with a soft, low shadow in light mode that tightens when pressed.
+    - Secondary: neutral fill with a hairline edge.
+    - Press: a short spring to 97 % plus the pressed colour; under Reduce Motion, colour only.
+  - **New options:**
+    - `trailingIcon`: a contrasting round chip at the end, like the website's hero CTA, with the title kept centred.
+    - `appearance`: forces the light or dark palette; the always-dark welcome uses it, so its buttons match the rest of the app.
+  - **Where the arrow chip appears:** Create account (welcome and form), Sign in, Send code (phone and reset), and driver Get started.
+  - **Checked:** web QA in light, dark and pressed. Typecheck and all tests pass, and the rider and driver iOS + Android exports build.

@@ -45,7 +45,7 @@ export default function SignIn() {
       header={<View style={styles.pad}><AuthTopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))} /></View>}
       footer={
         <>
-          <Button title="Sign in" onPress={submit} loading={busy} loadingLabel="Signing in" testID="signin-submit" />
+          <Button title="Sign in" trailingIcon="arrowRight" onPress={submit} loading={busy} loadingLabel="Signing in" testID="signin-submit" />
           <View style={styles.switch}>
             <Text variant="callout" color="textSecondary">
               New to GoBye?

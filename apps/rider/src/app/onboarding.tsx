@@ -2,10 +2,10 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND_NAME, BrandMark, Text, darkColors, layout, spacing } from '@gobye/ui';
+import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing } from '@gobye/ui';
 import { useSession } from '@/state/session';
 
 const VIDEO = require('../../assets/video/road-dark.mp4');
@@ -73,26 +73,8 @@ export default function Welcome() {
       </Animated.View>
 
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        <Pressable
-          onPress={() => go('/auth/signup')}
-          accessibilityRole="button"
-          testID="welcome-create"
-          style={({ pressed }) => [styles.button, { backgroundColor: pressed ? c.primaryPressed : c.primary }]}
-        >
-          <Text variant="headline" style={{ color: c.onPrimary }}>
-            Create account
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => go('/auth/signin')}
-          accessibilityRole="button"
-          testID="welcome-signin"
-          style={({ pressed }) => [styles.button, { backgroundColor: pressed ? c.secondaryPressed : c.secondary }]}
-        >
-          <Text variant="headline" style={{ color: c.onSecondary }}>
-            Sign in
-          </Text>
-        </Pressable>
+        <Button title="Create account" appearance="dark" trailingIcon="arrowRight" onPress={() => go('/auth/signup')} testID="welcome-create" />
+        <Button title="Sign in" appearance="dark" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
       </View>
     </View>
   );
@@ -108,5 +90,4 @@ const styles = StyleSheet.create({
   headline: { fontSize: 34, lineHeight: 41, letterSpacing: -1 },
   headlineCompact: { fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
   actions: { marginTop: 'auto', paddingHorizontal: layout.page, gap: spacing.md },
-  button: { minHeight: 56, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
 });

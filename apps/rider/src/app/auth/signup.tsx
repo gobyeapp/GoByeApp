@@ -60,7 +60,7 @@ export default function SignUp() {
       header={<View style={styles.pad}><AuthTopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))} /></View>}
       footer={
         <>
-          <Button title="Create account" onPress={submit} loading={busy} loadingLabel="Creating account" testID="signup-submit" />
+          <Button title="Create account" trailingIcon="arrowRight" onPress={submit} loading={busy} loadingLabel="Creating account" testID="signup-submit" />
           <Text variant="caption" weight="regular" color="textSecondary" align="center">
             By creating an account you agree to the Terms and Privacy notice.
           </Text>
