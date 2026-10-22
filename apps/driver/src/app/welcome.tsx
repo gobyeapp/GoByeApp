@@ -63,7 +63,7 @@ export default function Welcome() {
           </View>
         </View>
         <View style={styles.actions}>
-          <Button title="Get started" trailingIcon="arrowRight" onPress={start} testID="welcome-start" />
+          <Button title="Get started" onPress={start} testID="welcome-start" />
           <Button title="I already drive with GoBye" variant="tertiary" onPress={start} />
         </View>
       </Animated.View>

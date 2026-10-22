@@ -187,7 +187,7 @@ export function JourneyFlow({
       <View style={[styles.flowActions, { paddingBottom: Math.max(insets.bottom, spacing.md) + (compact ? 0 : 4) }]}>
         <View style={styles.flowRow}>
           {step > 0 ? <RoundBack onPress={onBack} disabled={cta.loading} /> : null}
-          <Button variant="brand" title={cta.title} trailingIcon="arrowRight" loading={cta.loading} loadingLabel={cta.loadingLabel} disabled={cta.disabled} onPress={cta.onPress} style={styles.flex} testID={cta.testID} />
+          <Button variant="brand" title={cta.title} loading={cta.loading} loadingLabel={cta.loadingLabel} disabled={cta.disabled} onPress={cta.onPress} style={styles.flex} testID={cta.testID} />
         </View>
         {footnote ? <View style={styles.flowFoot}>{footnote}</View> : null}
       </View>

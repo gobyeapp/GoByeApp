@@ -47,7 +47,7 @@ export default function RiderPassScreen() {
       <Animated.View style={[styles.pass, passStyle]}>
         <RiderPass name={name} city={homeCity ?? 'Lagos'} since={since} note="Phone verified. Book your first ride whenever you’re ready." />
       </Animated.View>
-      <Button variant="brand" title="Start riding" trailingIcon="arrowRight" onPress={() => resetTo('/(tabs)')} testID="pass-done" />
+      <Button variant="brand" title="Start riding" onPress={() => resetTo('/(tabs)')} testID="pass-done" />
     </View>
   );
 }

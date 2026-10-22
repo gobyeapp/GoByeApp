@@ -50,7 +50,7 @@ export default function OtpScreen() {
       header={<View style={styles.pad}><AuthTopBar onBack={() => router.back()} /></View>}
       footer={
         <>
-          <Button variant="brand" trailingIcon="arrowRight" title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />
+          <Button variant="brand" title={verified ? 'Verified' : 'Verify'} onPress={() => submit()} loading={submitting} disabled={code.length < 6 || verified} testID="verify-code" />
           <View style={styles.center}>
             <TextLink title="Change number" onPress={() => router.back()} />
           </View>

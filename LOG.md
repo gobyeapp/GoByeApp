@@ -537,3 +537,4 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Sign in (2 steps):** "Good to see you again" (email or phone, Apple / Google, "New to GoBye? Create account") → "Enter your password" ("Signing in as …", Forgot password?).
   - **Reset password (3 steps):** Which account? (email) → Check your email (code boxes with resend countdown; moves on after 6 digits) → Choose a new password (strength bars). A wrong code returns to the code step.
   - **Checked:** every step on 390×844 and 375×667 with nothing cut off and no scrolling; tests updated (rider 33); typecheck passes; the rider iOS + Android export builds.
+- **Buttons: arrow chip removed everywhere (owner).** The welcome, sign-in / sign-up / reset / verify CTAs, Start riding and driver Get started no longer show the arrow. The `trailingIcon` option stays in `Button` but is unused.
