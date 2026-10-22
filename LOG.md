@@ -445,3 +445,7 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Phone header (owner reference image):** a full-width two-tab bar (For riders | For drivers, active tab lilac, inactive pale) sits above a white logo row with a hairline. The header CTA and the floating pill are hidden on phones, and the in-section toggle was removed (the tabs replace it). `--nav-h` is 116 px plus the safe area, so the sticky step cards sit below it.
   - **Checked:** at 390 px; the tabs switch content and there is no overflow.
 - **Website: phone logo row restored.** "Join the waitlist" is back in the header beside the logo (32 px mark, 40 px button, 68 px row) under the audience tabs; the header totals 120 px plus the safe area. The gap from the header to the headline goes from 32 to 40 px.
+- **Website: feature bentos cut to four cards each (owner request).**
+  - Drivers: "Withdraw to your bank" and "PIN check at pickup" removed; kept Daily or monthly pass, Fare first, Counter offers, Earnings at a glance.
+  - Riders, the matching pair: "Pickup PIN" (also in Safety) and "GoBYE wallet" removed; kept Book for someone else, Saved places, Pickup notes, Invite friends.
+  - Two rows, narrow and wide then wide and narrow. The Safety section is unchanged.

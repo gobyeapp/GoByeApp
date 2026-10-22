@@ -54,9 +54,7 @@ window.GOBYE_SITE = {
         lines: ['Everything a trip needs,', 'in one place.'],
         items: [
           { title: 'Book for someone else', body: 'Send a ride to family or a friend.', frag: 'assets/ui/feat/r-someone.webp', art: 'assets/ui/sedan.webp' },
-          { title: 'Pickup PIN', body: 'Your trip starts only when your driver has your PIN.', frag: 'assets/ui/feat/r-pin.webp' },
           { title: 'Saved places', body: 'Home, Work and favourites, one tap away.', frag: 'assets/ui/feat/r-places.webp', art: 'assets/ui/destination.webp' },
-          { title: 'GoBYE wallet', body: 'Add money once, then pay in one tap.', frag: 'assets/ui/feat/r-wallet.webp', art: 'assets/ui/wallet.webp' },
           { title: 'Pickup notes', body: 'Tell your driver exactly where to find you.', frag: 'assets/ui/feat/r-note.webp' },
           { title: 'Invite friends', body: 'Earn rewards when friends take their first paid trip.', frag: 'assets/ui/feat/r-invite.webp', art: 'assets/ui/reward-gift.webp' },
         ],
@@ -98,9 +96,7 @@ window.GOBYE_SITE = {
           { title: 'Daily or monthly pass', body: 'Pick the access that fits your week.', frag: 'assets/ui/feat/d-pass.webp', art: 'assets/ui/wallet.webp' },
           { title: 'Fare first', body: 'Every request shows the fare before you accept.', frag: 'assets/ui/feat/d-fare.webp', art: 'assets/ui/sedan.webp' },
           { title: 'Counter offers', body: 'Reply to a passenger’s offer with your price.', frag: 'assets/ui/feat/d-counter.webp' },
-          { title: 'PIN check at pickup', body: 'Start the trip with the passenger’s four digit PIN.', frag: 'assets/ui/feat/d-pin.webp' },
           { title: 'Earnings at a glance', body: 'See what you made from every trip.', frag: 'assets/ui/feat/d-earn.webp' },
-          { title: 'Withdraw to your bank', body: 'Move earnings to your verified account.', frag: 'assets/ui/feat/d-bank.webp', art: 'assets/ui/destination.webp' },
         ],
       },
       safety: {
