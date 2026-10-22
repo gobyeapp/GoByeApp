@@ -2,16 +2,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { passwordStrength, validateEmail, validatePassword } from '@gobye/core';
-import { CodeBoxes, FieldMessage, Icon, Text, spacing, useTheme, useToast } from '@gobye/ui';
+import { validateEmail, validatePassword } from '@gobye/core';
+import { CodeBoxes, FieldMessage, Icon, Text, spacing, useToast } from '@gobye/ui';
 import { TextLink } from '@/features/auth/AuthKit';
-import { JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
+import { JourneyField, JourneyFlow, PasswordRules, PreviewNote, StepTitle } from '@/features/auth/Journey';
 import { useHaptics } from '@/state/haptics';
 import { useNow } from '@/state/useNow';
 import { useSession } from '@/state/session';
 
 const STEPS = ['Email', 'Code', 'New password'];
-const STRENGTH = { empty: 0, weak: 1, okay: 2, strong: 3 } as const;
 
 /**
  * Reset password as a three-step journey, no scrolling: account email → the 6 digit code from the email
@@ -20,7 +19,6 @@ const STRENGTH = { empty: 0, weak: 1, okay: 2, strong: 3 } as const;
  */
 export default function ResetPassword() {
   const params = useLocalSearchParams<{ email?: string }>();
-  const { colors } = useTheme();
   const reduce = useReducedMotion();
   const toast = useToast();
   const haptic = useHaptics();
@@ -38,7 +36,6 @@ export default function ResetPassword() {
   const emailRef = useRef<TextInput>(null);
   const pwRef = useRef<TextInput>(null);
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
-  const strength = passwordStrength(password);
 
   useEffect(() => {
     const ref = step === 0 ? emailRef : step === 2 ? pwRef : null;
@@ -193,11 +190,7 @@ export default function ResetPassword() {
               </Pressable>
             }
           />
-          <View style={styles.bars} accessible accessibilityLabel={`Password strength ${strength}`}>
-            {[1, 2, 3].map((b) => (
-              <View key={b} style={[styles.bar, { backgroundColor: b <= STRENGTH[strength] ? (strength === 'weak' ? colors.danger : strength === 'okay' ? colors.warning : colors.success) : colors.border }]} />
-            ))}
-          </View>
+          <PasswordRules password={password} testID="reset-rules" />
         </>,
       ]}
     />
@@ -207,7 +200,5 @@ export default function ResetPassword() {
 const styles = StyleSheet.create({
   resend: { alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  bars: { flexDirection: 'row', gap: 6 },
-  bar: { flex: 1, height: 4, borderRadius: 2 },
   eye: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -6 },
 });

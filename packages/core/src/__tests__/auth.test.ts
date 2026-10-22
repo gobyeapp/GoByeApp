@@ -1,5 +1,5 @@
 import { createMockServices, type MockAccount } from '../mocks/services';
-import { OTHER_NIGERIAN_STATES, parseIdentifier, passwordStrength, validateFullName, validatePassword } from '../validation';
+import { OTHER_NIGERIAN_STATES, parseIdentifier, passwordChecks, passwordStrength, searchStates, validateFullName, validatePassword } from '../validation';
 
 const fast = () => createMockServices({ flags: { latency: [0, 0] } });
 
@@ -32,6 +32,27 @@ describe('sign-up journey helpers', () => {
     expect(passwordStrength('gobye2026')).toBe('okay');
     expect(passwordStrength('Gobye2026')).toBe('strong');
     expect(passwordStrength('gobye2026rides')).toBe('strong');
+  });
+
+  it('searches states by name or city, best matches first', () => {
+    expect(searchStates('')).toHaveLength(35);
+    expect(searchStates('  ')).toHaveLength(35);
+    expect(searchStates('ka').map((m) => m.state).slice(0, 3)).toEqual(['Kaduna', 'Kano', 'Katsina']);
+    expect(searchStates('ka')).toContainEqual({ state: 'Anambra', city: 'Awka' });
+    expect(searchStates('crossriver')).toEqual([{ state: 'Cross River' }]);
+    expect(searchStates('ibadan')).toEqual([{ state: 'Oyo', city: 'Ibadan' }]);
+    expect(searchStates('port har')).toEqual([{ state: 'Rivers', city: 'Port Harcourt' }]);
+    expect(searchStates('ado ekiti')).toEqual([{ state: 'Ekiti', city: 'Ado-Ekiti' }]);
+    expect(searchStates('lagos')).toEqual([]);
+    // State names that start with the query come before ones that only contain it.
+    expect(searchStates('o').map((m) => m.state).slice(0, 5)).toEqual(['Ogun', 'Ondo', 'Osun', 'Oyo', 'Akwa Ibom']);
+  });
+
+  it('turns the password rule into a live checklist', () => {
+    expect(passwordChecks('').every((c) => !c.met)).toBe(true);
+    expect(passwordChecks('gobye').map((c) => c.met)).toEqual([false, true, false]);
+    expect(passwordChecks('gobye2026').every((c) => c.met)).toBe(true);
+    expect(passwordChecks('12345678').map((c) => c.met)).toEqual([true, false, true]);
   });
 
   it('lists the 35 other states, without Lagos or the FCT', () => {

@@ -17,6 +17,8 @@ export interface SheetProps {
   subtitle?: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** Pinned under the header, above the scrolling content (e.g. a search field that must stay in view). */
+  top?: ReactNode;
   testID?: string;
   /**
    * Optional hero (icon tile or illustration) for explanatory sheets (bank reference): when set, the
@@ -30,7 +32,7 @@ export interface SheetProps {
   headerAlign?: 'center' | 'leading';
 }
 
-export function Sheet({ visible, onClose, title, subtitle, children, footer, testID, hero: heroProp, headerAlign = 'center' }: SheetProps) {
+export function Sheet({ visible, onClose, title, subtitle, children, footer, top, testID, hero: heroProp, headerAlign = 'center' }: SheetProps) {
   const { colors, scheme } = useTheme();
   // On short screens the hero is dropped so the grouped content and the action stay in view.
   const { height } = useWindowDimensions();
@@ -99,6 +101,7 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, tes
             </View>
               </>
             )}
+            {top ? <View style={styles.sheetTop}>{top}</View> : null}
             <ScrollView style={styles.flexShrink} contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
               {children}
             </ScrollView>
@@ -252,6 +255,7 @@ const styles = StyleSheet.create({
   hero: { marginBottom: spacing.sm },
   flexShrink: { flexGrow: 0, flexShrink: 1 },
   sheetBody: { paddingHorizontal: layout.page, gap: spacing.md },
+  sheetTop: { paddingHorizontal: layout.page, paddingBottom: spacing.md },
   sheetFooter: { paddingHorizontal: layout.page, paddingTop: spacing.lg, gap: spacing.sm },
   avatar: { alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   group: { gap: spacing.sm },

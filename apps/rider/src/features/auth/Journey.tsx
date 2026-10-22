@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import type { SocialProvider } from '@gobye/core';
+import { passwordChecks, passwordStrength, type SocialProvider } from '@gobye/core';
 import { OrDivider, SocialButtons } from './AuthKit';
 import { BRAND_NAME, BrandMark, Button, Icon, Text, brand, fontFamily, spacing, useTheme, type IconName } from '@gobye/ui';
 
@@ -277,6 +277,63 @@ export function WhenNotTyping({ children }: { children: ReactNode }) {
   return useJourneyKeyboard() ? null : <>{children}</>;
 }
 
+/**
+ * Live password feedback for a new password: a three-part strength bar with its word on the right,
+ * then the rule as three ticks that turn green as they're met (same rule as `validatePassword`).
+ */
+export function PasswordRules({ password, testID }: { password: string; testID?: string }) {
+  const { colors } = useTheme();
+  const strength = passwordStrength(password);
+  const meta = {
+    empty: { bars: 0, label: '', tone: colors.textSecondary },
+    weak: { bars: 1, label: 'Too weak', tone: colors.danger },
+    okay: { bars: 2, label: 'Good', tone: colors.warning },
+    strong: { bars: 3, label: 'Strong', tone: colors.success },
+  }[strength];
+  const checks = passwordChecks(password);
+  return (
+    <View style={[styles.pwCard, { backgroundColor: colors.surfaceMuted }]} testID={testID}>
+      <View style={styles.pwHead} accessible accessibilityLabel={meta.label ? `Password strength: ${meta.label}` : 'Password strength'}>
+        <Text variant="footnote" weight="semibold" color="textSecondary">
+          Strength
+        </Text>
+        <Text variant="footnote" weight="semibold" style={{ color: meta.tone }}>
+          {meta.label}
+        </Text>
+      </View>
+      <View style={styles.pwBars} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {[1, 2, 3].map((b) => (
+          <StrengthBar key={b} on={b <= meta.bars} color={meta.tone} track={colors.border} />
+        ))}
+      </View>
+      <View style={styles.pwChecks}>
+        {checks.map((c) => (
+          <View key={c.id} style={styles.pwCheck} accessible accessibilityLabel={`${c.label}: ${c.met ? 'done' : 'not yet'}`} testID={testID ? `${testID}-${c.id}${c.met ? '-met' : ''}` : undefined}>
+            <Icon name="checkCircle" variant={c.met ? 'filled' : 'regular'} size={16} color={c.met ? 'success' : 'textSecondary'} />
+            <Text variant="footnote" weight={c.met ? 'semibold' : 'regular'} color={c.met ? 'text' : 'textSecondary'}>
+              {c.label}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function StrengthBar({ on, color, track }: { on: boolean; color: string; track: string }) {
+  const reduce = useReducedMotion();
+  const fill = useSharedValue(on ? 1 : 0);
+  useEffect(() => {
+    fill.value = withTiming(on ? 1 : 0, { duration: reduce ? 0 : 220, easing: Easing.out(Easing.cubic) });
+  }, [on, reduce, fill]);
+  const style = useAnimatedStyle(() => ({ width: `${fill.value * 100}%` }));
+  return (
+    <View style={[styles.pwBar, { backgroundColor: track }]}>
+      <Animated.View style={[styles.pwBarFill, { backgroundColor: color }, style]} />
+    </View>
+  );
+}
+
 /** Step heading + hint, the website's `.q` and `.hint`. */
 export function StepTitle({ title, hint }: { title: string; hint?: ReactNode }) {
   const { colors } = useTheme();
@@ -542,4 +599,11 @@ const styles = StyleSheet.create({
   passDash: { marginHorizontal: 18, borderTopWidth: 2, borderStyle: 'dashed' },
   passFoot: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 20, paddingTop: 12, paddingBottom: 18 },
   okDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  pwCard: { borderRadius: 16, padding: spacing.md, gap: 10 },
+  pwHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pwBars: { flexDirection: 'row', gap: 6 },
+  pwBar: { flex: 1, height: 6, borderRadius: 3, overflow: 'hidden' },
+  pwBarFill: { height: '100%', borderRadius: 3 },
+  pwChecks: { flexDirection: 'row', flexWrap: 'wrap', columnGap: spacing.lg, rowGap: 6, marginTop: 2 },
+  pwCheck: { flexDirection: 'row', alignItems: 'center', gap: 6 },
 });

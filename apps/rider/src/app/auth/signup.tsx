@@ -2,21 +2,15 @@ import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { OTHER_NIGERIAN_STATES, passwordStrength, validateEmail, validateFullName, validateNigerianPhone, validatePassword, type SocialProvider } from '@gobye/core';
-import { Icon, RadioRow, Sheet, Text, useTheme, useToast } from '@gobye/ui';
-import { ChoiceTile, JourneyField, JourneyFlow, PreviewNote, SocialFirst, StepTitle } from '@/features/auth/Journey';
+import { searchStates, validateEmail, validateFullName, validateNigerianPhone, validatePassword, type SocialProvider } from '@gobye/core';
+import { Icon, RadioRow, Sheet, Text, TextField, spacing, useToast } from '@gobye/ui';
+import { ChoiceTile, JourneyField, JourneyFlow, PasswordRules, PreviewNote, SocialFirst, StepTitle } from '@/features/auth/Journey';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 
 const STEPS = ['You', 'City', 'Contact', 'Secure'] as const;
 type Errors = Partial<Record<'name' | 'city' | 'email' | 'phone' | 'password' | 'form', string>>;
 
-const STRENGTH = {
-  empty: { bars: 0, label: '' },
-  weak: { bars: 1, label: 'Too weak' },
-  okay: { bars: 2, label: 'Good' },
-  strong: { bars: 3, label: 'Strong' },
-} as const;
 
 /**
  * Create account as a journey (the website's "Join the waitlist", owner request 2026-10-22):
@@ -25,7 +19,6 @@ const STRENGTH = {
  * verification and the rider pass.
  */
 export default function SignUp() {
-  const { colors } = useTheme();
   const reduce = useReducedMotion();
   const toast = useToast();
   const haptic = useHaptics();
@@ -36,6 +29,7 @@ export default function SignUp() {
   const [city, setCity] = useState<'Lagos' | 'Abuja' | 'Another city' | null>(null);
   const [state, setState] = useState<string | null>(null);
   const [statesOpen, setStatesOpen] = useState(false);
+  const [stateQuery, setStateQuery] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -59,7 +53,7 @@ export default function SignUp() {
 
   const first = validateFullName(name).ok ? name.trim().split(/\s+/)[0] : '';
   const cityLabel = city === 'Another city' ? state ?? 'Another city' : city ?? '';
-  const strength = passwordStrength(password);
+  const stateMatches = searchStates(stateQuery);
 
   const check = (n: number): boolean => {
     const next: Errors = {};
@@ -120,6 +114,19 @@ export default function SignUp() {
     setState(null);
     // Tiles move on by themselves (website journey).
     setTimeout(() => go(2), reduce ? 0 : 260);
+  };
+
+  const closeStates = () => {
+    setStatesOpen(false);
+    setStateQuery('');
+  };
+
+  const pickState = (s: string) => {
+    setState(s);
+    closeStates();
+    setErrors({});
+    haptic('selection');
+    setTimeout(() => go(2), reduce ? 0 : 300);
   };
 
   const withProvider = async (p: SocialProvider) => {
@@ -266,24 +273,9 @@ export default function SignUp() {
                       </Pressable>
                     }
                   />
-                  <View style={styles.meter} accessible accessibilityLabel={strength === 'empty' ? 'Password strength' : `Password strength: ${STRENGTH[strength].label}`}>
-                    <View style={styles.bars}>
-                      {[1, 2, 3].map((b) => (
-                        <View
-                          key={b}
-                          style={[
-                            styles.bar,
-                            { backgroundColor: b <= STRENGTH[strength].bars ? (strength === 'weak' ? colors.danger : strength === 'okay' ? colors.warning : colors.success) : colors.border },
-                          ]}
-                        />
-                      ))}
-                    </View>
-                    <Text variant="caption" color="textSecondary">
-                      {STRENGTH[strength].label || 'At least 8 characters, with a number.'}
-                    </Text>
-                  </View>
+                  <PasswordRules password={password} testID="signup-rules" />
                   <Text variant="footnote" color="textSecondary">
-                    You agree to the Terms and Privacy notice.
+                    By creating an account you agree to the Terms and Privacy notice.
                   </Text>
 
                   {errors.form ? (
@@ -297,21 +289,47 @@ export default function SignUp() {
                 </>,
         ]}
       />
-      <Sheet visible={statesOpen} onClose={() => setStatesOpen(false)} title="Which state?" subtitle="We’ll let you know when GoBye arrives." testID="state-sheet">
-        {OTHER_NIGERIAN_STATES.map((s) => (
-          <RadioRow
-            key={s}
-            title={s}
-            selected={state === s}
-            onSelect={() => {
-              setState(s);
-              setStatesOpen(false);
-              setErrors({});
-              setTimeout(() => go(2), reduce ? 0 : 300);
-            }}
-            testID={`state-${s}`}
+      <Sheet
+        visible={statesOpen}
+        onClose={closeStates}
+        title="Which state?"
+        testID="state-sheet"
+        top={
+          <TextField
+            label="Search states"
+            hideLabel
+            leadingIcon="search"
+            placeholder="Search state or city"
+            value={stateQuery}
+            onChangeText={setStateQuery}
+            autoCapitalize="words"
+            autoCorrect={false}
+            returnKeyType="search"
+            onSubmitEditing={() => stateMatches.length === 1 && pickState(stateMatches[0].state)}
+            testID="state-search"
+            trailing={
+              stateQuery ? (
+                <Pressable onPress={() => setStateQuery('')} accessibilityRole="button" accessibilityLabel="Clear search" hitSlop={10} style={styles.eye}>
+                  <Icon name="closeCircle" variant="filled" size={18} color="textSecondary" />
+                </Pressable>
+              ) : null
+            }
           />
-        ))}
+        }
+      >
+        {/* A steady height, so the sheet doesn't jump as the list narrows. */}
+        <View style={styles.stateList} accessibilityRole="radiogroup" accessibilityLabel="States">
+          {stateMatches.length ? (
+            stateMatches.map((m) => <RadioRow key={m.state} title={m.state} subtitle={m.city} selected={state === m.state} onSelect={() => pickState(m.state)} testID={`state-${m.state}`} />)
+          ) : (
+            <View style={styles.noMatch} accessibilityLiveRegion="polite">
+              <Icon name="search" size={22} color="textSecondary" />
+              <Text variant="callout" color="textSecondary" align="center">
+                No state or city matches “{stateQuery.trim()}”.
+              </Text>
+            </View>
+          )}
+        </View>
       </Sheet>
     </>
   );
@@ -321,8 +339,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   inlineErr: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  meter: { gap: 6 },
-  bars: { flexDirection: 'row', gap: 6 },
-  bar: { flex: 1, height: 4, borderRadius: 2 },
+  stateList: { minHeight: 360, gap: spacing.md },
+  noMatch: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xxl, paddingHorizontal: spacing.lg },
   eye: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -6 },
 });

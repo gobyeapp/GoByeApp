@@ -546,3 +546,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Welcome:** Apple/Google removed (owner request); only Create account and Sign in. The road is a fixed band (0.62 × width, capped at 34% of height) with equal flexible space above and below; body copy shortened.
 - **Copy:** removed eyebrows and repeated hints across sign up, sign in, reset, phone and OTP; one short question per step ("What’s your name?", "Where will you ride?", "How do we reach you?", "Set a password"; sign in shows the account on step 2; reset "Which email?" → "Enter the code" → "New password"). Preview note shortened to "Preview · simulated".
 - Checks: `npm run typecheck`, `npm test` (rider 33, core 136, all pass), rider `npx expo export --platform android --platform ios` OK.
+
+## 2026-10-22 — Sign up: state search, better password step
+
+- **Another city → state search:** the state sheet has a pinned "Search state or city" field (new `Sheet` `top` slot in `@gobye/ui`). `searchStates` (core) matches state names (starts-with first, then contains) and capitals/big cities, so "Ibadan" finds Oyo and "Port Harcourt" finds Rivers; the city shows under the state. Clear button, empty state, Return picks a single match, the list keeps a steady height.
+- **Password step (sign up and reset):** new `PasswordRules` card: animated three-part strength bar with its word (Too weak / Good / Strong) and the rule as three live ticks (8+ characters, A letter, A number) from core `passwordChecks`.
+- Tests: core +2 (`searchStates`, `passwordChecks`), rider +1 (state search) and the password checklist asserted in the create-account test. `npm run typecheck`, `npm test` (core 138, rider 34) and the rider iOS/Android export pass. Checked on web at 390×844, light and dark.

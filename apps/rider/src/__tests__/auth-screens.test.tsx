@@ -79,12 +79,41 @@ describe('Create account and Sign in', () => {
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signup-submit'));
     });
+    await fireEvent.changeText(screen.getByTestId('signup-password'), 'gobye');
+    expect(screen.getByText('Too weak')).toBeTruthy();
+    expect(screen.getByTestId('signup-rules-letter-met')).toBeTruthy();
+    expect(screen.queryByTestId('signup-rules-number-met')).toBeNull();
     await fireEvent.changeText(screen.getByTestId('signup-password'), 'gobye2026');
     expect(screen.getByText('Good')).toBeTruthy();
+    expect(screen.getByTestId('signup-rules-length-met')).toBeTruthy();
+    expect(screen.getByTestId('signup-rules-number-met')).toBeTruthy();
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signup-submit'));
     });
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/auth/otp', params: { next: 'pass' } });
+  });
+
+  it('finds another state by searching its name or a city in it', async () => {
+    await mount(<SignUp />);
+    await fireEvent.changeText(screen.getByTestId('signup-name'), 'Ada Okafor');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signup-submit'));
+    });
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('city-other'));
+    });
+    expect(screen.getByTestId('state-Zamfara')).toBeTruthy();
+    await fireEvent.changeText(screen.getByTestId('state-search'), 'ibadan');
+    expect(screen.queryByTestId('state-Zamfara')).toBeNull();
+    expect(screen.getByText('Ibadan')).toBeTruthy();
+    await fireEvent.changeText(screen.getByTestId('state-search'), 'xyz');
+    expect(screen.getByText('No state or city matches “xyz”.')).toBeTruthy();
+    await fireEvent.changeText(screen.getByTestId('state-search'), 'oyo');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('state-Oyo'));
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    expect(screen.getByTestId('signup-email')).toBeTruthy();
   });
 
   it('signs in over two steps and rejects a wrong password with a neutral message', async () => {
