@@ -478,3 +478,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Use my location** now always shows and handles each state in place: not yet asked → the pre-permission screen, which then sets the pickup (`next=pickup`); off → opens Settings; allowed → takes a fresh fix, looks up the address, sets the pickup and confirms with a toast. While it works it shows a spinner and "Finding you…"; if it fails, a message appears under the row and the current pickup is kept. The accuracy is supporting text ("Accurate to about 12 m"). Shared logic is in `features/home/useLocatePickup.ts`, and `useCurrentLocation().refresh()` now returns the fix.
   - Dismissing the sheet changes nothing. It still opens only from the pickup row on Home.
   - **Checked:** 5 new component tests (rider 29 passed). Screenshots in the web QA build at 390 px (light, dark, pressed) and 320×568 with location off. Typecheck passes and the rider export builds.
+- **Rider: Activities more detailed, with filters (owner request).**
+  - **Period switch:** Week, Month (the default) or All time. Weeks start on Monday.
+  - **Spend summary for the period:** total spent in large type, then trips, distance and average fare (whole naira). Failed, reversed and refunded payments don't count as spend. A "n payments need attention" bar jumps to that filter.
+  - **Filter chips with counts:** All, Needs attention (pending, confirming, failed or reversed), Wallet and Bank transfer.
+  - **Trips grouped by day** (Today, Yesterday, then dates) with each day's total. Each row shows the destination, "From" pickup, time, distance, duration and driver first name, plus the amount and a written payment status. Trips needing attention get a tinted icon.
+  - **Empty states:** no trips yet; nothing matching, with "Show all trips". The live-ride banner is unchanged.
+  - **Rules:** in `@gobye/core` `booking/history.ts` (periodStart, filterHistory, needsAttention, summariseHistory, groupByDay), with 5 tests.
+  - **Checked:** web QA at 390 px (light and dark) and 320 px, with every filter; typecheck passes; tests core 125, rider 29, driver 2; the rider export builds.

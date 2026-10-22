@@ -16,3 +16,4 @@ export * from './booking/live';
 export * from './platform';
 export * from './driver/onboarding';
 export * from './driver/trips';
+export * from './booking/history';
