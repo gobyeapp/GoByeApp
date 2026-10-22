@@ -169,46 +169,44 @@
 
 <dialog class="sheet" id="waitlist" aria-labelledby="wl-title">
   <div class="sheet-body">
-    <div class="sheet-head">
-      <div>
-        <h2 id="wl-title">Join the waitlist</h2>
-        <p>Be first to hear when GoBYE launches in your city.</p>
-      </div>
+    <div class="sheet-hero">
       <button class="x" type="button" id="wl-close" aria-label="Close"><span class="icon" data-icon="close"></span></button>
+      <span class="sheet-mark"><img src="assets/logo-mark-inverse.png" alt="" width="28" height="28" /></span>
+      <p class="sheet-eyebrow">EARLY ACCESS</p>
+      <h2 id="wl-title">Join the waitlist</h2>
+      <p class="sheet-sub">Be first to hear when GoBYE launches in your city.</p>
     </div>
 
     <form id="waitlist-form" novalidate>
-      <div class="stack" style="display:flex;flex-direction:column;gap:16px">
-        <div class="field">
-          <label for="wl-email">Email address</label>
-          <input id="wl-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="wl-email-err" />
-          <span class="err" id="wl-email-err" hidden></span>
-        </div>
-        <div class="field">
-          <label for="wl-city">City</label>
-          <select id="wl-city" name="city" required aria-describedby="wl-city-err"></select>
-          <span class="err" id="wl-city-err" hidden></span>
-        </div>
-        <fieldset class="field" id="wl-intent" aria-describedby="wl-intent-err">
-          <legend>I want to</legend>
-          <div class="choice">
-            <label><input type="radio" name="intent" value="ride" id="wl-ride" />Ride</label>
-            <label><input type="radio" name="intent" value="drive" id="wl-drive" />Drive</label>
-          </div>
-          <span class="err" id="wl-intent-err" hidden></span>
-        </fieldset>
-        <div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label></div>
-        <p class="form-error" id="wl-error" role="alert" hidden></p>
-        <button class="btn btn-primary" type="submit" id="wl-submit">Join the waitlist</button>
-        <p class="form-note">We’ll only use your email for GoBYE launch news.</p>
+      <div class="field">
+        <label for="wl-email">Email address</label>
+        <div class="input-ico"><span class="icon" data-icon="mail" aria-hidden="true"></span><input id="wl-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required aria-describedby="wl-email-err" /></div>
+        <span class="err" id="wl-email-err" hidden></span>
       </div>
+      <fieldset class="field" id="wl-city" aria-describedby="wl-city-err">
+        <legend>City</legend>
+        <div class="chips" id="wl-city-opts"></div>
+        <span class="err" id="wl-city-err" hidden></span>
+      </fieldset>
+      <fieldset class="field" id="wl-intent" aria-describedby="wl-intent-err">
+        <legend>I want to</legend>
+        <div class="choice">
+          <label><input type="radio" name="intent" value="ride" id="wl-ride" /><span class="icon" data-icon="mapPin" aria-hidden="true"></span><span>Ride</span></label>
+          <label><input type="radio" name="intent" value="drive" id="wl-drive" /><span class="icon" data-icon="steering" aria-hidden="true"></span><span>Drive</span></label>
+        </div>
+        <span class="err" id="wl-intent-err" hidden></span>
+      </fieldset>
+      <div class="hp" aria-hidden="true"><label>Company<input type="text" name="company" tabindex="-1" autocomplete="off" /></label></div>
+      <p class="form-error" id="wl-error" role="alert" hidden></p>
+      <button class="btn btn-primary wl-submit" type="submit" id="wl-submit"><span>Join the waitlist</span><span class="btn-arrow" aria-hidden="true"><span class="icon" data-icon="arrow"></span></span></button>
+      <p class="form-note"><span class="icon" data-icon="shield" aria-hidden="true"></span>We’ll only use your email for GoBYE launch news.</p>
     </form>
 
     <div class="result" id="wl-result" hidden role="status" aria-live="polite">
       <div class="badge"></div>
       <h3></h3>
       <p></p>
-      <button class="btn btn-ghost" type="button" id="wl-done">Done</button>
+      <button class="btn btn-primary" type="button" id="wl-done">Done</button>
     </div>
   </div>
 </dialog>

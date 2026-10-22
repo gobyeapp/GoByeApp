@@ -412,3 +412,13 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Tested in Playwright against a stand-in for the Supabase endpoint (201, 409, 500); the requests carry only the anon role.
   - Not yet tested against the live project: this workspace cannot reach supabase.co, and the SQL must first be run by the owner.
   - The service_role key was not used and must be rotated.
+- **Website: premium waitlist window and compact desktop nav (owner request).**
+  - **Header band:** a deep aubergine gradient with warm and lilac glows, the mark in a glass tile, an "EARLY ACCESS" eyebrow, a 30 px title and a glass close button that rotates on hover.
+  - **Fields:**
+    - Email with a mail icon on a soft fill that turns white with a plum focus ring.
+    - City as chips (Lagos, Abuja, Another city), replacing the select.
+    - Ride and Drive as 58 px options with icons and a plum selected state.
+    - A full-width 56 px CTA with an arrow chip, and a privacy line with a shield.
+  - **Behaviour:** errors clear as each field is fixed. Success shows a gradient check badge with a ring pulse, "You're on the list", and a primary Done. Phones (560 px and below) get a bottom sheet that slides up.
+  - **Desktop nav:** the top state is now a 700 px centred group instead of full width, so the logo, toggle and CTA sit together.
+  - **Checked:** Playwright at 1440 and 390 (empty, errors, filled, success); the Supabase stand-in tests still pass (201, 409, 500).

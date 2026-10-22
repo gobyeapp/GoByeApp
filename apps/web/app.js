@@ -130,8 +130,10 @@
     var useSupabase = isUrl(sb.url) && !!sb.anonKey;
     var noEndpoint = !useSupabase && !C.waitlist.endpoint; // nothing can be stored until one is set
     var opened = null;
-    var sel = $('#wl-city');
-    sel.innerHTML = '<option value="">Choose a city</option>' + C.waitlist.cities.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
+    var submitIdle = $('#wl-submit').innerHTML; // restored after each attempt
+    $('#wl-city-opts').innerHTML = C.waitlist.cities.map(function (c, i) {
+      return '<label class="chip"><input type="radio" name="city" value="' + esc(c) + '" id="wl-city-' + i + '">' + esc(c) + '</label>';
+    }).join('');
 
     function open(e) {
       opened = e && e.currentTarget;
@@ -165,7 +167,7 @@
     }
     function validate() {
       var email = $('#wl-email').value.trim();
-      var city = sel.value;
+      var city = (form.querySelector('input[name="city"]:checked') || {}).value;
       var intent = (form.querySelector('input[name="intent"]:checked') || {}).value;
       var ok = true;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { fieldError('wl-email', 'Enter an email address like name@example.com'); ok = false; } else fieldError('wl-email');
@@ -185,6 +187,14 @@
     }
 
     document.querySelectorAll('[data-open-waitlist]').forEach(function (b) { b.addEventListener('click', open); });
+    // Clear each error as soon as that field is fixed.
+    $('#wl-email').addEventListener('input', function () {
+      if ($('#wl-email').getAttribute('aria-invalid') === 'true' && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('#wl-email').value.trim())) fieldError('wl-email');
+    });
+    form.addEventListener('change', function (e) {
+      if (e.target.name === 'city') fieldError('wl-city');
+      if (e.target.name === 'intent') fieldError('wl-intent');
+    });
     $('#wl-close').addEventListener('click', close);
     $('#wl-done').addEventListener('click', close);
     dlg.addEventListener('click', function (e) { if (e.target === dlg) close(); });
@@ -193,12 +203,16 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var data = validate();
-      if (!data) { var bad = form.querySelector('[aria-invalid="true"]'); if (bad) bad.focus(); return; }
+      if (!data) {
+        var bad = form.querySelector('[aria-invalid="true"]');
+        if (bad) (bad.tagName === 'FIELDSET' ? bad.querySelector('input') : bad).focus();
+        return;
+      }
       var btn = $('#wl-submit');
       btn.disabled = true;
       btn.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Joining</span>';
       $('#wl-error').hidden = true;
-      var done = function () { btn.disabled = false; btn.textContent = 'Join the waitlist'; };
+      var done = function () { btn.disabled = false; btn.innerHTML = submitIdle; };
 
       if (noEndpoint) {
         // Prototype: nothing is sent or stored. Never shown as a registration.
