@@ -8,6 +8,8 @@
     "packages/*"
   ],
   "scripts": {
+    "start": "npm run start --workspace apps/rider",
+    "rider:tunnel": "npm run start --workspace apps/rider -- --tunnel",
     "rider": "npm run start --workspace apps/rider",
     "driver": "npm run start --workspace apps/driver",
     "typecheck": "npm run typecheck --workspaces --if-present",

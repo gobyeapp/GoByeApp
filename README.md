@@ -16,6 +16,18 @@ This repository contains two native apps built with React Native + Expo:
 
 > ⚠️ **Preview build.** Drivers, ETAs, routes, payments, verification and safety features are simulated and labelled as such in the UI. Nothing here is a live transport or payment service.
 
+
+## Run the rider app on your phone (Expo Go)
+
+Run Expo **from the app folder or through the root scripts**, never `npx expo start` in the repo root (that fails with "Unable to resolve module ../../App").
+
+```bash
+npm install
+npm start            # same as: cd apps/rider && npx expo start
+npm run rider:tunnel # if the phone can't reach your PC on the same Wi-Fi
+```
+Scan the QR code with Expo Go (latest version; the app uses Expo SDK 57).
+
 ## Technology
 
 Expo SDK 57 · React Native 0.86 (New Architecture) · React 19.2 · TypeScript (strict) · Expo Router (typed routes) · Reanimated 4 · Gesture Handler · react-native-maps · expo-location · **MingCute icons** (`@mingcute/react-native`) · Inter · Jest + React Native Testing Library. Full inventory: [`docs/DEPENDENCIES_AND_LICENSES.md`](docs/DEPENDENCIES_AND_LICENSES.md).
