@@ -37,6 +37,7 @@ a { color: inherit; }
 button, input, select { font: inherit; }
 :focus-visible { outline: 3px solid var(--tangerine); outline-offset: 3px; border-radius: 6px; }
 [hidden] { display: none !important; }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .icon { width: 1em; height: 1em; display: inline-block; flex-shrink: 0; }
 .icon svg { width: 100%; height: 100%; display: block; }

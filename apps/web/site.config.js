@@ -125,10 +125,16 @@ window.GOBYE_SITE = {
 
   waitlist: {
     /**
-     * POST endpoint that saves a sign-up and answers 2xx only once it is stored.
-     * Body: { email, city, intent: 'ride' | 'drive', source: 'website' }.
-     * While null, the form runs as a clearly labelled demonstration and saves nothing.
+     * Supabase project that stores sign ups in `public.waitlist` (supabase/migrations/20261022_waitlist.sql).
+     * Only the PUBLIC anon key belongs here. Row level security lets it insert and nothing else.
+     * Never put the service_role key in this file: the website is public.
      */
+    supabase: {
+      url: 'https://morqitxqsfiprefczduo.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vcnFpdHhxc2ZpcHJlZmN6ZHVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2NjY1MTMsImV4cCI6MjEwODI0MjUxM30.iWSsufXrwvrWxBgxchdajxYKBpJmTeXekn198KIWRg4',
+      table: 'waitlist',
+    },
+    /** Alternative: any POST endpoint that answers 2xx only once the sign up is stored. Used when supabase is not set. */
     endpoint: null,
     cities: ['Lagos', 'Abuja', 'Another city'],
   },

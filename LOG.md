@@ -406,3 +406,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - The 4:5 image card has a 28 px radius and the full gutter width, and the 56 px CTA spans the same width.
   - Logo artefact: the header (phones) and footer now use `logo-mark-white.png`, an opaque logo on white, so no browser can show dark edges from transparency. Desktop keeps the transparent mark for the frosted bar.
   - Checked at 360, 390 and 430 with no overflow.
+- **Website: waitlist connected to Supabase (D-042).** `site.config.js` `waitlist.supabase` holds the project URL and the public anon key. `app.js` POSTs to `/rest/v1/waitlist` with `Prefer: return=minimal`. 201 shows "You're on the list", 409 (duplicate email) shows "You're already on the list", and anything else shows the retry error, keeping the input. Emails are lowercased.
+  - A hidden honeypot field was added.
+  - `supabase/migrations/20261022_waitlist.sql` creates the table with checks, a unique `lower(email)` index, RLS, an insert-only policy for anon and column grants.
+  - Tested in Playwright against a stand-in for the Supabase endpoint (201, 409, 500); the requests carry only the anon role.
+  - Not yet tested against the live project: this workspace cannot reach supabase.co, and the SQL must first be run by the owner.
+  - The service_role key was not used and must be rotated.

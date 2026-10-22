@@ -125,7 +125,10 @@
   function setupWaitlist() {
     var dlg = $('#waitlist');
     var form = $('#waitlist-form');
-    var noEndpoint = !C.waitlist.endpoint; // nothing can be stored until a real endpoint is set
+    // Where sign ups go: Supabase (insert only, via the public anon key) or any POST endpoint.
+    var sb = C.waitlist.supabase || {};
+    var useSupabase = isUrl(sb.url) && !!sb.anonKey;
+    var noEndpoint = !useSupabase && !C.waitlist.endpoint; // nothing can be stored until one is set
     var opened = null;
     var sel = $('#wl-city');
     sel.innerHTML = '<option value="">Choose a city</option>' + C.waitlist.cities.map(function (c) { return '<option>' + esc(c) + '</option>'; }).join('');
@@ -205,12 +208,27 @@
         }, 700);
         return;
       }
-      fetch(C.waitlist.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+      // Bots fill the hidden field; humans never see it. Pretend it worked and store nothing.
+      if (form.querySelector('[name="company"]') && form.querySelector('[name="company"]').value) {
+        setTimeout(function () { done(); result('ok', 'You’re on the list', 'Thanks.'); }, 600);
+        return;
+      }
+      var place = data.city === 'Another city' ? 'your city' : data.city;
+      var req = useSupabase
+        ? fetch(sb.url.replace(/\/+$/, '') + '/rest/v1/' + encodeURIComponent(sb.table || 'waitlist'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', apikey: sb.anonKey, Authorization: 'Bearer ' + sb.anonKey, Prefer: 'return=minimal' },
+            body: JSON.stringify({ email: data.email.toLowerCase(), city: data.city, intent: data.intent, source: data.source }),
+          })
+        : fetch(C.waitlist.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      req
         .then(function (res) {
           done();
+          // Already signed up: the database refused a duplicate email, so they are on the list.
+          if (res.status === 409) { result('ok', 'You’re already on the list', 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.'); return; }
           if (!res.ok) throw new Error(String(res.status));
-          // Success only after the backend confirms it stored the sign-up.
-          result('ok', 'You’re on the list', 'We’ll email ' + data.email + ' when GoBYE launches in ' + (data.city === 'Another city' ? 'your city' : data.city) + '.');
+          // Success only after the backend confirms it stored the sign up.
+          result('ok', 'You’re on the list', 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.');
         })
         .catch(function () {
           done();

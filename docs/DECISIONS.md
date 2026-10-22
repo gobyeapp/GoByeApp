@@ -303,3 +303,10 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - Unfinished terms (referral reward amounts, pass prices) are not shown as numbers.
   - The waitlist demo notice is functional, not a label. It remains until `waitlist.endpoint` stores sign-ups.
 - **Safety section:** only states safety features recorded in the PRD, SRS, SECURITY_PRIVACY and decisions. It makes no claims about insurance cover, background-check vendors, response times or emergency alerts by GoBYE (BR-120).
+
+## D-042 — Website waitlist stored in Supabase (2026-10-22)
+- **Decision:** the landing page writes sign ups straight to Supabase (`public.waitlist`, project `morqitxqsfiprefczduo`) through the REST API with the public anon key.
+- **Security:** row level security plus column grants let the anon role INSERT (email, city, intent, source) and nothing else; it cannot read, update or delete. Check constraints validate the email format, city, intent and source, and a unique index on `lower(email)` blocks duplicates (409, shown as "You're already on the list"). There is a hidden honeypot field against simple bots.
+- **Secrets:** the service_role key is never shipped to the browser or committed. It was shared in chat on 2026-10-22 and must be rotated.
+- **Migration:** `supabase/migrations/20261022_waitlist.sql`, run manually in the SQL Editor because this workspace cannot reach the project.
+- **Open:** a privacy notice must be linked from the form before launch (Q-063). There is no rate limiting beyond Supabase defaults.
