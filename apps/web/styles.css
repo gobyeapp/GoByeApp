@@ -655,7 +655,7 @@ fieldset[aria-invalid='true'] .ctile, fieldset[aria-invalid='true'] .role label 
   .topbar.solid .nav { width: calc(100% - 16px); margin-top: max(8px, env(safe-area-inset-top, 0px)); padding: 6px 6px 6px 16px; }
   .topbar.solid .nav .brand img, .topbar.solid .brand picture img { width: 28px; height: 28px; }
 
-  .hero-copy { padding: 32px var(--g) 0; gap: 0; }
+  .hero-copy { padding: 40px var(--g) 0; gap: 0; }
   .hero h1 { font-size: min(44px, 11.4vw); line-height: 1.02; letter-spacing: -0.05em; }
   .hero .lede { margin-top: 16px; max-width: 320px; font-size: 17px; line-height: 1.55; }
   .hero .cities { margin-top: 24px; padding: 8px 16px; gap: 8px; font-size: 14px; }
@@ -667,15 +667,17 @@ fieldset[aria-invalid='true'] .ctile, fieldset[aria-invalid='true'] .role label 
 /* ---------- Phone header: full-width audience tabs on top, logo row underneath ---------- */
 .aud-tabs { display: none; }
 @media (max-width: 760px) {
-  :root { --nav-h: calc(env(safe-area-inset-top, 0px) + 116px); }
+  :root { --nav-h: calc(env(safe-area-inset-top, 0px) + 120px); }
   .topbar, .topbar.solid { background: var(--white); box-shadow: 0 1px 0 var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
   .aud-tabs { display: grid; grid-template-columns: 1fr 1fr; padding-top: env(safe-area-inset-top, 0px); background: #f6f1f8; }
   .aud-tabs button { height: 52px; border: 0; background: transparent; color: #a796b0; font: inherit; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; transition: background-color 0.25s ease, color 0.25s ease; }
   .aud-tabs button[aria-pressed='true'] { background: #e7d8ef; color: var(--aubergine); }
   .aud-tabs button:focus-visible { outline: 3px solid var(--tangerine); outline-offset: -3px; border-radius: 0; }
-  .topbar .nav, .topbar.solid .nav { width: 100%; margin: 0; padding: 0 var(--g, 24px); height: 64px; border-radius: 0; background: transparent; box-shadow: none; }
-  .topbar .nav-right { display: none; }
-  .topbar .brand img, .topbar .brand picture img, .topbar.solid .brand img, .topbar.solid .brand picture img { width: 30px; height: 30px; }
-  .topbar .brand span, .topbar.solid .brand span { font-size: 21px; }
+  .topbar .nav, .topbar.solid .nav { width: 100%; margin: 0; padding: 12px var(--g, 24px); height: 68px; border-radius: 0; background: transparent; box-shadow: none; }
+  .topbar .nav-right { display: flex; }
+  .topbar .seg-nav { display: none; }
+  .topbar .brand img, .topbar .brand picture img, .topbar.solid .brand img, .topbar.solid .brand picture img { width: 32px; height: 32px; }
+  .topbar .brand span, .topbar.solid .brand span { font-size: 20px; }
+  .topbar .btn-sm, .topbar.solid .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
   .seg-inline { display: none !important; }
 }
