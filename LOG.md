@@ -462,3 +462,5 @@ Owner brief: one management platform with workspaces and permissions per team ov
     - Photo section: "Your car, your hours, your earnings."
     - Footer: "Every trip pays you in full."
   - The driver CTA preselects Drive in the waitlist. The hero video is shared.
+- **App design: auth flow canvas (Design artifact "GoBYE Auth Flow").** Six dark screens built on DESIGN_SYSTEM tokens: Welcome, Create account, Sign in, Phone number, Verify phone, Reset password. Per the owner, there are no background glows or gradients. The welcome hero is the live 3D road scene (the same `footer3d.js`, bundled), and `footer3d.js` gained `theme: 'dark'`: #262626 asphalt, #A3A3A3 lines, lighter dark cars, no shadow floor. The website footer is unchanged (light default).
+  - **Open:** email, password, Apple and Google sign-in conflict with D-008 (phone + OTP only), so the owner must decide.

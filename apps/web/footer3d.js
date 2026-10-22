@@ -7,6 +7,8 @@ import { RoomEnvironment } from './vendor/RoomEnvironment.js';
 
 export function mountRoad(canvas, opts) {
   const reduce = !!(opts && opts.reduce);
+  // theme 'dark' (the app's dark tokens) keeps the road readable on a black screen; the website uses the default light look.
+  const dark = !!(opts && opts.theme === 'dark');
   const small = () => canvas.clientWidth < 700;
 
   let renderer;
@@ -103,8 +105,8 @@ export function mountRoad(canvas, opts) {
     return m;
   }
   const W = 2.3; // carriageway
-  const asphalt = new THREE.MeshStandardMaterial({ color: 0x2a262d, roughness: 0.86 });
-  const stone = new THREE.MeshStandardMaterial({ color: 0xece7e2, roughness: 0.7 });
+  const asphalt = new THREE.MeshStandardMaterial({ color: dark ? 0x262626 : 0x2a262d, roughness: 0.86 });
+  const stone = new THREE.MeshStandardMaterial({ color: dark ? 0x3a3a3a : 0xece7e2, roughness: 0.7 });
   slab(0, W + 0.2, 0, -0.3, 0.07, asphalt); // the road (slightly wider, so the kerbs sit on it)
   for (const side of [-1, 1]) slab(side * (W / 2 + 0.05), 0.11, 0.03, -0.045, 0.03, stone); // kerbs: a thin lip on top, the road side below stays dark
 
@@ -127,7 +129,7 @@ export function mountRoad(canvas, opts) {
     g.computeVertexNormals();
     return g;
   };
-  const paintLine = new THREE.MeshStandardMaterial({ color: 0xefeae4, roughness: 0.55 });
+  const paintLine = new THREE.MeshStandardMaterial({ color: dark ? 0xa3a3a3 : 0xefeae4, roughness: 0.55 });
   [W / 2 - 0.13, -(W / 2 - 0.13)].forEach((off) => { const m = new THREE.Mesh(ribbon(off, 0.03), paintLine); m.receiveShadow = true; scene.add(m); });
   const dashCount = Math.floor(LEN / 0.95);
   const dashes = new THREE.InstancedMesh(new THREE.BoxGeometry(0.4, 0.006, 0.045), paintLine, dashCount);
@@ -143,7 +145,7 @@ export function mountRoad(canvas, opts) {
   scene.add(dashes);
 
   // Invisible floor that only catches shadows, so the road appears to float over the wordmark.
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), new THREE.ShadowMaterial({ opacity: 0.07 }));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 60), new THREE.ShadowMaterial({ opacity: dark ? 0 : 0.07 }));
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -0.75;
   floor.receiveShadow = true;
@@ -151,7 +153,7 @@ export function mountRoad(canvas, opts) {
 
   /* ---------- Cars: miniature models with real silhouettes ---------- */
   const paint = (hex, metal) => new THREE.MeshPhysicalMaterial({ color: hex, metalness: metal ? 0.6 : 0.15, roughness: metal ? 0.26 : 0.32, clearcoat: 1, clearcoatRoughness: 0.08 });
-  const PAINTS = [paint(0x0e0e10), paint(0xc8cbd0, true), paint(0x3b3b40, true), paint(0xff751f), paint(0xf3f2ef), paint(0x351a40)];
+  const PAINTS = [paint(dark ? 0x5a5a5e : 0x0e0e10), paint(0xc8cbd0, true), paint(0x3b3b40, true), paint(0xff751f), paint(0xf3f2ef), paint(0x351a40)];
   const ORDER = [0, 1, 2, 4, 1, 0, 3, 2, 4, 1, 0, 5, 2, 1, 4, 0, 2, 1, 3, 0, 4, 2]; // mostly neutrals, brand colours now and then
   const glass = new THREE.MeshPhysicalMaterial({ color: 0x151820, metalness: 0.2, roughness: 0.05, clearcoat: 1, clearcoatRoughness: 0.02 });
   const trim = new THREE.MeshStandardMaterial({ color: 0x1b1b1e, roughness: 0.6 });
