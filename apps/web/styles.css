@@ -681,3 +681,33 @@ fieldset[aria-invalid='true'] .ctile, fieldset[aria-invalid='true'] .role label 
   .topbar .btn-sm, .topbar.solid .btn-sm { min-height: 40px; padding: 0 16px; font-size: 14px; }
   .seg-inline { display: none !important; }
 }
+
+/* ---------- Hero rhythm (desktop and tablet): one 4 px based scale, generous air under the nav ----------
+   nav → headline 64 · headline → text 20 · text → pill 28 · pill → image 48 · image → CTA 32.
+   The nav, the image and the CTA share one stage width, so their edges line up. */
+@media (min-width: 761px) {
+  :root { --stage-w: min(1040px, calc(100% - 2 * max(32px, var(--gutter))), calc((100svh - 519px) * 16 / 9)); }
+  .topbar .nav { width: max(640px, var(--stage-w)); }
+  .hero-copy { padding-top: 64px; gap: 0; }
+  .hero .lede { margin-top: 20px; }
+  .hero .cities { margin-top: 28px; padding: 8px 16px; gap: 8px; }
+  .hero-video { margin-top: 48px; width: var(--stage-w); }
+  .hero-cta { flex: none; padding-block: 32px 48px; gap: 0; }
+}
+/* Laptops with short screens: same order of spacing, a step smaller. */
+@media (min-width: 761px) and (max-height: 820px) {
+  :root { --stage-w: min(1040px, calc(100% - 64px), calc((100svh - 409px) * 16 / 9)); }
+  .hero-copy { padding-top: 40px; }
+  .hero .lede { margin-top: 16px; }
+  .hero .cities { margin-top: 20px; }
+  .hero-video { margin-top: 32px; width: var(--stage-w); }
+  .hero-cta { padding-block: 24px 32px; }
+}
+/* Phones: header → headline 48 · headline → text 20 · text → pill 28 · pill → image 40 · image → CTA 28. */
+@media (max-width: 760px) {
+  .hero-copy { padding-top: 48px; }
+  .hero .lede { margin-top: 20px; }
+  .hero .cities { margin-top: 28px; }
+  .hero-video { margin-top: 40px; }
+  .hero-cta { padding-top: 28px; padding-bottom: max(48px, env(safe-area-inset-bottom, 0px)); }
+}

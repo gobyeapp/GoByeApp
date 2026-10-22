@@ -449,3 +449,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Drivers: "Withdraw to your bank" and "PIN check at pickup" removed; kept Daily or monthly pass, Fare first, Counter offers, Earnings at a glance.
   - Riders, the matching pair: "Pickup PIN" (also in Safety) and "GoBYE wallet" removed; kept Book for someone else, Saved places, Pickup notes, Invite friends.
   - Two rows, narrow and wide then wide and narrow. The Safety section is unchanged.
+- **Website: hero spacing rhythm (owner brief: more breathing room on desktop and mobile).**
+  - Desktop and tablet: nav to headline 64, headline to text 20, text to pill 28, pill to image 48, image to CTA 32 (it was about 21 px under the nav before).
+  - Short laptops (820 px or less tall): 40/16/20/32/24.
+  - Phones: 48/20/28/40/28, with 24 px gutters.
+  - Nav, video box and CTA share one `--stage-w`, so the nav's edges line up with the video's (1440: 381/381; 1366: 363/364).
+  - The video formula was rebalanced so the CTA sits 24 px above the fold on 1920×1080, 1440×900 and 1366×768.
+  - Checked at 8 sizes with no overflow.
