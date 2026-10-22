@@ -601,3 +601,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Docs:** 19 infrastructure documents plus `INFRASTRUCTURE_REPORT.md`; updates to README, CLAUDE, AGENTS, ARCHITECTURE, API_CONTRACTS, SECURITY_PRIVACY, IMPLEMENTATION_PLAN, DECISIONS (D-051, D-052), OPEN_QUESTIONS (Q-064 to Q-072), TEST_PLAN, BACKEND_HANDOVER.
 - **Checks:** `npm run typecheck` 0 errors; `npm test` core 215, rider 36, driver 14, admin 250, infra/cloudflare 41 — all pass. Tested locally against fakes only; nothing deployed to staging or production.
 - **Next:** rotate the shared credentials; add CI; wire `publicConfig` + `assertMocksAllowed` into the apps; choose backend / database / auth (Q-064, Q-065).
+
+## 2026-10-23 — Website: driver hero photo
+
+- "For drivers" now shows the owner's photo (a driver in his car checking a trip request) in the hero instead of the rider phone video; riders keep the video. Optimised to `assets/hero-driver-{900,1600}.{webp,jpg}` (41–167 KB), responsive `srcset`, framed on the driver for the phone's portrait box, lighter vignette. The video pauses while the photo shows. Asset versions bumped to `?v=2026102301`. Checked in Chromium at 1440×900 and 390×844 (switching both ways, and the remembered choice after reload). Redeploy on Vercel to publish.
+

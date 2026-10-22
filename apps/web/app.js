@@ -340,6 +340,18 @@
   }
 
 
+  /* Hero media: riders see the phone video, drivers a photograph of a driver in his car. */
+  function setHeroMedia(a) {
+    var v = document.getElementById('hero-video'), pic = document.getElementById('hero-photo');
+    if (!v || !pic) return;
+    var photo = !!(a.hero && a.hero.photo);
+    pic.hidden = !photo;
+    v.hidden = photo;
+    v.closest('.hero-video').classList.toggle('is-photo', photo);
+    if (photo) v.pause();
+    else if (!reduce()) { var p = v.play(); if (p && typeof p.catch === 'function') p.catch(function () { /* autoplay blocked: the poster stays */ }); }
+  }
+
   /* ---------- Audience: riders or drivers ---------- */
   var reduce = function () { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); };
   var phone = function () { return !!(window.matchMedia && window.matchMedia('(max-width: 760px)').matches); };
@@ -429,6 +441,7 @@
     var a = C.audiences[key];
     document.querySelectorAll('[data-a]').forEach(function (el) { var v = get(a, el.getAttribute('data-a')); if (v != null) el.textContent = v; });
     document.querySelectorAll('[data-a-lines]').forEach(function (el) { var v = get(a, el.getAttribute('data-a-lines')); if (v) el.innerHTML = v.map(esc).join('<br>'); });
+    setHeroMedia(a);
     renderSteps(a);
     renderFeatures(a);
     renderSafety(a);

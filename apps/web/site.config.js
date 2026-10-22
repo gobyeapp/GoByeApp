@@ -90,7 +90,9 @@ window.GOBYE_SITE = {
     },
     driver: {
       label: 'For drivers',
-      hero: { headline: 'Drive more. Keep it all.', supporting: 'See the fare before you accept, keep every naira you earn, and pay no commission on your trips.', ctaLabel: 'Join as a driver' },
+      hero: { headline: 'Drive more. Keep it all.', supporting: 'See the fare before you accept, keep every naira you earn, and pay no commission on your trips.', ctaLabel: 'Join as a driver',
+        /** The driver hero shows this photograph instead of the rider video (owner, 2026-10-23). */
+        photo: true },
       people: {
         eyebrow: 'MADE FOR DRIVERS',
         lines: ['Your car, your hours,', 'your earnings.'],
