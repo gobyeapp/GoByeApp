@@ -48,3 +48,5 @@ This repository is an npm-workspaces monorepo; the Expo guidance above applies t
 - Architecture: `docs/ARCHITECTURE.md` · Decisions: `docs/DECISIONS.md` · Roadmap: `docs/IMPLEMENTATION_PLAN.md` · Log: `LOG.md`.
 - Run `npx expo install` from inside the app directory (`apps/rider` or `apps/driver`), not the repo root.
 - Typecheck and test from the root: `npm run typecheck`, `npm test`.
+
+- Infrastructure (D-051): `infra/cloudflare` is a workspace (Workers, R2/DNS/load-balancer definitions); `packages/core/src/{infra,files,traffic}` hold the API client, file pipeline and traffic model. Read `docs/INFRASTRUCTURE_REPORT.md` first. Run `npm run infra:test` and `npm run check:env`. Never deploy, change DNS or activate paid services without the owner's approval, and never put secrets in `EXPO_PUBLIC_`/`VITE_` variables.

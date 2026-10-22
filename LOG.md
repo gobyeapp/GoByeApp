@@ -590,3 +590,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Page height: phone 11,646 → 8,645 px (−26%); desktop 9,070 → 8,562 px. Checked in Chromium at 1440×900 and 390×844, the For riders / For drivers switch (sliders reset to the first tile), keyboard and drag. No console errors.
 - Same sliders on the "For drivers" view of the page (Built for the way you drive, Your car / your hours, Keep more of every fare, Safer trips). Phone height with drivers selected: 8,535 px. Site files now load with a version (`?v=2026102202`) so browsers fetch the new styles and script instead of a cached copy. Redeploy the site (Vercel) for visitors to see it.
 
+## 2026-10-23 — Infrastructure foundation (D-051, D-052)
+
+- **Brief:** production infrastructure, security, Cloudflare and network architecture, provider-independent; nothing deployed without approval.
+- **Audit:** `docs/INFRASTRUCTURE_AUDIT.md` (no secrets in git history; no CI; no CSP before; demo relay is LAN/unauthenticated by design; credentials shared in chat must be rotated).
+- **Core:** `packages/core/src/infra` (public config + secret detection, API client with request ids / timeouts / idempotency / safe retries, error model, health contracts, logging with redaction, metrics, provisional alerts, realtime client), `src/files` (file classes, magic-byte validation, quarantine → scan → approve, fail-closed scanner, single-use completion, private access, video interface), `src/traffic` (origins, policies, hysteresis, failover, privileged audited changes, simulated control plane).
+- **Edge:** new workspace `infra/cloudflare` — API gateway Worker, R2 upload signer and public media gateway Workers, SigV4 presigner (matches the AWS example vector), R2 bucket / CORS / lifecycle definitions, DNS and load-balancer proposals (templates only).
+- **Web:** CSP, HSTS, framing and permissions headers for the website (`apps/web/vercel.json`) and admin (`apps/admin/vercel.json`); `tools/check-env.mjs` (`npm run check:env`).
+- **Admin:** "Traffic and origins" page — simulation with reason, MFA step, second approver, audit and rollback.
+- **Docs:** 19 infrastructure documents plus `INFRASTRUCTURE_REPORT.md`; updates to README, CLAUDE, AGENTS, ARCHITECTURE, API_CONTRACTS, SECURITY_PRIVACY, IMPLEMENTATION_PLAN, DECISIONS (D-051, D-052), OPEN_QUESTIONS (Q-064 to Q-072), TEST_PLAN, BACKEND_HANDOVER.
+- **Checks:** `npm run typecheck` 0 errors; `npm test` core 215, rider 36, driver 14, admin 250, infra/cloudflare 41 — all pass. Tested locally against fakes only; nothing deployed to staging or production.
+- **Next:** rotate the shared credentials; add CI; wire `publicConfig` + `assertMocksAllowed` into the apps; choose backend / database / auth (Q-064, Q-065).

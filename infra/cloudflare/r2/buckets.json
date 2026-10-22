@@ -1,0 +1,106 @@
+{
+  "_status": "Definitions only. Not created. Pending credentials and approval (D-051). Create with the commands in docs/CLOUDFLARE_SETUP.md.",
+  "_rules": [
+    "r2.dev public access stays DISABLED on every bucket (including public-media: use the custom domain).",
+    "Private buckets have no public domain at all.",
+    "Staging and production never share a bucket or an API token."
+  ],
+  "buckets": [
+    {
+      "name": "gobye-staging-public-media",
+      "environment": "staging",
+      "role": "public-media",
+      "public": true,
+      "publicAccess": "custom domain media.staging.gobye.app",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Approved public images and clips, served via media.gobye.app (custom domain, not r2.dev).",
+      "cors": "cors.staging.json"
+    },
+    {
+      "name": "gobye-staging-private-documents",
+      "environment": "staging",
+      "role": "private-documents",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Driver licences, identity documents, vehicle papers, profile photos. Never public.",
+      "cors": null
+    },
+    {
+      "name": "gobye-staging-private-evidence",
+      "environment": "staging",
+      "role": "private-evidence",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Incident photos and videos. Never public. Legal-hold capable.",
+      "cors": null
+    },
+    {
+      "name": "gobye-staging-private-uploads",
+      "environment": "staging",
+      "role": "private-uploads",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Quarantine: every upload lands here first until verified and scanned. Never public.",
+      "cors": "cors.staging.json"
+    },
+    {
+      "name": "gobye-prod-public-media",
+      "environment": "production",
+      "role": "public-media",
+      "public": true,
+      "publicAccess": "custom domain media.gobye.app",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Approved public images and clips, served via media.gobye.app (custom domain, not r2.dev).",
+      "cors": "cors.production.json"
+    },
+    {
+      "name": "gobye-prod-private-documents",
+      "environment": "production",
+      "role": "private-documents",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Driver licences, identity documents, vehicle papers, profile photos. Never public.",
+      "cors": null
+    },
+    {
+      "name": "gobye-prod-private-evidence",
+      "environment": "production",
+      "role": "private-evidence",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Incident photos and videos. Never public. Legal-hold capable.",
+      "cors": null
+    },
+    {
+      "name": "gobye-prod-private-uploads",
+      "environment": "production",
+      "role": "private-uploads",
+      "public": false,
+      "publicAccess": "none",
+      "r2DevUrl": false,
+      "locationHint": "weur",
+      "storageClass": "Standard",
+      "purpose": "Quarantine: every upload lands here first until verified and scanned. Never public.",
+      "cors": "cors.production.json"
+    }
+  ]
+}

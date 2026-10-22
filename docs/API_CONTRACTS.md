@@ -21,6 +21,32 @@
 | Client headers | `X-Client: rider-ios/1.0.0 (57)`, `X-Request-Id: <uuid>` (echoed back) |
 | Simulation flag | Responses from sandbox include `"isSimulated": true` |
 
+### 1.0 Gateway, route map and health (D-051)
+
+The API gateway Worker (`infra/cloudflare/src/workers/api-gateway`, see `API_GATEWAY.md`) fronts every endpoint in this document. Route classes:
+
+| Path | Class | Notes |
+|---|---|---|
+| `/v1/auth/*` | auth | no bearer needed; OTP has its own tighter limit |
+| `/v1/users/*`, `/v1/drivers/*` | users, drivers | bearer required |
+| `POST /v1/rides` | rides_create | booking creation; paused under the Maintenance policy |
+| `/v1/rides/{id}/*`, `GET /v1/rides` | rides_active | trips in progress; never paused |
+| `/v1/fares/*`, `/v1/offers/*` | fares, offers | |
+| `/v1/payments/*` | payments | |
+| `/v1/files/*` | files | metadata only; bytes go to R2 via presigned URLs |
+| `/v1/notifications/*`, `/v1/support/*`, `/v1/safety/*` | … | support and safety never paused; safety never rate-limited |
+| `GET /health/live`, `GET /health/ready` | gateway | every origin must implement both; `ready` checks critical dependencies and returns 503 when it can't serve |
+
+**Naming to reconcile (Q-069):** this document's booking endpoints are written as `/bookings…`; the gateway's map uses `/v1/rides`. The backend picks one before implementation.
+
+**Envelopes:** success `{ "data": …, "requestId": "…" }`; error `{ "error": { "code", "message", "requestId", "retryAfterSeconds"?, "details"? } }` (`packages/core/src/infra/health.ts`). Gateway-generated codes are lowercase (`rate_limited`, `backend_not_configured`, …); the domain codes below are upper case. The API client maps both by HTTP status (`infra/errors.ts`).
+
+**Request ids:** the gateway always generates `X-Request-Id`; a well-formed client id is passed on as `X-Client-Request-Id`.
+
+**Idempotency at the edge:** a write is only ever retried on another origin if it carries `Idempotency-Key` and the first origin refused the connection. A timed-out write is never replayed; clients resolve it by looking up the key (`resolveAmbiguous`).
+
+**Files:** `POST /v1/files/uploads` (initialise → presigned PUT, 5 min), `POST /v1/files/uploads/{id}/complete` (single use, server verifies size/SHA-256/type, then scan), `GET /v1/files/{id}`, `GET /v1/files/{id}/download` (approved files only; private = 60 s presigned URL; staff must pass `reason`), `DELETE /v1/files/{id}`, `GET /v1/files` (caller's own only). Details in `R2_STORAGE_ARCHITECTURE.md`.
+
 ### 1.1 Error envelope
 
 ```json

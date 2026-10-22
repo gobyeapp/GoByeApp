@@ -22,3 +22,6 @@ export * from './relay/client';
 export * from './relay/rides';
 export * from './relay/status';
 export * from './booking/history';
+export * from './infra';
+export * from './files';
+export * from './traffic';

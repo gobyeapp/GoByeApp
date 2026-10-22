@@ -1,0 +1,30 @@
+{
+  "_status": "PROPOSED TEMPLATE — do not apply (see pools.proposed.json).",
+  "monitors": [
+    {
+      "name": "gobye-api-ready",
+      "type": "https",
+      "method": "GET",
+      "path": "/health/ready",
+      "expected_codes": "200",
+      "expected_body": "",
+      "interval_seconds": 60,
+      "timeout_seconds": 5,
+      "retries": 2,
+      "consecutive_down": 3,
+      "consecutive_up": 2,
+      "follow_redirects": false,
+      "allow_insecure": false,
+      "header": { "X-Gobye-Monitor": ["<shared monitor token — Wrangler/Terraform secret, never committed>"] },
+      "notes": "Readiness must check critical dependencies (database, cache) and return 503 when the instance can't serve, not always 200. The body must not list dependency details. Shorter intervals may depend on the plan: verify on the account."
+    },
+    {
+      "name": "gobye-api-live",
+      "type": "https",
+      "path": "/health/live",
+      "expected_codes": "200",
+      "interval_seconds": 60,
+      "notes": "Liveness only (process up). Not used for routing decisions."
+    }
+  ]
+}

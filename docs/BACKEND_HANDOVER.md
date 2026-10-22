@@ -203,3 +203,7 @@ Swap plan:
 | A-19 | Idempotency key `${bookingId}-${attempt}` for payment attempts | Backend |
 | A-20 | Buying an access package while active extends from current expiry; no grace period | Finance (Q-043) |
 | A-21 | Server can deliver the location update profile per activity | Backend (Q-045) |
+
+## 16. Infrastructure contracts (D-051)
+
+The backend must: implement `GET /health/live` and `GET /health/ready` (readiness checks critical dependencies, 503 when it can't serve, no dependency details in public responses); reject requests without a valid `X-Gobye-Origin-Auth` (`infra/cloudflare/src/workers/api-gateway/originAuth.ts` is the reference verifier); authorise every request itself (the gateway only checks a bearer is present); honour `Idempotency-Key` and expose status lookups by key for bookings, offers and payments; mint short-lived `x-gobye-assertion` caller assertions for `/v1/files/*` (`infra/cloudflare/src/r2/assertion.ts`); store `FileRecord` metadata (`packages/core/src/files/types.ts`); and use the standard envelopes (`packages/core/src/infra/health.ts`). See `API_GATEWAY.md`, `R2_STORAGE_ARCHITECTURE.md`, `INFRASTRUCTURE_REPORT.md`.

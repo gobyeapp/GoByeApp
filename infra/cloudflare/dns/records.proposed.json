@@ -1,0 +1,19 @@
+{
+  "_status": "PROPOSED — not applied. Do not import into the live zone without owner approval. Values marked <...> come from Vercel / Cloudflare dashboards at setup time.",
+  "zone": "gobye.app",
+  "records": [
+    { "name": "gobye.app", "type": "A", "content": "<Vercel apex A record shown in Vercel → Domains>", "proxied": false, "purpose": "Public website on Vercel. DNS only (grey cloud) so Vercel's CDN, TLS and firewall stay in charge." },
+    { "name": "www.gobye.app", "type": "CNAME", "content": "<project>.vercel-dns.com (exact target shown in Vercel → Domains)", "proxied": false, "purpose": "Website alias, redirected to the apex by Vercel." },
+    { "name": "admin.gobye.app", "type": "CNAME", "content": "<admin project>.vercel-dns.com", "proxied": false, "purpose": "Management web app on Vercel. DNS only. Access also protected by staff sign-in + MFA (and optionally Cloudflare Access in front, which would require proxying — decide separately)." },
+    { "name": "api.gobye.app", "type": "Worker route", "content": "gobye-api-gateway (Worker) → origins / Load Balancer", "proxied": true, "purpose": "Public API entry. Proxied so the gateway Worker, WAF and rate-limiting rules run. Origins are never published in DNS." },
+    { "name": "api-staging.gobye.app", "type": "Worker route", "content": "gobye-api-gateway-staging", "proxied": true, "purpose": "Staging API, separate secrets and origins." },
+    { "name": "realtime.gobye.app", "type": "CNAME or Worker route", "content": "<realtime origin or Load Balancer hostname>", "proxied": true, "purpose": "WebSocket / realtime service if it is separated from the API. Proxied (Cloudflare supports WebSockets on proxied hostnames)." },
+    { "name": "media.gobye.app", "type": "R2 custom domain", "content": "R2 bucket gobye-public-media(-<env>)", "proxied": true, "purpose": "Approved PUBLIC media only. Private buckets never get a custom domain or r2.dev access." },
+    { "name": "uploads.gobye.app", "type": "future", "content": "-", "proxied": true, "purpose": "Optional controlled upload service. Presigned uploads go to the R2 S3 endpoint, not this hostname." },
+    { "name": "driver.gobye.app", "type": "future", "content": "-", "proxied": false, "purpose": "Future driver web portal (likely Vercel, DNS only)." }
+  ],
+  "keep": [
+    "Any existing MX / TXT (SPF, DKIM, DMARC) and Vercel verification TXT records must be preserved exactly.",
+    "CAA records, if added, must allow the certificate authorities Vercel and Cloudflare use."
+  ]
+}

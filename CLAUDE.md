@@ -50,6 +50,16 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Do not claim device testing that was not performed.
 - Do not delete or replace documents without reading them.
 
+## Infrastructure rules (D-051)
+
+- Never put a secret in an `EXPO_PUBLIC_`, `VITE_` or `NEXT_PUBLIC_` variable, `.env.example`, `wrangler.*.toml` or git. Server secrets go in `wrangler secret put` / the backend's secret store. Run `npm run check:env` on env files.
+- Apps and admin call the stable API (`https://api.gobye.app/v1`) through `createApiClient`; never hardcode a backend provider or origin in UI code.
+- Files are uploaded only via a server-issued presigned URL **and** server-side completion (`/v1/files/*`); private files are never served from the public bucket or `media.gobye.app`. Unscanned files stay unreadable.
+- No proxy in front of Vercel: website/admin DNS records stay DNS-only.
+- Never retry a write with an uncertain outcome; look it up by idempotency key.
+- Nothing is deployed, no DNS record changed and no paid service (e.g. Load Balancing) activated without explicit owner approval. Simulations (admin traffic page) must say so.
+- Docs: `docs/INFRASTRUCTURE_*.md`, `API_GATEWAY.md`, `R2_STORAGE_ARCHITECTURE.md`, `DEPLOYMENT_RUNBOOK.md`.
+
 ## Documentation maintenance
 
 At the end of each meaningful session: append to `LOG.md`; update `docs/IMPLEMENTATION_PLAN.md`, `docs/SCREEN_INVENTORY.md` statuses, `docs/DECISIONS.md`, `docs/TEST_PLAN.md` (tests actually run), `docs/OPEN_QUESTIONS.md`, `docs/BACKEND_HANDOVER.md` if contracts changed; state the next task. Code and docs must never disagree.

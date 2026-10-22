@@ -1,0 +1,64 @@
+{
+  "_status": "PROPOSED. Do not apply to production until retention is approved (business, legal/NDPA, recovery). Staging may use the cleanup rules.",
+  "rules": [
+    {
+      "bucket": "gobye-{env}-private-uploads",
+      "id": "abort-incomplete-multipart",
+      "enabled": true,
+      "conditions": {},
+      "abortMultipartUploadsTransition": {
+        "condition": {
+          "maxAge": 86400,
+          "type": "Age"
+        }
+      },
+      "approved_for": [
+        "staging"
+      ]
+    },
+    {
+      "bucket": "gobye-{env}-private-uploads",
+      "id": "quarantine-cleanup",
+      "enabled": true,
+      "conditions": {
+        "prefix": ""
+      },
+      "deleteObjectsTransition": {
+        "condition": {
+          "maxAge": 172800,
+          "type": "Age"
+        }
+      },
+      "note": "Anything still in quarantine after 2 days was abandoned or rejected (verified files are moved out at approval).",
+      "approved_for": [
+        "staging"
+      ]
+    },
+    {
+      "bucket": "gobye-{env}-private-documents",
+      "id": "abort-incomplete-multipart",
+      "enabled": true,
+      "abortMultipartUploadsTransition": {
+        "condition": {
+          "maxAge": 86400,
+          "type": "Age"
+        }
+      },
+      "approved_for": [
+        "staging"
+      ]
+    },
+    {
+      "bucket": "gobye-{env}-private-documents",
+      "id": "document-retention",
+      "enabled": false,
+      "note": "PROPOSED: deletion driven by the application (account closure + retention period), NOT by object age. No age-based delete rule on documents."
+    },
+    {
+      "bucket": "gobye-{env}-private-evidence",
+      "id": "evidence-retention",
+      "enabled": false,
+      "note": "PROPOSED: incident evidence kept 7 years or while under legal hold; deletion only through the application with audit. No age rule."
+    }
+  ]
+}

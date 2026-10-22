@@ -260,3 +260,12 @@ Not yet executed: any device/emulator test, VoiceOver/TalkBack walkthroughs, fon
 | 2026-10-22 | Rider and driver `npx expo export --platform android --platform ios`; `npm run admin:build` | Built |
 | 2026-10-22 | Three-app walk in Chromium against one local relay (rider web, driver web, admin web) | Driver sign-up → card → submit → admin request changes → driver fix and resubmit → admin approve → pass → online → rider sign-up and Quick Match → driver accepts the real request → PIN from the rider → arrived / trip / complete synced both ways → rider pays → driver sees Received → admin rides and activity feed. All passed. Not device-tested; phones on Wi-Fi still to be tried. |
 
+### Infrastructure foundation (2026-10-23, D-051)
+
+| Date | Check | Result |
+|---|---|---|
+| 2026-10-23 | `npm run typecheck` | 0 errors (core, ui, rider, driver, admin, infra/cloudflare) |
+| 2026-10-23 | `npm test` | core **215**, rider **36**, driver **14**, admin **250**, infra/cloudflare **41** passed |
+| 2026-10-23 | Website and admin in Chromium with the new `vercel.json` headers applied locally | no CSP violations; site, video, waitlist dialog work |
+
+Per-case mapping and what still needs staging: `INFRASTRUCTURE_TEST_PLAN.md`.

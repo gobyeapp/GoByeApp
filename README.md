@@ -96,6 +96,13 @@ In the preview: sign in with any Nigerian mobile number (e.g. `0803 123 4567`) a
 
 Run `npm run demo:relay`, then start the apps with `npx expo start -c` and the admin with `npm run admin`: they share test records over your Wi-Fi. Steps and the Supabase option: [docs/DEMO_CONNECTED.md](docs/DEMO_CONNECTED.md).
 
+## Infrastructure (D-051)
+
+Provider-independent foundation, tested locally, **nothing deployed**: API client and config (`packages/core/src/infra`), file pipeline for Cloudflare R2 (`packages/core/src/files`), traffic switching (`packages/core/src/traffic`), and Cloudflare Workers / R2 / DNS / load-balancer definitions (`infra/cloudflare`). Start with [docs/INFRASTRUCTURE_REPORT.md](docs/INFRASTRUCTURE_REPORT.md) and [docs/INFRASTRUCTURE_ARCHITECTURE.md](docs/INFRASTRUCTURE_ARCHITECTURE.md); audit in [docs/INFRASTRUCTURE_AUDIT.md](docs/INFRASTRUCTURE_AUDIT.md); deploy steps in [docs/DEPLOYMENT_RUNBOOK.md](docs/DEPLOYMENT_RUNBOOK.md).
+
+- `npm run infra:test` — gateway, R2 presigner, upload signer, media gateway and env-check tests (vitest).
+- `npm run check:env -- <env file>` — refuses server secrets in `EXPO_PUBLIC_` / `VITE_` variables (never prints values). Run before every deploy.
+
 ## Management platform
 
 The staff platform specification is in [`docs/management/`](docs/management/README.md) (11 files: foundation, every workspace module with users, screens, fields, actions, approvals, status changes, effects, jobs, states and acceptance checks, the connections between workspaces, and the implementation and verification plan). The clickable prototype is `apps/admin` (see [`apps/admin/BUILDING.md`](apps/admin/BUILDING.md)). It runs on a deterministic **test dataset** with simulated latency and failures; nothing is connected to a real provider, bank or person.

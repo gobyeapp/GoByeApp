@@ -5,7 +5,8 @@
   "description": "GoBye ride-hailing platform: Rider and Driver mobile apps (Expo) and the Management web app",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "infra/*"
   ],
   "scripts": {
     "start": "npm run start --workspace apps/rider",
@@ -17,6 +18,8 @@
     "doctor": "npm run doctor --workspaces --if-present",
     "admin": "npm run dev --workspace apps/admin",
     "admin:build": "npm run build --workspace apps/admin",
-    "demo:relay": "node tools/demo-relay/server.mjs"
+    "demo:relay": "node tools/demo-relay/server.mjs",
+    "infra:test": "npm run test --workspace infra/cloudflare",
+    "check:env": "node tools/check-env.mjs"
   }
 }

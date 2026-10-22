@@ -442,3 +442,48 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Question:** Which service stores waitlist sign-ups (and confirms them), and where is the privacy notice for collecting emails under the Nigeria Data Protection Act 2023?
 - **Owner:** Engineering / Legal · **Blocks:** turning the waitlist on
 - **Assumption:** The form stays in demo mode (nothing saved) until both exist.
+
+### Q-064 — Backend and database provider
+- **Question:** Which backend runtime/host and database will GoBye use (and in which region)? Needed for gateway origins, file metadata, idempotency records, backups and NDPA data location.
+- **Owner:** Owner / Engineering · **Blocks:** staging deployment of the API gateway and upload signer (D-051)
+- **Assumption:** None chosen; everything is behind provider-independent interfaces.
+
+### Q-065 — Authentication provider and staff MFA
+- **Question:** Which service issues sessions, sends OTPs, and provides staff MFA? It must also mint the short-lived gateway assertions the upload signer trusts.
+- **Owner:** Engineering · **Blocks:** real sign-in, file uploads, admin with real data
+- **Assumption:** Simulated auth; admin MFA is a simulated step.
+
+### Q-066 — Realtime provider
+- **Question:** WebSockets on the backend, a managed pub/sub, or Cloudflare Durable Objects for trip events and locations?
+- **Owner:** Engineering · **Blocks:** live trips across devices in production
+- **Assumption:** `createRealtimeClient` with a pluggable transport; the demo relay polls.
+
+### Q-067 — Malware scanning for uploads
+- **Question:** Which scanner checks driver documents and incident evidence before anyone can read them?
+- **Owner:** Engineering / Security · **Blocks:** accepting real documents
+- **Assumption:** Fail closed: nothing is readable until a scanner is connected.
+
+### Q-068 — Cloudflare plan, Load Balancing and WAF
+- **Question:** Which Cloudflare plan will the `gobye.app` zone use, and when (if ever) to buy Load Balancing, advanced rate limiting or extra certificates?
+- **Owner:** Owner · **Blocks:** production edge hardening; failover between origins
+- **Assumption:** Load Balancing not activated until a second origin exists.
+
+### Q-069 — `/v1/rides` or `/bookings`
+- **Question:** The API contracts name booking endpoints `/bookings…`; the gateway's route map uses `/v1/rides`. Which name does the backend use?
+- **Owner:** Engineering · **Blocks:** backend routes
+- **Assumption:** Gateway map `/v1/rides` (POST = new booking).
+
+### Q-070 — Staging hostnames and certificates
+- **Question:** Use one-level staging names (`api-staging.gobye.app`, `media-staging.gobye.app`) or two-level ones (`media.staging.gobye.app`, `admin.staging.gobye.app`)? Two-level names may need an extra certificate on Cloudflare. The current definitions mix both.
+- **Owner:** Engineering · **Blocks:** DNS plan approval
+- **Assumption:** As in `infra/cloudflare/dns/records.proposed.json` and `r2/*.json`, to be unified.
+
+### Q-071 — Retention periods (legal sign-off)
+- **Question:** Confirm retention for driver documents (proposed: account life + 6 years), incident evidence (7 years or legal hold), location history and logs under the NDPA.
+- **Owner:** Legal · **Blocks:** retention deletes and lifecycle rules in production
+- **Assumption:** Proposals only; no destructive lifecycle rules applied.
+
+### Q-072 — Infrastructure approvers
+- **Question:** Who may approve production deployments, DNS changes and traffic switches (the second approver), and who is on call for alerts?
+- **Owner:** Owner · **Blocks:** production traffic switching and alert routing
+- **Assumption:** Owner approves everything until named.

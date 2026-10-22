@@ -1,0 +1,14 @@
+{
+  "name": "@gobye/cloudflare",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GoBye Cloudflare edge: API gateway, media gateway and R2 upload-signer Workers, R2 bucket / CORS / lifecycle definitions, DNS and load-balancer plans. Nothing here is deployed automatically (D-051).",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@gobye/core": "*"
+  }
+}

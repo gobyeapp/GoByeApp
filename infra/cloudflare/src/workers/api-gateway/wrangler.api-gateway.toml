@@ -1,0 +1,37 @@
+# GoBye API gateway Worker (D-051) — TEMPLATE. NOT DEPLOYED.
+# Before deploying: a backend origin must exist, the account plan must be checked, and the owner must
+# approve. Deploy staging first:  npx wrangler deploy -c infra/cloudflare/src/workers/api-gateway/wrangler.api-gateway.toml --env staging
+# Secrets are never written here:  npx wrangler secret put ORIGIN_AUTH_SECRET --env staging
+
+name = "gobye-api-gateway"
+main = "index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[vars]
+ENVIRONMENT = "development"
+PUBLIC_HOST = "api.gobye.app"
+# JSON array of origins; empty until a backend provider is selected (every /v1 route answers 503 backend_not_configured).
+ORIGINS_JSON = "[]"
+TRAFFIC_POLICY = "primary_only"
+ALLOWED_ORIGINS = ""
+
+[env.staging]
+name = "gobye-api-gateway-staging"
+# routes = [{ pattern = "api-staging.gobye.app/*", zone_name = "gobye.app" }]   # PROPOSED, not applied
+[env.staging.vars]
+ENVIRONMENT = "staging"
+PUBLIC_HOST = "api-staging.gobye.app"
+ORIGINS_JSON = "[]"
+TRAFFIC_POLICY = "primary_only"
+ALLOWED_ORIGINS = ""
+
+[env.production]
+name = "gobye-api-gateway"
+# routes = [{ pattern = "api.gobye.app/*", zone_name = "gobye.app" }]           # PROPOSED, not applied
+[env.production.vars]
+ENVIRONMENT = "production"
+PUBLIC_HOST = "api.gobye.app"
+ORIGINS_JSON = "[]"
+TRAFFIC_POLICY = "primary_only"
+ALLOWED_ORIGINS = "https://admin.gobye.app"

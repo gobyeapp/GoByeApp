@@ -1,0 +1,48 @@
+{
+  "_applies_to": "gobye-prod-private-uploads (browser PUT) and gobye-prod-public-media (GET)",
+  "_note": "No wildcard origins. Native apps don't send Origin and aren't affected by CORS; CORS is not access control \u2014 the short-lived signature is.",
+  "rules": [
+    {
+      "AllowedOrigins": [
+        "https://gobye.app",
+        "https://www.gobye.app",
+        "https://admin.gobye.app"
+      ],
+      "AllowedMethods": [
+        "PUT"
+      ],
+      "AllowedHeaders": [
+        "content-type",
+        "content-length",
+        "x-amz-checksum-sha256",
+        "x-amz-content-sha256",
+        "x-amz-date"
+      ],
+      "ExposeHeaders": [
+        "etag"
+      ],
+      "MaxAgeSeconds": 3600
+    },
+    {
+      "AllowedOrigins": [
+        "https://gobye.app",
+        "https://www.gobye.app",
+        "https://admin.gobye.app"
+      ],
+      "AllowedMethods": [
+        "GET",
+        "HEAD"
+      ],
+      "AllowedHeaders": [
+        "range",
+        "if-none-match"
+      ],
+      "ExposeHeaders": [
+        "etag",
+        "content-length",
+        "content-type"
+      ],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}

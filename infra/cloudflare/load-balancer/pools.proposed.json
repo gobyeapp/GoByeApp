@@ -1,0 +1,30 @@
+{
+  "_status": "PROPOSED TEMPLATE — do not apply. Cloudflare Load Balancing is a paid add-on: verify availability and price on the GoBye account, and get approval, before creating anything. Needs at least two real backend origins.",
+  "pools": [
+    {
+      "name": "gobye-api-primary",
+      "description": "Primary backend (provider pending selection)",
+      "origins": [{ "name": "origin-a", "address": "<origin A hostname — not public>", "weight": 1, "enabled": true, "header": { "Host": ["<origin A host>"] } }],
+      "minimum_origins": 1,
+      "monitor": "gobye-api-ready",
+      "notification_email": "<ops alert address>",
+      "check_regions": ["<choose regions near Lagos/Abuja users; verify list on the account>"]
+    },
+    {
+      "name": "gobye-api-secondary",
+      "description": "Secondary backend in a different provider/region (pending)",
+      "origins": [{ "name": "origin-b", "address": "<origin B hostname — not public>", "weight": 1, "enabled": true }],
+      "minimum_origins": 1,
+      "monitor": "gobye-api-ready"
+    }
+  ],
+  "load_balancer": {
+    "name": "api.gobye.app",
+    "proxied": true,
+    "default_pools": ["gobye-api-primary", "gobye-api-secondary"],
+    "fallback_pool": "gobye-api-secondary",
+    "steering_policy": "off (failover by pool order) to start; 'random' with pool weights for weighted rollouts",
+    "session_affinity": "none — state is in the database; realtime clients reconnect and resync",
+    "notes": "If the gateway Worker stays in front, the Worker can target the load balancer hostname instead of individual origins."
+  }
+}

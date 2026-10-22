@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { createMockServices, type GoByeServices, type MockAccount, type Result, type SocialProvider } from '@gobye/core';
+import { assertMocksAllowed, createMockServices, type GoByeServices, type MockAccount, type Result, type SocialProvider } from '@gobye/core';
+import { publicConfig } from './publicConfig';
 import { KEYS, clearAll, readJson, readSecret, writeJson, writeSecret } from './storage';
 
 type SessionStatus = 'loading' | 'signed_out' | 'signed_in';
@@ -61,7 +62,12 @@ function splitName(full: string): { firstName: string; lastName: string } {
  * The token lives in the Keychain / Keystore; the rest in AsyncStorage. All simulated in this preview.
  */
 export function SessionProvider({ children, services }: { children: ReactNode; services?: GoByeServices }) {
-  const auth = useMemo(() => (services ?? createMockServices({ authStore })).auth, [services]);
+  const auth = useMemo(() => {
+    if (services) return services.auth;
+    // Simulated services refuse to start in a production build (D-051).
+    assertMocksAllowed(publicConfig);
+    return createMockServices({ authStore }).auth;
+  }, [services]);
   const [loaded, setLoaded] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [stored, setStored] = useState<StoredSession>({ phone: null, userId: null, welcomeSeen: false });

@@ -170,6 +170,10 @@ Implementation rules:
 | Deletion | Deletion pipeline across databases, storage, logs and processors; documented retention exceptions. |
 | Monitoring | Security logging without PII (§8); incident response and breach-notification process [Legal review]. |
 
+### 10.1 Infrastructure controls (D-051)
+
+Implemented in code and tested locally (not deployed): secret detection for public config and env files (`infra/env.ts`, `tools/check-env.mjs`); gateway header allowlist, origin HMAC, limits and `no-store` (`infra/cloudflare/src/workers/api-gateway`); private-by-default R2 buckets, presigned uploads with server-side completion, quarantine and fail-closed scanning, 60 s private downloads with audited staff reasons (`packages/core/src/files`, upload signer); log redaction of tokens, signed URLs, ID numbers and precise coordinates (`infra/observability.ts`); website and admin CSP/HSTS (`vercel.json`). Full list and status: `INFRASTRUCTURE_SECURITY.md`; threats: `THREAT_MODEL.md`.
+
 ---
 
 ## 11. Open items

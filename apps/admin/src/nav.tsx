@@ -93,6 +93,8 @@ export const NAV: NavGroup[] = [
       { path: '/payments', label: 'Payments setup', icon: 'bank', anyOf: ['payments_setup.view'], page: L(() => import('@/workspaces/payments/PaymentsSetup')) },
       { path: '/developer', label: 'Integrations', icon: 'plugin', anyOf: ['integrations.view'], page: L(() => import('@/workspaces/developer/Integrations')), badge: (d) => d.integrations.filter((i) => i.state === 'degraded').length },
       { path: '/developer/events', label: 'Events and failures', icon: 'webhook', anyOf: ['logs.view'], page: L(() => import('@/workspaces/developer/EventLog')) },
+      // Simulated until a backend and a live control plane exist (D-051). The page also checks roles itself.
+      { path: '/infrastructure/traffic', label: 'Traffic and origins', icon: 'server', anyOf: ['integrations.view', 'audit.view', 'staff.manage'], page: L(() => import('@/workspaces/infrastructure/Traffic')) },
     ],
   },
 ];

@@ -100,6 +100,18 @@ Realtime: matching and trip progress are modelled as `subscribe(listener) => uns
 
 Swap `createMockServices()` for an HTTP/WebSocket implementation behind the same interfaces. The backend becomes the authority for pricing, matching, payment settlement, driver eligibility and verification. See `API_CONTRACTS.md` and `BACKEND_HANDOVER.md`.
 
+### 9.1 Infrastructure layer (D-051)
+
+Implemented in code and tested locally; not deployed:
+- **Config:** `packages/core/src/infra/env.ts` — typed public config per environment (`apps/*/src/state/publicConfig.ts`), refuses secrets and production mocks.
+- **API client:** `infra/http.ts` — the single way apps will call `https://api.gobye.app/v1` (request ids, timeouts, idempotency, safe retries). HTTP implementations of the service interfaces in §5 will be built on it.
+- **Edge:** `infra/cloudflare` — API gateway Worker in front of backend origins (provider pending), upload signer and public media Workers over R2. Website and admin stay on Vercel, DNS-only.
+- **Files:** `packages/core/src/files` — classes, validation, quarantine/scan lifecycle, private access.
+- **Traffic:** `packages/core/src/traffic` — origins, policies, failover, privileged changes (admin page is a simulation).
+- **Realtime / observability:** `infra/realtime.ts`, `infra/observability.ts` — provider-agnostic.
+
+See `INFRASTRUCTURE_ARCHITECTURE.md` for the diagram and status per component.
+
 ## 10. Build & distribution
 
 - Development: Expo Go (SDK 57) for the Rider app; Driver background location needs a development build (`eas build --profile development`).

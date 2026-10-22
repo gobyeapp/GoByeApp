@@ -1,0 +1,51 @@
+# EXAMPLE ONLY — do not `terraform apply`. Verify argument names against the provider version and the
+# account's Load Balancing entitlement first. Secrets come from variables / environment, never this file.
+
+terraform {
+  required_providers {
+    cloudflare = { source = "cloudflare/cloudflare" }
+  }
+}
+
+variable "account_id" { type = string }
+variable "zone_id" { type = string }
+variable "origin_a_address" { type = string }
+variable "origin_b_address" { type = string }
+variable "monitor_token" {
+  type      = string
+  sensitive = true
+}
+
+resource "cloudflare_load_balancer_monitor" "api_ready" {
+  account_id     = var.account_id
+  type           = "https"
+  method         = "GET"
+  path           = "/health/ready"
+  expected_codes = "200"
+  interval       = 60
+  timeout        = 5
+  retries        = 2
+  # header { header = "X-Gobye-Monitor" values = [var.monitor_token] }
+}
+
+resource "cloudflare_load_balancer_pool" "primary" {
+  account_id = var.account_id
+  name       = "gobye-api-primary"
+  monitor    = cloudflare_load_balancer_monitor.api_ready.id
+  # origins { name = "origin-a" address = var.origin_a_address enabled = true }
+}
+
+resource "cloudflare_load_balancer_pool" "secondary" {
+  account_id = var.account_id
+  name       = "gobye-api-secondary"
+  monitor    = cloudflare_load_balancer_monitor.api_ready.id
+  # origins { name = "origin-b" address = var.origin_b_address enabled = true }
+}
+
+resource "cloudflare_load_balancer" "api" {
+  zone_id          = var.zone_id
+  name             = "api.gobye.app"
+  proxied          = true
+  default_pool_ids = [cloudflare_load_balancer_pool.primary.id, cloudflare_load_balancer_pool.secondary.id]
+  fallback_pool_id = cloudflare_load_balancer_pool.secondary.id
+}

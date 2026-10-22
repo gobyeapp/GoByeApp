@@ -22,6 +22,7 @@ Status values: `Not started` · `In progress` · `Done (mock)` · `Done` · `Blo
 | 10 | Management platform specification (`docs/management/`) | owner brief 2026-10-21 | Every module covers users, screens, fields, actions, approvals, transitions, effects, jobs, states, acceptance | Done (draft for owner review) |
 | 11 | Management prototype (`apps/admin`) on test data | 10 | All workspaces clickable per role; permissions, approvals, ledger and audit simulated; tests pass | Done (prototype, test data) |
 | 12 | Management backend: phases 1 to 7 of `docs/management/10-implementation-and-acceptance.md` | backend, Q-056 to Q-061 | Commands, events, jobs and integrations live; journeys J-01 to J-15 pass | Not started |
+| 13 | Infrastructure foundation (D-051): config, API client, file pipeline + R2, API gateway, traffic switching, realtime client, observability, Vercel headers | owner brief 2026-10-23 | Brief §20 acceptance criteria; all infra tests pass; nothing deployed without approval | Done in code, tested locally (`INFRASTRUCTURE_REPORT.md`). Pending: backend/database/auth selection (Q-064, Q-065), credentials, staging deployment, scanner (Q-067), realtime (Q-066), CI |
 
 ## Testing requirements per phase
 
@@ -31,6 +32,7 @@ Status values: `Not started` · `In progress` · `Done (mock)` · `Done` · `Blo
 
 ## Next tasks (in order)
 
+0. Infrastructure (D-051): rotate the credentials shared in chat; add CI (typecheck, tests, `check:env`); wire `publicConfig` + `assertMocksAllowed` into both apps; then the ordered list in `INFRASTRUCTURE_REPORT.md` §8.
 1. Run the Rider app on real devices via Expo Go (SDK 57) — iOS and Android — and record results in `DEVICE_TEST_MATRIX.md`; fix layout issues found.
 2. Product owner decisions still needed: Q-001 cash, Q-042 payment provider & real fees, Q-043 package billing, Q-044 Google Maps cost projection (then accept D-025), Q-046 name/tagline, Q-047 palette, Q-048 font, Q-049 navigation. (Resolved 2026-10-21: Q-002, Q-012; partly: Q-001, Q-007, Q-008.)
 3. Phase 4 — Driver app (UI built end to end on simulated services 2026-10-22; remaining: device testing, development build with `expo-task-manager` for background location, backend contracts): onboarding & verification (D02–D08), dashboard with online toggle and background-location explanation (D09–D10), requests & negotiation (D11–D12), trip lifecycle (D13–D14), earnings/account (D15–D17). Add `expo-task-manager` and a development build profile.

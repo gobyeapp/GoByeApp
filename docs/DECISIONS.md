@@ -362,3 +362,16 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Decision (owner: "take away gradient from the mobile app and use only one colour; gradient is giving AI"):** the brand button is solid tangerine `#FF751F` with dark ink (pressed `#E8650F`), with no gradient, top highlight or orange glow. The auth / journey header is solid aubergine `#351A40` (no plum gradient or glows), the route progress fill is solid tangerine, and the rider's in-trip panel is a solid sheet with a hairline top edge instead of fading into the map.
 - The website keeps its own look; this applies to the rider and driver apps (shared `@gobye/ui`).
 
+## D-051 — Provider-independent infrastructure foundation (2026-10-23, owner brief)
+
+- **Decision:** build the infrastructure foundation without choosing a backend or database. Clients only know stable addresses (`api.gobye.app/v1`, `realtime.gobye.app`, `media.gobye.app`); origins sit behind a Cloudflare Worker gateway and a traffic policy. Files live in Cloudflare R2: environment-specific private buckets (quarantine, documents, evidence) and one public media bucket; uploads go direct to R2 with short presigned URLs issued by trusted code and are only usable after server-side completion and a clean scan (fail closed while no scanner exists). The website stays on Vercel with DNS-only records (no Cloudflare proxy in front); the admin will be deployed the same way.
+- **Implemented in code and tested locally:** `packages/core/src/{infra,files,traffic}`, `infra/cloudflare` (api-gateway, upload-signer, media-gateway Workers, SigV4 presigner, R2/DNS/LB definitions), `vercel.json` headers, `tools/check-env.mjs`, admin "Traffic and origins" (simulation).
+- **Not done (needs approval or providers):** no deployment, no bucket, no DNS change, no secret set. Cloudflare Load Balancing is not activated: it waits for a second real origin, a plan check and approval.
+- **Why:** the backend can change provider without rebuilding the apps or website; private documents are private by construction; uncertain writes (bookings, payments) are never replayed.
+- Docs: `INFRASTRUCTURE_REPORT.md` and the documents it links.
+
+## D-052 — Website and admin Content-Security-Policy is enforced, not report-only (2026-10-23)
+
+- **Decision:** `apps/web/vercel.json` and `apps/admin/vercel.json` enforce a CSP. Website: scripts from self and `cdnjs.cloudflare.com` (QR library), styles self + inline (style attributes are used) + Google Fonts, fonts from `fonts.gstatic.com`, connections to self and `*.supabase.co` (waitlist), no framing. Admin: self only, plus API hosts and `*.supabase.co`.
+- **Why:** the site has no inline scripts, and a Chromium run with the headers applied showed no violations, so enforcing costs nothing and blocks injected scripts and exfiltration to other hosts.
+- **Watch:** moving the waitlist to another host, adding analytics or a new CDN needs a CSP change first. Re-check the console after the first deployment (fonts and cdnjs couldn't be loaded from the build sandbox).

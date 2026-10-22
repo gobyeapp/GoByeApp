@@ -1,0 +1,31 @@
+# GoBye upload signer Worker (D-051). TEMPLATE: not deployed. Pending credentials and approval.
+# Secrets are NEVER written here. Set them per environment with:
+#   wrangler secret put R2_ACCOUNT_ID         --env staging
+#   wrangler secret put R2_ACCESS_KEY_ID      --env staging
+#   wrangler secret put R2_SECRET_ACCESS_KEY  --env staging
+#   wrangler secret put GATEWAY_ASSERTION_SECRET --env staging
+name = "gobye-upload-signer"
+main = "../src/workers/upload-signer/index.ts"
+compatibility_date = "2026-10-01"
+# Reached only through the API gateway (service binding / route on api.gobye.app/v1/files/*). No public workers.dev URL.
+workers_dev = false
+
+[env.staging]
+name = "gobye-upload-signer-staging"
+vars = { DEPLOY_ENV = "staging", PUBLIC_MEDIA_BASE_URL = "https://media.staging.gobye.app" }
+r2_buckets = [
+  { binding = "UPLOADS", bucket_name = "gobye-staging-private-uploads" },
+  { binding = "DOCUMENTS", bucket_name = "gobye-staging-private-documents" },
+  { binding = "EVIDENCE", bucket_name = "gobye-staging-private-evidence" },
+  { binding = "PUBLIC_MEDIA", bucket_name = "gobye-staging-public-media" },
+]
+
+[env.production]
+name = "gobye-upload-signer"
+vars = { DEPLOY_ENV = "production", PUBLIC_MEDIA_BASE_URL = "https://media.gobye.app" }
+r2_buckets = [
+  { binding = "UPLOADS", bucket_name = "gobye-prod-private-uploads" },
+  { binding = "DOCUMENTS", bucket_name = "gobye-prod-private-documents" },
+  { binding = "EVIDENCE", bucket_name = "gobye-prod-private-evidence" },
+  { binding = "PUBLIC_MEDIA", bucket_name = "gobye-prod-public-media" },
+]
