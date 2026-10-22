@@ -552,3 +552,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Another city → state search:** the state sheet has a pinned "Search state or city" field (new `Sheet` `top` slot in `@gobye/ui`). `searchStates` (core) matches state names (starts-with first, then contains) and capitals/big cities, so "Ibadan" finds Oyo and "Port Harcourt" finds Rivers; the city shows under the state. Clear button, empty state, Return picks a single match, the list keeps a steady height.
 - **Password step (sign up and reset):** new `PasswordRules` card: animated three-part strength bar with its word (Too weak / Good / Strong) and the rule as three live ticks (8+ characters, A letter, A number) from core `passwordChecks`.
 - Tests: core +2 (`searchStates`, `passwordChecks`), rider +1 (state search) and the password checklist asserted in the create-account test. `npm run typecheck`, `npm test` (core 138, rider 34) and the rider iOS/Android export pass. Checked on web at 390×844, light and dark.
+
+## 2026-10-22 — Welcome follows Light / Dark
+
+- The welcome (R02) no longer forces dark: it uses the theme tokens, so it follows Account → Appearance / the system setting. Buttons, brand mark and status bar follow the scheme.
+- New light clip `assets/video/road-light.mp4` (244 KB, 12 s seamless loop, H.264) + `road-light-poster.jpg`, rendered from the website's 3D footer in its light look on white, the same way as the dark clip. The player is keyed by scheme so switching appearance swaps the clip.
+- Checks: typecheck, `npm test` (rider 34), rider iOS/Android export pass; web screenshots at 375×667 and 390×844 in light and dark.

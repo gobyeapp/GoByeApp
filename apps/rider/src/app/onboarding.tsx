@@ -6,22 +6,24 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing } from '@gobye/ui';
+import { BRAND_NAME, BrandMark, Button, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { useSession } from '@/state/session';
 
-const VIDEO = require('../../assets/video/road-dark.mp4');
-const POSTER = require('../../assets/video/road-dark-poster.jpg');
-
-/** The welcome is always dark (owner design), whatever the app appearance, so it uses the dark tokens directly. */
-const c = darkColors;
+/** The road clip in both appearances: rendered from the website's 3D footer on white (light) and on black (dark). */
+const ROAD = {
+  light: { video: require('../../assets/video/road-light.mp4'), poster: require('../../assets/video/road-light-poster.jpg') },
+  dark: { video: require('../../assets/video/road-dark.mp4'), poster: require('../../assets/video/road-dark-poster.jpg') },
+} as const;
 
 /**
  * R02 Welcome (owner's "GoBYE Auth Flow" design). The 3D road scene from the website, recorded as a
  * silent 12 s seamless loop (250 KB) so it plays smoothly on any phone; under Reduce Motion the still
- * poster shows instead. No glows or gradients: dark tokens only. Two ways in: Create account or Sign in (Apple / Google live inside those flows).
+ * poster shows instead. Follows Light / Dark (a clip for each). Two ways in: Create account or Sign in (Apple / Google live inside those flows).
  */
 export default function Welcome() {
   const insets = useSafeAreaInsets();
+  const { colors: c, scheme } = useTheme();
+  const road = ROAD[scheme === 'dark' ? 'dark' : 'light'];
   const { width, height } = useWindowDimensions();
   const reduce = useReducedMotion();
   const { completeOnboarding } = useSession();
@@ -36,19 +38,20 @@ export default function Welcome() {
 
   return (
     <View style={[styles.root, { backgroundColor: c.background, paddingTop: insets.top }]}>
-      <StatusBar style="light" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel={BRAND_NAME}>
-        <BrandMark size={32} inverse />
+        <BrandMark size={32} inverse={scheme === 'dark'} />
         <Text style={[styles.word, { color: c.text }]}>{BRAND_NAME}</Text>
       </View>
 
       {/* Equal flexible space above and below the road, so it sits centred between the brand and the headline on any height. */}
       <View style={styles.spacer} />
       <View style={[styles.stage, { height: stageH }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Image source={POSTER} style={StyleSheet.absoluteFill} contentFit="cover" />
+        <Image source={road.poster} style={StyleSheet.absoluteFill} contentFit="cover" />
         {reduce ? null : (
           <VideoGuard>
-            <RoadLoop />
+            {/* Keyed by appearance, so switching Light/Dark swaps the clip. */}
+            <RoadLoop key={scheme} source={road.video} />
           </VideoGuard>
         )}
       </View>
@@ -64,16 +67,16 @@ export default function Welcome() {
       </Animated.View>
 
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
-        <Button variant="brand" title="Create account" appearance="dark" onPress={() => go('/auth/signup')} testID="welcome-create" />
-        <Button title="Sign in" appearance="dark" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
+        <Button variant="brand" title="Create account" onPress={() => go('/auth/signup')} testID="welcome-create" />
+        <Button title="Sign in" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
       </View>
     </View>
   );
 }
 
 /** The looping road. Its own component so a player failure can be contained by `VideoGuard`. */
-function RoadLoop() {
-  const player = useVideoPlayer(VIDEO, (p) => {
+function RoadLoop({ source }: { source: number }) {
+  const player = useVideoPlayer(source, (p) => {
     p.loop = true;
     p.muted = true;
     p.audioMixingMode = 'mixWithOthers';
