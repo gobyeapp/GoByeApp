@@ -93,4 +93,4 @@ Inter is reused from `@expo-google-fonts/inter` (SIL OFL 1.1) and bundled by Vit
 
 **2026-10-22:** the driver app now also uses `@react-native-async-storage/async-storage`, `expo-clipboard`, `expo-haptics`, `expo-image-picker` (licence, ID, vehicle papers, selfie), `expo-location` (When In Use only), `expo-secure-store`, `react-native-maps`, `react-native-web`, `react-dom` and `@expo/metro-runtime`, at the same versions as the rider app (rows above). No new packages were added to the repository.
 
-**2026-10-22:** `expo-video` ~57.0.5 (MIT), rider app. It plays the silent welcome loop (`assets/video/road-dark.mp4 / road-light.mp4`), with the config plugin added by `expo install`. The video was rendered from the site's own three.js road scene, so there are no third-party media rights to clear.
+**2026-10-22:** `expo-video` ~57.0.5 (MIT), rider app (and the driver app from 2026-10-22, D-048). It plays the silent welcome loop (`assets/video/road-dark.mp4 / road-light.mp4`), with the config plugin added by `expo install`. The video was rendered from the site's own three.js road scene, so there are no third-party media rights to clear.

@@ -1,7 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import type { SocialProvider } from '@gobye/core';
-import { BrandMark, Icon, Text, TextField, layout, spacing, useTheme, type IconName, type TextFieldProps } from '@gobye/ui';
+import { BrandMark } from '../../../brand';
+import { Icon, type IconName } from '../../../icons/Icon';
+import { layout, spacing } from '../../../theme/tokens';
+import { useTheme } from '../../../theme/useTheme';
+import { Text } from '../../Text';
+import { TextField, type TextFieldProps } from '../../TextField';
 
 /**
  * Building blocks for the sign-up / sign-in screens (owner's "GoBYE Auth Flow" design, built on the

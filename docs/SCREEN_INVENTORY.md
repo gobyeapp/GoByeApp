@@ -50,8 +50,8 @@ Routes are relative to `apps/<app>/src/app/`.
 | # | Screen | Route (planned) | Status |
 |---|---|---|---|
 | D01 | Launch gate (+ D02a welcome `welcome.tsx`, access pass `access.tsx`, trip detail `history/[id].tsx`) | `index.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
-| D02 | Welcome / sign-in (phone + OTP) | `auth/*` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
-| D03 | Registration: personal details | `onboarding/personal.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D02 | Welcome (road video, Light / Dark) and accounts: Become a driver (You → City → Contact → Secure), Sign in (account → password), Reset password, phone (new Apple / Google), code, driver pass | `welcome.tsx`, `auth/signup|signin|reset|phone|otp|pass.tsx` | Rebuilt 2026-10-22 to match the rider app (D-048; simulated services; web QA walked, not device-tested) |
+| D03 | Registration: personal details (prefilled, and saved from the driver pass, after sign up) | `onboarding/personal.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D04 | Driver's licence | `onboarding/licence.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D05 | Identity document | `onboarding/identity.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D06 | Vehicle information | `onboarding/vehicle.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
@@ -64,7 +64,7 @@ Routes are relative to `apps/<app>/src/app/`.
 | D13 | Active trip (to pickup → arrived → confirm passenger PIN → in progress → complete) | `trip.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D14 | Trip complete: payment status & earnings | `trip-complete.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 | D15 | Earnings & payouts | `(tabs)/earnings.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
-| D16 | Trip history | `(tabs)/trips.tsx` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
+| D16 | Trip history; trip detail as a branded earnings statement (`history/[id].tsx`, `features/trip/TripStatement.tsx`) | `(tabs)/trips.tsx` | Built 2026-10-22; statement added 2026-10-22 (simulated; web QA walked, not device-tested) |
 | D17 | Account: ratings, documents, notifications, support, settings, delete account | `(tabs)/account.tsx`, `account/*` | Built 2026-10-22 (simulated services; web QA walked, not device-tested) |
 
 ### Rider routes added during implementation

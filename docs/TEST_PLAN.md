@@ -241,3 +241,13 @@ Not yet executed: any device/emulator test, VoiceOver/TalkBack walkthroughs, fon
 | 2026-10-22 | `npm test` → core / rider / driver | **120** / **24** / **2** passed (new `driver.test.ts`: onboarding validation and order, requests, counters, trip stages, PIN lock, no-show timing, earnings) |
 | 2026-10-22 | `npx expo export --platform android --platform ios` rider and driver | Bundles built |
 | 2026-10-22 | Driver web QA build, Playwright walk-through at 390×844, light and dark | Sign-up, approval, pass, online, request (Quick Match and negotiation), PIN, end trip, payment, tabs all pass; no console errors. Not device-tested. |
+
+### Driver accounts, welcome and trip statement (2026-10-22, D-048)
+
+| Date | Check | Result |
+|---|---|---|
+| 2026-10-22 | `npm run typecheck` (core, ui, rider, driver) | Pass |
+| 2026-10-22 | `npm test` → core / rider / driver | **138** / **34** / **8** passed (new driver `auth-and-statement.test.tsx`: four-step sign up with launch cities and live password rules, two-step sign in with a neutral error, profile kept after verification, earnings statement, cancelled statement, missing trip) |
+| 2026-10-22 | `npx expo export --platform android --platform ios` rider and driver | Bundles built |
+| 2026-10-22 | Driver web QA, Playwright at 390×844 | Welcome (light and dark), sign up → code → driver pass → registration with About you done, approval, trips, statement (completed and cancelled), sign in → code all pass. Not device-tested. |
+

@@ -51,7 +51,7 @@ export default function VerificationStatus() {
         <Button
           title="Log out"
           variant="tertiary"
-          onPress={() => void signOut().then(() => resetTo('/auth/phone'))}
+          onPress={() => void signOut().then(() => resetTo('/welcome'))}
         />
       }
     >

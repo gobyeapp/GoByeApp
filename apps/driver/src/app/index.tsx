@@ -9,7 +9,7 @@ export default function LaunchGate() {
   const driver = useDriver();
 
   if (session.status === 'loading' || !driver.ready) return null;
-  if (session.status === 'signed_out') return <Redirect href={session.welcomeSeen ? '/auth/phone' : '/welcome'} />;
+  if (session.status === 'signed_out') return <Redirect href="/welcome" />;
 
   const trip = driver.activeTrip;
   if (trip) return <Redirect href={trip.stage === 'completed' ? '/trip-complete' : '/trip'} />;

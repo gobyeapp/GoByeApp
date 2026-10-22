@@ -558,3 +558,13 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - The welcome (R02) no longer forces dark: it uses the theme tokens, so it follows Account → Appearance / the system setting. Buttons, brand mark and status bar follow the scheme.
 - New light clip `assets/video/road-light.mp4` (244 KB, 12 s seamless loop, H.264) + `road-light-poster.jpg`, rendered from the website's 3D footer in its light look on white, the same way as the dark clip. The player is keyed by scheme so switching appearance swaps the clip.
 - Checks: typecheck, `npm test` (rider 34), rider iOS/Android export pass; web screenshots at 375×667 and 390×844 in light and dark.
+
+## 2026-10-22 — Driver app brought up to the rider app (D-048)
+
+- **Shared:** the journey and auth kit moved from `apps/rider/src/features/auth` to `@gobye/ui` (`components/shared/auth/Journey.tsx`, `AuthKit.tsx`); `RiderPass` is now `MemberPass` (tag and place label), with `RiderPass` kept as an alias. Rider imports updated; behaviour unchanged.
+- **Driver welcome:** the road video (Light / Dark clips, poster under Reduce Motion), "Drive more. Keep it all.", Create account and Sign in. Signed-out drivers always land here. `expo-video` added to the driver app (package + config plugin).
+- **Driver accounts:** Become a driver (You → City [Lagos / Abuja] → Contact → Secure with live password rules, Apple / Google on step 1), Sign in (account → password, Forgot password), Reset password (email → code → new password), phone step for a new Apple / Google account, the code screen, then a driver pass ("Start registration"), which saves name, email and city as About you. Session gained signUp / signIn / socialSignIn / reset / profile; simulated accounts persist on the device. Log out now returns to the welcome.
+- **Trip detail:** a branded earnings statement (`features/trip/TripStatement.tsx`), completed and cancelled variants, copyable reference, Get help.
+- **Checks:** typecheck; `npm test` core 138, rider 34, driver 8; rider and driver iOS/Android exports; driver web walk-through at 390×844. Not device-tested.
+- **Next:** device testing of both apps (Expo Go / development build), then backend contracts when the owner is ready.
+

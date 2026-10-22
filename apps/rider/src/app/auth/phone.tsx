@@ -2,8 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { validateNigerianPhone } from '@gobye/core';
-import { Button, Icon, Screen, Text, TextField, layout, spacing, useTheme } from '@gobye/ui';
-import { AuthHeading, AuthTopBar } from '@/features/auth/AuthKit';
+import { AuthHeading, AuthTopBar, Button, Icon, layout, Screen, spacing, Text, TextField, useTheme } from '@gobye/ui';
 import { useSession } from '@/state/session';
 
 /**

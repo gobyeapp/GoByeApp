@@ -67,7 +67,8 @@
           "cameraPermission": "GoBye Driver uses the camera to photograph your licence, ID, vehicle documents and a selfie for verification.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

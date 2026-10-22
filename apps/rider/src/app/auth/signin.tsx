@@ -3,9 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { formatPhone, parseIdentifier, type SocialProvider } from '@gobye/core';
-import { Icon, Text, spacing, useToast } from '@gobye/ui';
-import { TextLink } from '@/features/auth/AuthKit';
-import { JourneyField, JourneyFlow, PreviewNote, SocialFirst, StepTitle, WhenNotTyping } from '@/features/auth/Journey';
+import { Icon, JourneyField, JourneyFlow, PreviewNote, SocialFirst, spacing, StepTitle, Text, TextLink, useToast, WhenNotTyping } from '@gobye/ui';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 

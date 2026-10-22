@@ -36,7 +36,7 @@ export default function OnboardingOverview() {
     >
       <View style={styles.top}>
         <Wordmark size={26} />
-        <Pressable onPress={() => void signOut().then(() => resetTo('/auth/phone'))} accessibilityRole="button" hitSlop={8}>
+        <Pressable onPress={() => void signOut().then(() => resetTo('/welcome'))} accessibilityRole="button" hitSlop={8}>
           <Text variant="subhead" color="textSecondary">
             Log out
           </Text>

@@ -21,6 +21,8 @@ export const KEYS = {
   session: 'gobye.driver.session',
   driver: 'gobye.driver.state',
   settings: 'gobye.driver.settings',
+  /** Preview only: simulated accounts, so email/phone + password sign-in works after a restart. */
+  mockAccounts: 'gobye.driver.mockAccounts',
 } as const;
 
 export async function readJson<T>(key: string): Promise<T | null> {

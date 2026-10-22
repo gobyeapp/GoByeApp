@@ -36,7 +36,7 @@ export default function Account() {
       onConfirm: () => {
         const off = d.goOffline();
         if (!off.ok) return Alert.alert('Finish your trip first');
-        void signOut().then(() => resetTo('/auth/phone'));
+        void signOut().then(() => resetTo('/welcome'));
       },
     });
 

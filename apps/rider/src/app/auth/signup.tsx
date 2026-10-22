@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { searchStates, validateEmail, validateFullName, validateNigerianPhone, validatePassword, type SocialProvider } from '@gobye/core';
-import { Icon, RadioRow, Sheet, Text, TextField, spacing, useToast } from '@gobye/ui';
-import { ChoiceTile, JourneyField, JourneyFlow, PasswordRules, PreviewNote, SocialFirst, StepTitle } from '@/features/auth/Journey';
+import { ChoiceTile, Icon, JourneyField, JourneyFlow, PasswordRules, PreviewNote, RadioRow, Sheet, SocialFirst, spacing, StepTitle, Text, TextField, useToast } from '@gobye/ui';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 

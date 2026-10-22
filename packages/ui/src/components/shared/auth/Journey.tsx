@@ -6,7 +6,12 @@ import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, w
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { passwordChecks, passwordStrength, type SocialProvider } from '@gobye/core';
 import { OrDivider, SocialButtons } from './AuthKit';
-import { BRAND_NAME, BrandMark, Button, Icon, Text, brand, fontFamily, spacing, useTheme, type IconName } from '@gobye/ui';
+import { BRAND_NAME, BrandMark } from '../../../brand';
+import { Icon, type IconName } from '../../../icons/Icon';
+import { brand, fontFamily, spacing } from '../../../theme/tokens';
+import { useTheme } from '../../../theme/useTheme';
+import { Button } from '../../Button';
+import { Text } from '../../Text';
 
 /**
  * The website's "Join the waitlist" journey, rebuilt for the app (owner: "adopt the waitlist… down to the
@@ -476,12 +481,15 @@ export function RoundBack({ onPress, disabled }: { onPress: () => void; disabled
   );
 }
 
-/** The rider pass (website .pass): plum top with the mark, name / city / member since, a perforation, a verified foot. */
-export function RiderPass({ name, city, since, note }: { name: string; city: string; since: string; note: string }) {
+/**
+ * The member pass (website .pass): plum top with the mark, name / place / member since, a perforation, a
+ * verified foot. `tag` names the pass ("RIDER PASS", "DRIVER PASS").
+ */
+export function MemberPass({ name, city, since, note, tag = 'RIDER PASS', placeLabel = 'City', testID = 'rider-pass' }: { name: string; city: string; since: string; note: string; tag?: string; placeLabel?: string; testID?: string }) {
   const { colors, scheme } = useTheme();
   const notch = colors.background;
   return (
-    <View style={[styles.pass, { backgroundColor: scheme === 'dark' ? colors.surface : '#FFFFFF', borderColor: scheme === 'dark' ? colors.border : 'rgba(53,26,64,0.08)' }]} testID="rider-pass">
+    <View style={[styles.pass, { backgroundColor: scheme === 'dark' ? colors.surface : '#FFFFFF', borderColor: scheme === 'dark' ? colors.border : 'rgba(53,26,64,0.08)' }]} testID={testID}>
       <View style={styles.passTop}>
         <PlumBackground />
         <BrandMark size={26} inverse />
@@ -489,12 +497,12 @@ export function RiderPass({ name, city, since, note }: { name: string; city: str
           {BRAND_NAME}
         </Text>
         <Text variant="caption" style={styles.passTag}>
-          RIDER PASS
+          {tag}
         </Text>
       </View>
       <View style={styles.passBody}>
         <Kv label="Name" value={name} wide />
-        <Kv label="City" value={city} />
+        <Kv label={placeLabel} value={city} />
         <Kv label="Member since" value={since} />
       </View>
       <View style={styles.passCut} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -513,6 +521,9 @@ export function RiderPass({ name, city, since, note }: { name: string; city: str
     </View>
   );
 }
+
+/** Rider name kept for the rider app. */
+export const RiderPass = MemberPass;
 
 function Kv({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
   const { colors } = useTheme();

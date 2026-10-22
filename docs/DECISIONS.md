@@ -11,7 +11,7 @@ Each decision has an ID, status (`Accepted`, `Proposed`, `Superseded`), date, al
 | D-005 | Domain logic as pure reducers/functions in `@gobye/core`; React context in apps | Accepted | 2026-10-21 |
 | D-006 | All money in integer kobo (`Kobo` branded number) | Accepted | 2026-10-21 |
 | D-007 | Pricing values live in one mock `PricingConfig`; none are business policy | Accepted | 2026-10-21 |
-| D-008 | Phone number + OTP as the only sign-in method (mocked) | Proposed | 2026-10-21 |
+| D-008 | Phone number + OTP as the only sign-in method (mocked) | Superseded by D-045 (rider) and D-048 (driver) | 2026-10-21 |
 | D-009 | Hand-written typed validators (no schema library) | Accepted | 2026-10-21 |
 | D-010 | Custom non-modal map bottom sheet (Reanimated + Gesture Handler) | Accepted | 2026-10-21 |
 | D-011 | Jest (`jest-expo`) for unit tests | Accepted | 2026-10-21 |
@@ -327,7 +327,7 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Preview behaviour:** accounts, SMS, email codes, Apple and Google are simulated (`createMockServices` auth, with optional `authStore` persistence). Sign-in failures use one neutral message, and a reset request always "succeeds", so neither reveals whether an account exists.
 - **Backend tasks:** server-side password hashing (Argon2id or bcrypt), rate limits on sign-in, OTP and reset; real Sign in with Apple (`expo-apple-authentication`) and Google (`expo-auth-session` / native SDK) with token verification on the server; account linking by verified email.
 - **Welcome:** the website's dark 3D road scene recorded as a 12 s seamless loop (250 KB H.264) and played with `expo-video`; a still poster shows under Reduce Motion.
-- The driver app still uses phone + code (D-008) until the owner asks for the same there.
+- The driver app moved to the same flow on 2026-10-22 (D-048).
 
 ## D-046 — No "Pay later" after a trip (2026-10-22, owner; amends D-036 / Q-053)
 
@@ -339,3 +339,11 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 
 - **Decision:** Create account copies the website's waitlist journey: a plum gradient header with route progress, one question per step, choice tiles, a round back button and a rider pass at the end. Every sign-in and sign-up primary button uses the website's tangerine gradient CTA (`Button variant="brand"`).
 - **Scope:** an owner-requested exception to D-034 (a monochrome interface with brand accents only), limited to the welcome and auth screens. Booking, trip and payment screens stay monochrome.
+
+## D-048 — Driver accounts and welcome match the rider app (2026-10-22, owner; supersedes D-008 for the driver app)
+
+- **Decision (owner: "update everything end to end, hold on the backend"):** the driver app uses the same account flow as the rider app: a welcome with the road video (Light and Dark clips), Create account / Sign in, a four-step "Become a driver" journey (You → City → Contact → Secure), sign in over two steps, reset password, Apple / Google, then a code to the phone, and a driver pass before registration.
+- **Driver-specific:** City offers Lagos and Abuja only (drivers are onboarded in launch cities, Q-007), so there is no state picker. The name, email and city from sign-up are saved as About you, so registration opens on the licence step.
+- **Shared code:** the journey building blocks (`JourneyFlow`, `JourneyField`, `PasswordRules`, `ChoiceTile`, `SocialButtons`, `MemberPass`, …) moved from the rider app into `@gobye/ui` (D-043), so both apps use one implementation.
+- **Trip detail:** a branded earnings statement (aubergine band, what the driver earned, payment received or pending, timeline, rider, ₦0 commission, copyable reference), matching the rider receipt.
+- **Backend:** unchanged contracts; all simulated (D-044, D-045). Accounts persist on the device in the preview (`authStore`).

@@ -3,15 +3,18 @@ import { validateEmail, validateName, type DriverPersonalDetails } from '@gobye/
 import { Button, TextField } from '@gobye/ui';
 import { ChoiceRow, StepShell, goNext } from '@/features/onboarding/parts';
 import { useDriver } from '@/state/driver';
+import { useSession } from '@/state/session';
 
 /** D03 Registration: personal details (the name riders see, contact email, launch city). */
 export default function Personal() {
   const { application, updateApplication } = useDriver();
+  // Prefilled from the account (sign up, or Apple / Google) when registration hasn't saved it yet.
+  const { profile } = useSession();
   const p = application.personal;
-  const [first, setFirst] = useState(p?.firstName ?? '');
-  const [last, setLast] = useState(p?.lastName ?? '');
-  const [email, setEmail] = useState(p?.email ?? '');
-  const [city, setCity] = useState<DriverPersonalDetails['city']>(p?.city ?? 'Lagos');
+  const [first, setFirst] = useState(p?.firstName ?? profile?.firstName ?? '');
+  const [last, setLast] = useState(p?.lastName ?? profile?.lastName ?? '');
+  const [email, setEmail] = useState(p?.email ?? profile?.email ?? '');
+  const [city, setCity] = useState<DriverPersonalDetails['city']>(p?.city ?? profile?.city ?? 'Lagos');
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   const save = () => {
