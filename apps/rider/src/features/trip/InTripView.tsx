@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { arrivalProgress, formatDistance, formatDuration, formatNaira, isDriverLocationStale, nairaAccessibilityLabel, type Booking } from '@gobye/core';
 import { Avatar, Bone, Button, Icon, SkeletonGroup, Text, layout, shadows, spacing, useTheme } from '@gobye/ui';
 import { MapCanvas, type MapCanvasHandle } from '@/features/map/MapCanvas';
@@ -9,11 +8,10 @@ import { Notice } from './ApproachView';
 import { JourneyBar } from './JourneyBar';
 import { clockIn, freshnessLabel, locationAgeSeconds } from './live';
 
-const FADE = 56;
 
 /**
  * Trip in progress (estimate.jpg): the map fills the screen with route, vehicle and destination; small
- * stacked map controls top right; a white (black in dark) lower panel that fades up into the map, with
+ * stacked map controls top right; a white (black in dark) lower panel over the map, with
  * "Trip in progress", a grey driver/vehicle card, the agreed fare (never a running meter) beside the
  * distance left, a journey bar with a destination ring, an "Arrival by" pill, the minutes remaining in the
  * route colour, a black "Share trip" action and Emergency as red text. Stale location reads "Reconnecting".
@@ -69,18 +67,9 @@ export function InTripView({ b, now, onShare, onHelp, onEmergency }: { b: Bookin
         </View>
       </View>
 
-      {/* Lower panel, fading up into the map like the reference. */}
-      <View style={styles.panelWrap} pointerEvents="box-none" onLayout={(e) => setPanelH(e.nativeEvent.layout.height - FADE)}>
-        <Svg width="100%" height={FADE} style={styles.fade} pointerEvents="none">
-          <Defs>
-            <LinearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={colors.background} stopOpacity="0" />
-              <Stop offset="1" stopColor={colors.background} stopOpacity="1" />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height={FADE} fill="url(#fade)" />
-        </Svg>
-        <View style={[styles.panel, compact && styles.panelCompact, { backgroundColor: colors.background, paddingBottom: insets.bottom + spacing.sm }]}>
+      {/* Lower panel: a solid sheet over the map (no fade gradient). */}
+      <View style={styles.panelWrap} pointerEvents="box-none" onLayout={(e) => setPanelH(e.nativeEvent.layout.height)}>
+        <View style={[styles.panel, compact && styles.panelCompact, { backgroundColor: colors.background, borderColor: colors.border, paddingBottom: insets.bottom + spacing.sm }]}>
           <View style={styles.titleRow}>
             <Text variant="title3" accessibilityRole="header" style={styles.flex}>
               Trip in progress
@@ -203,8 +192,7 @@ const styles = StyleSheet.create({
   control: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   controlDivider: { height: StyleSheet.hairlineWidth, marginHorizontal: 8 },
   panelWrap: { position: 'absolute', left: 0, right: 0, bottom: 0 },
-  fade: { marginBottom: -1 },
-  panel: { paddingHorizontal: layout.page, gap: spacing.md },
+  panel: { paddingHorizontal: layout.page, paddingTop: spacing.lg, gap: spacing.md, borderTopLeftRadius: layout.sheetRadius, borderTopRightRadius: layout.sheetRadius, borderTopWidth: StyleSheet.hairlineWidth },
   panelCompact: { gap: spacing.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   chip: { paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: 999 },

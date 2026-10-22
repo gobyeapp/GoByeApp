@@ -579,3 +579,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Checks:** typecheck all; tests core 149, rider 36, driver 14, admin pass; rider and driver native exports; admin build; a three-app walk against one local relay passed end to end (see TEST_PLAN). Not tried on phones yet.
 - **Next:** try it on two phones and a laptop on the same Wi-Fi (docs/DEMO_CONNECTED.md).
 
+## 2026-10-22 — Gradients removed from the mobile apps (D-050)
+
+- `Button` brand variant: solid tangerine, dark label, no gradient / highlight / glow. `PlumBackground` (auth and journey headers, member pass top): solid aubergine. Route progress: solid tangerine fill. Rider in-trip panel: solid sheet with rounded top and hairline edge (no fade). No `LinearGradient` / `RadialGradient` left in the rider app, driver app or `@gobye/ui`.
+- Checks: typecheck; tests core 149, rider 36, driver 14, admin pass; rider and driver iOS/Android exports; web screenshots of the welcome and auth screens.
+

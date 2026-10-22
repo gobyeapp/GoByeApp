@@ -3,7 +3,6 @@ import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensio
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { passwordChecks, passwordStrength, type SocialProvider } from '@gobye/core';
 import { OrDivider, SocialButtons } from './AuthKit';
 import { BRAND_NAME, BrandMark } from '../../../brand';
@@ -20,32 +19,12 @@ import { Text } from '../../Text';
  * pass at the end. Colours are the website's (styles.css .sheet-hero, .route, .ctile, .pass).
  */
 
-export const PLUM = { deep: '#2A1233', mid: '#4B2159', glowWarm: '#FF751F', glowCool: '#9B50B4', eyebrow: '#FFC59E' };
+export const PLUM = { deep: '#2A1233', mid: '#4B2159', eyebrow: '#FFC59E' };
 const EASE = Easing.bezier(0.3, 0.8, 0.2, 1);
 
-/** Plum gradient with a warm glow top-right and a violet glow bottom-left (website .sheet-hero). */
+/** Solid aubergine header (one brand colour; no gradient or glow, owner 2026-10-22). */
 export function PlumBackground({ radius = 0 }: { radius?: number }) {
-  return (
-    <Svg style={[StyleSheet.absoluteFill, { borderRadius: radius }]} preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
-      <Defs>
-        <LinearGradient id="plum" x1="0" y1="0" x2="1" y2="1">
-          <Stop offset="0" stopColor={PLUM.deep} />
-          <Stop offset="1" stopColor={PLUM.mid} />
-        </LinearGradient>
-        <RadialGradient id="warm" cx="100" cy="0" rx="90" ry="120" gradientUnits="userSpaceOnUse">
-          <Stop offset="0" stopColor={PLUM.glowWarm} stopOpacity={0.45} />
-          <Stop offset="0.6" stopColor={PLUM.glowWarm} stopOpacity={0} />
-        </RadialGradient>
-        <RadialGradient id="cool" cx="0" cy="100" rx="70" ry="90" gradientUnits="userSpaceOnUse">
-          <Stop offset="0" stopColor={PLUM.glowCool} stopOpacity={0.45} />
-          <Stop offset="0.7" stopColor={PLUM.glowCool} stopOpacity={0} />
-        </RadialGradient>
-      </Defs>
-      <Rect x="0" y="0" width="100" height="100" fill="url(#plum)" />
-      <Rect x="0" y="0" width="100" height="100" fill="url(#cool)" />
-      <Rect x="0" y="0" width="100" height="100" fill="url(#warm)" />
-    </Svg>
-  );
+  return <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: brand.aubergine, borderRadius: radius }]} />;
 }
 
 /** Route progress: a track with a tangerine fill, four stops and a car chip that drives to the current step. */
@@ -72,17 +51,7 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
       accessibilityValue={{ min: 1, max: labels.length, now: step + 1 }}
     >
       <View style={styles.track}>
-        <Animated.View style={[styles.fill, fill]}>
-          <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 100 1">
-            <Defs>
-              <LinearGradient id="rf" x1="0" y1="0" x2="1" y2="0">
-                <Stop offset="0" stopColor="#FFC59E" />
-                <Stop offset="1" stopColor={brand.tangerine} />
-              </LinearGradient>
-            </Defs>
-            <Rect x="0" y="0" width="100" height="1" fill="url(#rf)" />
-          </Svg>
-        </Animated.View>
+        <Animated.View style={[styles.fill, { backgroundColor: brand.tangerine }, fill]}></Animated.View>
       </View>
       {labels.map((_, i) => (
         <View key={i} style={[styles.stop, { left: 10 + (inner * i) / Math.max(1, labels.length - 1) - 5, backgroundColor: i <= step ? brand.tangerine : 'rgba(255,255,255,0.28)' }]} />

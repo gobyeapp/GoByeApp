@@ -357,3 +357,8 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Safety and honesty:** test data only, labelled as demo in every app. Photos never leave the phone; ID and licence numbers are masked to the last four. The pickup PIN travels through the relay in the demo only (a real backend never exposes it like this). The Supabase demo tables are writable with the anon key and must be dropped after the demo; the service role key is never used in an app.
 - **Not production:** polling every 2–3 s, no auth, no conflict handling beyond "first driver to claim wins". The real backend contract stays in BACKEND_HANDOVER.md.
 
+## D-050 — No gradients in the mobile apps; one solid colour each (2026-10-22, owner; amends D-047)
+
+- **Decision (owner: "take away gradient from the mobile app and use only one colour; gradient is giving AI"):** the brand button is solid tangerine `#FF751F` with dark ink (pressed `#E8650F`), with no gradient, top highlight or orange glow. The auth / journey header is solid aubergine `#351A40` (no plum gradient or glows), the route progress fill is solid tangerine, and the rider's in-trip panel is a solid sheet with a hairline top edge instead of fading into the map.
+- The website keeps its own look; this applies to the rider and driver apps (shared `@gobye/ui`).
+

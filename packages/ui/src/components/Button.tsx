@@ -1,12 +1,11 @@
 import { ActivityIndicator, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Icon, type IconName } from '../icons/Icon';
 import { useTheme } from '../theme/useTheme';
 import { darkColors, lightColors, minTouch, spacing } from '../theme/tokens';
 import { Text } from './Text';
 
-/** `brand`: the website's tangerine CTA (gradient, dark label, white arrow chip) for signature moments such as sign-up. */
+/** `brand`: solid tangerine with a dark label, for signature moments such as sign-up (no gradient, no glow). */
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'destructive' | 'brand';
 
 export interface ButtonProps {
@@ -74,7 +73,7 @@ export function Button({
   const palette = {
     brand: disabledPrimary
       ? { bg: colors.secondary, pressed: colors.secondary, fg: 'textSecondary' as const, border: 'transparent' }
-      : { bg: BRAND_CTA.mid, pressed: BRAND_CTA.mid, fg: 'text' as const, border: BRAND_CTA.border },
+      : { bg: BRAND_CTA.fill, pressed: BRAND_CTA.pressed, fg: 'text' as const, border: 'transparent' },
     primary: disabledPrimary
       ? { bg: colors.secondary, pressed: colors.secondary, fg: 'textSecondary' as const, border: 'transparent' }
       : { bg: colors.primary, pressed: colors.primaryPressed, fg: 'onPrimary' as const, border: 'transparent' },
@@ -99,7 +98,7 @@ export function Button({
 
   return (
     // Scale lives on a wrapper (layout `style` from callers goes there too), so the pressable keeps plain styles.
-    <Animated.View style={[pressStyle, brandOn && styles.brandShadow, style]}>
+    <Animated.View style={[pressStyle, style]}>
     <Pressable
       testID={testID}
       onPress={onPress}
@@ -117,28 +116,12 @@ export function Button({
           paddingHorizontal: chip ? chipSize + spacing.md + 4 : size === 'lg' ? spacing.xxl : spacing.xl,
           backgroundColor: pressed ? palette.pressed : palette.bg,
           borderColor: palette.border,
-          borderWidth: palette.border === 'transparent' ? 0 : brandOn ? 1 : StyleSheet.hairlineWidth,
-          overflow: brandOn ? 'hidden' : undefined,
+          borderWidth: palette.border === 'transparent' ? 0 : StyleSheet.hairlineWidth,
           opacity: disabled && !loading && !disabledPrimary ? 0.45 : 1,
         },
         raised && (pressed ? styles.shadowPressed : styles.shadow),
-        brandOn && pressed && { opacity: 0.92 },
       ]}
     >
-      {brandOn ? (
-        // Website .btn-primary: #ffb27e → #ff9652 → #ff8438 top to bottom, with a 1 px light top edge.
-        <Svg style={StyleSheet.absoluteFill} preserveAspectRatio="none" viewBox="0 0 100 100" pointerEvents="none">
-          <Defs>
-            <LinearGradient id="gobye-cta" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0" stopColor={BRAND_CTA.top} />
-              <Stop offset="0.52" stopColor={BRAND_CTA.mid} />
-              <Stop offset="1" stopColor={BRAND_CTA.bottom} />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100" height="100" fill="url(#gobye-cta)" />
-          <Rect x="0" y="0" width="100" height="1.6" fill="#FFFFFF" opacity={0.45} />
-        </Svg>
-      ) : null}
       {loading && loadingLabel ? (
         <View style={styles.row}>
           <ActivityIndicator color={fg} accessibilityElementsHidden />
@@ -176,7 +159,8 @@ export function Button({
 }
 
 /** The website CTA palette (styles.css .btn-primary). */
-const BRAND_CTA = { top: '#FFB27E', mid: '#FF9652', bottom: '#FF8438', ink: '#1C0E05', border: 'rgba(214, 92, 18, 0.2)' };
+/** Solid brand tangerine, no gradient or glow (owner 2026-10-22). Dark ink keeps the label readable (about 7:1). */
+const BRAND_CTA = { fill: '#FF751F', pressed: '#E8650F', ink: '#1C0E05' };
 
 const styles = StyleSheet.create({
   base: {
@@ -186,7 +170,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   shadow: { shadowColor: '#000', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 4 },
-  brandShadow: { borderRadius: 999, shadowColor: '#FF751F', shadowOpacity: 0.45, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
   shadowPressed: { shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   title: { textAlign: 'center', letterSpacing: -0.1 },
