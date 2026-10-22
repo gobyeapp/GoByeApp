@@ -111,10 +111,10 @@ export function SocialButtons({ onPress, layout: mode = 'stack', busy }: { onPre
   );
 }
 
-export function OrDivider() {
+export function OrDivider({ tight }: { tight?: boolean } = {}) {
   const { colors } = useTheme();
   return (
-    <View style={styles.or} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <View style={[styles.or, tight && styles.orTight]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={[styles.line, { backgroundColor: colors.border }]} />
       <Text variant="footnote" color="textSecondary">
         or
@@ -148,6 +148,7 @@ const styles = StyleSheet.create({
   social: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, minHeight: 56, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.lg },
   socialHalf: { flex: 1, minHeight: 52 },
   or: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xl },
+  orTight: { marginVertical: 0 },
   line: { flex: 1, height: StyleSheet.hairlineWidth },
   link: { minHeight: 44, justifyContent: 'center' },
 });

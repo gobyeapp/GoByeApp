@@ -52,7 +52,8 @@ export default function SignUp() {
 
   // Focus the step's field once it has slid in.
   useEffect(() => {
-    const ref = step === 0 ? nameRef : step === 2 ? emailRef : step === 3 ? passRef : null;
+    // Step 1 doesn't open the keyboard, so Apple and Google stay in view.
+    const ref = step === 2 ? emailRef : step === 3 ? passRef : null;
     const t = setTimeout(() => ref?.current?.focus(), reduce ? 50 : 520);
     return () => clearTimeout(t);
   }, [step, reduce]);
@@ -147,6 +148,8 @@ export default function SignUp() {
         steps={[
                 <>
                   <StepTitle title={'First, what should we call you?'} hint="Your rider pass will carry your name. Drivers see your first name only." />
+                  <SocialButtons onPress={withProvider} busy={social} />
+                  <OrDivider tight />
                   <JourneyField
                     ref={nameRef}
                     icon="account"
@@ -165,8 +168,6 @@ export default function SignUp() {
                     error={errors.name}
                     testID="signup-name"
                   />
-                  <OrDivider />
-                  <SocialButtons layout="row" onPress={withProvider} busy={social} />
                 </>,
                 <>
                   <StepTitle title={`Where will you ride${first ? `, ${first}` : ''}?`} hint="GoBye launches in Lagos and Abuja first." />

@@ -1,12 +1,13 @@
 import { Image } from 'expo-image';
-import { Component, type ReactNode } from 'react';
+import { Component, useState, type ReactNode } from 'react';
+import type { SocialProvider } from '@gobye/core';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
-import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
+import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing } from '@gobye/ui';
+import { BRAND_NAME, BrandMark, Button, Text, darkColors, layout, spacing, useToast } from '@gobye/ui';
 import { useSession } from '@/state/session';
 
 const VIDEO = require('../../assets/video/road-dark.mp4');
@@ -24,11 +25,22 @@ export default function Welcome() {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const reduce = useReducedMotion();
-  const { completeOnboarding } = useSession();
+  const { completeOnboarding, socialSignIn } = useSession();
+  const toast = useToast();
+  const [social, setSocial] = useState<SocialProvider | null>(null);
   // The road takes whatever height is left after the text and buttons (380 on tall phones, 120 on the smallest).
   const compact = height < 700;
-  const stage = Math.round(Math.min(380, Math.max(120, height - (compact ? 450 : 470))));
+  const stage = Math.round(Math.min(380, Math.max(110, height - (compact ? 520 : 540))));
 
+
+  const withProvider = async (p: SocialProvider) => {
+    setSocial(p);
+    completeOnboarding();
+    const r = await socialSignIn(p);
+    setSocial(null);
+    if (!r.ok) return toast(r.error, 'error');
+    router.push(r.value.next === 'otp' ? '/auth/otp' : '/auth/phone');
+  };
 
   const go = (to: '/auth/signup' | '/auth/signin') => {
     completeOnboarding();
@@ -50,16 +62,6 @@ export default function Welcome() {
             <RoadLoop />
           </VideoGuard>
         )}
-        {stage < 200 ? null : (
-        <Animated.View entering={reduce ? undefined : FadeIn.delay(400).duration(400)} style={[styles.fare, { backgroundColor: c.surface, borderColor: c.border }]}>
-          <Text variant="caption" style={{ color: c.textSecondary }}>
-            Agreed fare
-          </Text>
-          <Text variant="title2" tabular style={{ color: c.text }}>
-            ₦7,200
-          </Text>
-        </Animated.View>
-        )}
       </View>
 
       <Animated.View entering={reduce ? undefined : FadeInDown.duration(360)} style={styles.copy}>
@@ -74,6 +76,17 @@ export default function Welcome() {
       <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg) + spacing.sm }]}>
         <Button variant="brand" title="Create account" appearance="dark" onPress={() => go('/auth/signup')} testID="welcome-create" />
         <Button title="Sign in" appearance="dark" variant="secondary" onPress={() => go('/auth/signin')} testID="welcome-signin" />
+        <View style={styles.or} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[styles.line, { backgroundColor: c.border }]} />
+          <Text variant="caption" style={{ color: c.textSecondary }}>
+            or continue with
+          </Text>
+          <View style={[styles.line, { backgroundColor: c.border }]} />
+        </View>
+        <View style={styles.socialRow}>
+          <Button title="Apple" appearance="dark" variant="secondary" size="md" leadingIcon="apple" leadingIconFilled loading={social === 'apple'} disabled={!!social} onPress={() => withProvider('apple')} style={styles.flex} testID="welcome-apple" />
+          <Button title="Google" appearance="dark" variant="secondary" size="md" leadingIcon="google" leadingIconFilled loading={social === 'google'} disabled={!!social} onPress={() => withProvider('google')} style={styles.flex} testID="welcome-google" />
+        </View>
       </View>
     </View>
   );
@@ -109,9 +122,12 @@ const styles = StyleSheet.create({
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: layout.page, paddingTop: spacing.xl },
   word: { fontFamily: 'Inter_700Bold', fontSize: 22, lineHeight: 28, letterSpacing: -0.6 },
   stage: { marginTop: spacing.md, overflow: 'hidden' },
-  fare: { position: 'absolute', left: layout.page, top: spacing.xl, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, gap: 2 },
   copy: { paddingHorizontal: layout.page, gap: spacing.md },
   headline: { fontSize: 34, lineHeight: 41, letterSpacing: -1 },
   headlineCompact: { fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  flex: { flex: 1 },
+  or: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.xs },
+  line: { flex: 1, height: StyleSheet.hairlineWidth },
+  socialRow: { flexDirection: 'row', gap: spacing.md },
   actions: { marginTop: 'auto', paddingHorizontal: layout.page, gap: spacing.md },
 });

@@ -19,6 +19,8 @@ export interface ButtonProps {
   /** Words shown beside the spinner while loading (e.g. "Paying"), so progress isn't just a spinner. */
   loadingLabel?: string;
   leadingIcon?: IconName;
+  /** Filled glyph for the leading icon (brand logos such as Apple and Google read better solid). */
+  leadingIconFilled?: boolean;
   /**
    * Forward-action chip at the end of the button (website hero style): a small round contrasting disc
    * with an icon, e.g. `arrowRight` on "Create account". The title stays optically centred.
@@ -49,6 +51,7 @@ export function Button({
   loading,
   loadingLabel,
   leadingIcon,
+  leadingIconFilled,
   trailingIcon,
   trailingText,
   accessibilityLabel,
@@ -147,7 +150,7 @@ export function Button({
         <ActivityIndicator color={fg} accessibilityElementsHidden />
       ) : (
         <View style={styles.row}>
-          {leadingIcon ? <Icon name={leadingIcon} size="sm" color={fg} /> : null}
+          {leadingIcon ? <Icon name={leadingIcon} variant={leadingIconFilled ? 'filled' : 'regular'} size="sm" color={fg} /> : null}
           <Text variant="headline" style={[styles.title, { color: fg }]}>
             {title}
           </Text>

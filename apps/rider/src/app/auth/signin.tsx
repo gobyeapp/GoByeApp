@@ -32,8 +32,9 @@ export default function SignIn() {
   const pwRef = useRef<TextInput>(null);
 
   useEffect(() => {
-    const ref = step === 0 ? idRef : pwRef;
-    const t = setTimeout(() => ref.current?.focus(), reduce ? 50 : 520);
+    // Step 1 doesn't open the keyboard, so Apple and Google stay in view.
+    if (step === 0) return;
+    const t = setTimeout(() => pwRef.current?.focus(), reduce ? 50 : 520);
     return () => clearTimeout(t);
   }, [step, reduce]);
 
@@ -90,7 +91,9 @@ export default function SignIn() {
       footnote={<PreviewNote />}
       steps={[
         <>
-          <StepTitle title="Good to see you again" hint="Use the email or phone number on your account." />
+          <StepTitle title="Good to see you again" hint="Continue with Apple or Google, or use your email or phone." />
+          <SocialButtons onPress={withProvider} busy={social} />
+          <OrDivider tight />
           <JourneyField
             ref={idRef}
             icon="account"
@@ -111,8 +114,6 @@ export default function SignIn() {
             error={errors.id}
             testID="signin-id"
           />
-          <OrDivider />
-          <SocialButtons layout="row" onPress={withProvider} busy={social} />
           <View style={styles.switch}>
             <Text variant="callout" color="textSecondary">
               New to GoBye?
