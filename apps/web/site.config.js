@@ -39,6 +39,17 @@ window.GOBYE_SITE = {
   audiences: {
     rider: {
       label: 'For riders',
+      hero: { headline: 'Your next move.', supporting: 'Request a car, agree your fare, and get moving with GoBYE.', ctaLabel: 'Join the waitlist' },
+      people: {
+        eyebrow: 'MADE FOR LAGOS AND ABUJA',
+        lines: ['Built for the way', 'your city moves.'],
+        tiles: [
+          { photo: 'assets/people/rider.jpg', alt: 'A young woman checks her phone at a Lagos roadside at sunset, traffic behind her', title: 'Book from the roadside', chip: 'Where are you going?', pos: '30% 55%', big: true },
+          { photo: 'assets/people/street.jpg', alt: 'A young man shows his phone to a smiling driver through the window of a silver car at the kerb', title: 'Meet your driver at the kerb', chip: 'Share your PIN at pickup', pos: '55% 30%', noteRight: true },
+          { photo: 'assets/people/road.jpg', alt: 'A woman with a suitcase leaves a silver car at the airport as the driver waves goodbye', title: 'Pay when you arrive', chip: 'Fare agreed before you go', pos: '45% 62%' },
+        ],
+      },
+      footer: { title: 'Every journey starts with GoBYE.', supporting: 'Move around your city with confidence. Simple bookings, fares agreed upfront, and a better way to get there.', cta: 'Join the waitlist' },
       steps: {
         eyebrow: 'STEP BY STEP',
         lines: ['One app.', 'Every trip.', 'No stress.'],
@@ -79,6 +90,17 @@ window.GOBYE_SITE = {
     },
     driver: {
       label: 'For drivers',
+      hero: { headline: 'Drive more. Keep it all.', supporting: 'See the fare before you accept, keep every naira you earn, and pay no commission on your trips.', ctaLabel: 'Join as a driver' },
+      people: {
+        eyebrow: 'MADE FOR DRIVERS',
+        lines: ['Your car, your hours,', 'your earnings.'],
+        tiles: [
+          { photo: 'assets/people/street.jpg', alt: 'A smiling driver in a silver car greets a passenger at the kerb', title: 'Pick up riders near you', chip: 'Ask for the PIN to start', pos: '55% 30%', big: true },
+          { photo: 'assets/people/road.jpg', alt: 'A driver waves goodbye as a passenger leaves the car at the airport', title: 'Finish the trip, keep the fare', chip: '₦0 commission on this trip', pos: '45% 62%', noteRight: true },
+          { photo: 'assets/people/rider.jpg', alt: 'A rider at a Lagos roadside books a trip on her phone', title: 'Requests with the fare shown', chip: 'Agreed fare shown upfront', pos: '30% 55%' },
+        ],
+      },
+      footer: { title: 'Every trip pays you in full.', supporting: 'Drive with GoBYE: no commission on your trips, fares agreed upfront, and earnings sent to your bank.', cta: 'Join as a driver' },
       steps: {
         eyebrow: 'STEP BY STEP',
         lines: ['Your car.', 'Your fares.', 'Your earnings.'],

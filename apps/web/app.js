@@ -432,6 +432,7 @@
     renderSteps(a);
     renderFeatures(a);
     renderSafety(a);
+    renderPeople();
     renderStatement(a.statement);
     renderCompare(a);
     if (remember) { try { localStorage.setItem('gobye-audience', key); } catch (e) { /* storage unavailable */ } }
@@ -513,9 +514,10 @@
   /* ---------- People: photographs with a GoBYE notification on top ---------- */
   function renderPeople() {
     var m = $('#mosaic');
-    if (!m || !C.people) return;
+    var P = (C.audiences && C.audiences[audience] && C.audiences[audience].people) || C.people;
+    if (!m || !P) return;
     var logo = esc(C.brand.logoDark || C.brand.logo);
-    m.innerHTML = C.people.tiles.filter(function (t) { return t.photo; }).map(function (t) {
+    m.innerHTML = P.tiles.filter(function (t) { return t.photo; }).map(function (t) {
       return '<figure class="tile' + (t.big ? ' big' : '') + '"><img src="' + esc(t.photo) + '" alt="' + esc(t.alt) + '" loading="lazy" style="object-position:' + esc(t.pos || '50% 50%') + '">' +
         (t.chip ? '<div class="note' + (t.noteRight ? ' right' : '') + '" aria-hidden="true"><img src="' + logo + '" alt=""><span><b>' + esc(C.brand.name) + '</b> ' + esc(t.chip) + '</span></div>' : '') +
         '<figcaption>' + esc(t.title) + '</figcaption></figure>';
@@ -542,7 +544,7 @@
     if (so) so.innerHTML = [['instagram', 'IG', 'Instagram'], ['linkedin', 'in', 'LinkedIn'], ['x', 'X', 'X']].filter(function (k) { return isUrl(s[k[0]]); })
       .map(function (k) { return '<a href="' + esc(s[k[0]]) + '" rel="noopener" aria-label="GoBYE on ' + k[2] + '">' + k[1] + '</a>'; }).join('');
     if (C.launch.status === 'live' && isUrl(C.stores.appStore.url) && isUrl(C.stores.googlePlay.url)) {
-      var l = $('#foot-cta-label'); if (l) l.textContent = 'Book a ride'; // only once the apps are actually in the stores
+      var l = $('#foot-cta-label'); if (l) { l.removeAttribute('data-a'); l.textContent = 'Book a ride'; } // only once the apps are actually in the stores
     }
     var cities = $('#foot-cities');
     if (cities) cities.textContent = C.launch.cities.join(' · ');
@@ -620,7 +622,7 @@
     var vs = document.getElementById('vs');
     if (vs) io.observe(vs);
     // Content that changes with the audience toggle crossfades instead of jumping.
-    document.querySelectorAll('[data-a], .stack-pin .head .display, #deck, .features .title, #rail, #safe-grid, #statement, .compare .title, #vs').forEach(function (el) { el.classList.add('swap-target'); });
+    document.querySelectorAll('[data-a]:not(.hero [data-a]):not(.hero h1), .mosaic, .stack-pin .head .display, #deck, .features .title, #rail, #safe-grid, #statement, .compare .title, #vs').forEach(function (el) { el.classList.add('swap-target'); });
   }
 
   window.GOBYE_RENDER_TRUST = renderTrust;

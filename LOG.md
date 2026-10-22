@@ -456,3 +456,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Nav, video box and CTA share one `--stage-w`, so the nav's edges line up with the video's (1440: 381/381; 1366: 363/364).
   - The video formula was rebalanced so the CTA sits 24 px above the fold on 1920×1080, 1440×900 and 1366×768.
   - Checked at 8 sizes with no overflow.
+- **Website: rider and driver content fully separated (owner: the two pages should differ).** The hero (headline, supporting line, CTA), the photo section (eyebrow, title, tile captions and notification chips, photo order) and the footer (title, line, CTA) now come from `audiences.{rider,driver}` and switch with the toggle. The step cards, features, safety, statement and comparison already did.
+  - **Driver copy:**
+    - Hero: "Drive more. Keep it all." / "See the fare before you accept, keep every naira you earn, and pay no commission on your trips." / "Join as a driver".
+    - Photo section: "Your car, your hours, your earnings."
+    - Footer: "Every trip pays you in full."
+  - The driver CTA preselects Drive in the waitlist. The hero video is shared.
