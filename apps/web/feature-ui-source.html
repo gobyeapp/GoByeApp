@@ -1,0 +1,201 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  :root { --ink:#111; --g2:#6b6b6b; --g3:#9a9a9a; --line:#ececec; --soft:#f4f4f4; --tang:#ff751f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 30px; background: transparent; font-family: 'Inter', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .f { width: 300px; background: #fff; border-radius: 22px; padding: 18px; box-shadow: 0 0 0 1px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 12px; }
+  .i { width: 18px; height: 18px; display: inline-block; flex-shrink: 0; }
+  .i svg { width: 100%; height: 100%; display: block; }
+  .lbl { font-size: 13px; color: var(--g2); }
+  .h { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+  .pill { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px 4px 7px; border-radius: 999px; background: #fdf3c7; color: #8a4a06; font-size: 12px; font-weight: 500; }
+  .pill .i { width: 14px; height: 14px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--line); font-size: 14.5px; font-weight: 500; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 15px; color: #fff; background: linear-gradient(135deg, #6b2f7e, #351a40); flex-shrink: 0; }
+  .vbadge { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; padding: 2px 8px 2px 5px; border-radius: 999px; background: #e9f7ee; color: #15803d; font-size: 12px; font-weight: 600; }
+  .vbadge .i { width: 13px; height: 13px; }
+  .car { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; }
+  .dotc { width: 12px; height: 12px; border-radius: 50%; background: #c7cad0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
+  .plate { margin-left: auto; padding: 3px 8px; border: 1.5px solid #111; border-radius: 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; }
+  .paid { display: inline-flex; gap: 4px; align-items: center; font-weight: 600; font-size: 12.5px; padding: 4px 9px 4px 7px; border-radius: 999px; background: #e9f7ee; color: #15803d; }
+  .paid .i { width: 14px; height: 14px; }
+  .mono { filter: grayscale(1); }
+  .bub { max-width: 78%; padding: 10px 14px; border-radius: 16px; font-size: 14.5px; font-weight: 500; }
+  .bub.them { align-self: flex-start; background: #f1f1f1; border-bottom-left-radius: 5px; }
+  .bub.me { align-self: flex-end; background: #2b2b2b; color: #fff; border-bottom-right-radius: 5px; }
+  .split { display: flex; height: 46px; border-radius: 12px; overflow: hidden; font-size: 13px; font-weight: 600; }
+  .split .keep { flex: 3; display: grid; place-items: center; background: #3a3a3a; color: #fff; }
+  .split .cut { flex: 1.6; display: grid; place-items: center; color: #555; background: repeating-linear-gradient(135deg, #e6e6e6 0 6px, #d6d6d6 6px 12px); }
+  .row.danger { color: #c62828; border-color: #f6d4d4; background: #fff7f7; }
+  .ic.red { background: #fde8e8; color: #c62828; }
+  .row.sel { border: 1.5px solid #111; background: var(--soft); }
+  .row .grow { flex: 1; }
+  .row small { display: block; font-size: 12.5px; color: var(--g2); font-weight: 400; margin-top: 1px; }
+  .ic { width: 34px; height: 34px; border-radius: 11px; background: var(--soft); display: grid; place-items: center; flex-shrink: 0; }
+  .radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d4d4d4; flex-shrink: 0; }
+  .sel .radio { border-color: #111; box-shadow: inset 0 0 0 3.5px #f4f4f4, inset 0 0 0 10px #111; }
+  .pin { display: flex; gap: 8px; }
+  .pin b { flex: 1; height: 52px; border-radius: 14px; border: 1px solid #e3e3e3; display: grid; place-items: center; font-size: 24px; font-weight: 600; background: #fff; }
+  .btn { height: 44px; border-radius: 999px; background: #111; color: #fff; font-size: 15px; font-weight: 600; display: grid; place-items: center; }
+  .btn.ghost { background: #fff; color: #111; border: 1.5px solid #111; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .big { font-size: 32px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+  .big span { color: var(--g3); }
+  .center { text-align: center; align-items: center; }
+  .route { display: grid; grid-template-columns: 12px 1fr; column-gap: 12px; row-gap: 10px; font-size: 14px; font-weight: 500; }
+  .route small { display: block; font-size: 12px; color: var(--g2); font-weight: 400; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #111; margin-top: 4px; }
+  .sq { width: 10px; height: 10px; background: #111; margin-top: 4px; border-radius: 2px; }
+  .bubble { padding: 10px 12px; border-radius: 14px 14px 14px 4px; background: #fff1e6; color: #6a2c06; font-size: 14px; font-weight: 500; display: flex; gap: 8px; align-items: center; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .stats div { padding: 10px 4px; border-radius: 12px; background: var(--soft); text-align: center; }
+  .stats b { display: block; font-size: 19px; }
+  .stats span { font-size: 12px; color: var(--g2); }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: var(--soft); }
+  .seg span { height: 38px; border-radius: 999px; display: grid; place-items: center; font-size: 14.5px; font-weight: 600; color: var(--g2); }
+  .seg span.on { background: #111; color: #fff; }
+  .ok { display: flex; gap: 8px; align-items: center; font-size: 14px; font-weight: 500; }
+  .ok .i { color: #15803d; }
+  .step { display: flex; align-items: center; justify-content: space-between; padding: 6px; border-radius: 999px; background: var(--soft); }
+  .step i.b { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-style: normal; font-size: 20px; font-weight: 600; box-shadow: 0 0 0 1px var(--line); }
+  .step b { font-size: 22px; letter-spacing: -0.02em; }
+  .kv { display: flex; justify-content: space-between; font-size: 14px; padding: 9px 0; }
+  .kv + .kv { border-top: 1px solid var(--line); }
+  .kv span:first-child { color: var(--g2); }
+  .kv.tot span { color: var(--ink); font-weight: 700; }
+  .zero { color: #15803d; font-weight: 600; }
+  .head { display: flex; justify-content: space-between; align-items: center; }
+  .timer { display: inline-flex; gap: 4px; align-items: center; font-weight: 600; font-size: 12.5px; padding: 4px 8px; border-radius: 999px; background: #fff1e6; color: #c2540f; }
+  .timer .i { width: 14px; height: 14px; }
+</style>
+<script src="driver-ui-icons.js"></script>
+<script src="icons.js"></script>
+</head>
+<body>
+
+<!-- ===== Rider (mirrors the built rider app, mock services) ===== -->
+<section class="f" id="r-someone">
+  <div class="h">Who is this ride for?</div>
+  <div class="row"><span class="radio"></span><span class="grow">Me</span></div>
+  <div class="row sel"><span class="radio"></span><span class="grow">Someone else<small>Funke · contact added</small></span></div>
+</section>
+
+<section class="f" id="r-pin">
+  <div><div class="h">Pickup PIN</div><div class="lbl">Tell your driver before you get in</div></div>
+  <div class="pin"><b>5</b><b>6</b><b>7</b><b>2</b></div>
+</section>
+
+<section class="f" id="r-places">
+  <div class="h">Saved places</div>
+  <div class="row"><span class="ic"><i class="i" data-i="home-2"></i></span><span class="grow">Home<small>Lekki Phase 1</small></span></div>
+  <div class="row"><span class="ic"><i class="i" data-i="briefcase"></i></span><span class="grow">Work<small>Victoria Island</small></span></div>
+</section>
+
+<section class="f center" id="r-wallet">
+  <div class="lbl">Available balance</div>
+  <div class="big">₦10,850<span>.00</span></div>
+  <div class="btn" style="align-self:stretch">Add money</div>
+</section>
+
+<section class="f" id="r-note">
+  <div class="route">
+    <span class="dot"></span><div><small>Pickup</small>Near Falomo Shopping Centre</div>
+  </div>
+  <div class="bubble"><i class="i" data-i="pencil"></i>Gate 2, by the pharmacy</div>
+</section>
+
+<section class="f" id="r-invite">
+  <div class="stats"><div><b>5</b><span>Invited</span></div><div><b>2</b><span>Joined</span></div><div><b>2</b><span>Rewards</span></div></div>
+  <div class="btn">Invite friends</div>
+</section>
+
+<section class="f" id="r-help">
+  <div class="h">Help</div>
+  <div class="row danger"><span class="ic red"><i class="i" data-i="safe-alert"></i></span><span class="grow">Emergency: call 112<small>Police, fire and ambulance</small></span></div>
+  <div class="row"><span class="ic"><i class="i" data-i="shield-shape"></i></span><span class="grow">Safety centre<small>Trusted contact and tips</small></span></div>
+  <div class="row"><span class="ic"><i class="i" data-i="headphone"></i></span><span class="grow">Report an issue<small>Driver, vehicle, route or fare</small></span></div>
+  <div class="btn"><span style="display:inline-flex;gap:8px;align-items:center"><i class="i" data-i="share-forward"></i>Share trip</span></div>
+</section>
+
+<section class="f" id="r-driver">
+  <div class="row" style="border:0;padding:0;gap:12px">
+    <span class="avatar">TA</span>
+    <span class="grow" style="font-size:16px;font-weight:600">Tunde A.<small><span class="vbadge"><i class="i" data-i="check-circle"></i>Verified driver</span></small></span>
+  </div>
+  <div class="car"><span class="dotc"></span>Silver Toyota Corolla<span class="plate">APP 101 AB</span></div>
+  <div class="ok"><i class="i" data-i="idcard"></i>Documents checked by GoBYE</div>
+</section>
+
+<section class="f" id="d-paid">
+  <div class="head"><span class="h">Trip paid</span><span class="paid"><i class="i" data-i="check-circle"></i>Paid</span></div>
+  <div><div class="big">₦7,200</div><div class="lbl">Paid with GoBYE wallet</div></div>
+  <div class="row"><span class="ic"><i class="i" data-i="wallet-4"></i></span><span class="grow">No cash to collect<small>Earnings go to your bank</small></span></div>
+</section>
+
+<section class="f mono" id="r-haggle">
+  <div class="bub them">How much to the airport?</div>
+  <div class="bub me">₦10,000.</div>
+  <div class="bub them">Ah, ₦6,000?</div>
+  <div class="bub me">₦9,000. Last price.</div>
+</section>
+
+<section class="f" id="r-fare">
+  <div class="head"><span class="lbl">Suggested fare</span><span class="lbl">27 km</span></div>
+  <div class="big" style="margin-top:-6px">₦7,200</div>
+  <div class="two">
+    <div class="row sel" style="flex-direction:column;align-items:flex-start;gap:2px"><b style="font-size:14.5px">Quick Match</b><small style="margin:0">Ride at this fare</small></div>
+    <div class="row" style="flex-direction:column;align-items:flex-start;gap:2px"><b style="font-size:14.5px">Negotiate</b><small style="margin:0">Offer your price</small></div>
+  </div>
+  <div class="btn">Book Quick Match</div>
+</section>
+
+<section class="f mono" id="d-commission">
+  <div class="lbl">Each trip fare</div>
+  <div class="split"><span class="keep">You keep</span><span class="cut">Commission</span></div>
+  <div class="lbl">A share of every fare goes to the platform.</div>
+</section>
+
+<!-- ===== Driver (design previews: the driver app is not built yet) ===== -->
+<section class="f" id="d-pass">
+  <div class="seg"><span>Daily</span><span class="on">Monthly</span></div>
+  <div class="ok"><i class="i" data-i="check-circle"></i>0% commission on every trip</div>
+</section>
+
+<section class="f" id="d-fare">
+  <div class="head"><span class="h">New trip request</span><span class="timer"><i class="i" data-i="time"></i>18 s</span></div>
+  <div><div class="big">₦7,200</div><div class="lbl">Agreed fare · 27 km</div></div>
+  <div class="btn">Accept</div>
+</section>
+
+<section class="f" id="d-counter">
+  <div class="lbl">Passenger offered ₦6,500</div>
+  <div class="step"><i class="b">−</i><b>₦7,000</b><i class="b">+</i></div>
+  <div class="btn">Send offer</div>
+</section>
+
+<section class="f" id="d-pin">
+  <div class="h">Enter the passenger’s PIN</div>
+  <div class="pin"><b>5</b><b>6</b><b>7</b><b>2</b></div>
+  <div class="btn">Start trip</div>
+</section>
+
+<section class="f" id="d-earn">
+  <div>
+    <div class="kv"><span>Falomo to Airport</span><span>₦7,200</span></div>
+    <div class="kv"><span>Yaba to Ikeja</span><span>₦4,800</span></div>
+    <div class="kv"><span>GoBYE commission</span><span class="zero">₦0</span></div>
+    <div class="kv tot"><span>Your earnings</span><span>₦12,000</span></div>
+  </div>
+</section>
+
+<section class="f" id="d-bank">
+  <div class="row"><span class="ic"><i class="i" data-i="bank"></i></span><span class="grow">Verified bank account<small>•••• 4821</small></span></div>
+  <div class="btn">Withdraw ₦12,000</div>
+</section>
+
+<script>
+document.querySelectorAll('[data-i]').forEach(function (e) { e.innerHTML = window.I[e.dataset.i] || ''; });
+document.querySelectorAll('[data-g]').forEach(function (e) { e.innerHTML = (window.GOBYE_ICONS || {})[e.dataset.g] || ''; });
+</script>
+</body></html>

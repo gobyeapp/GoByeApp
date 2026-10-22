@@ -1,0 +1,216 @@
+<title>GoBYE</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="color-scheme" content="light only">
+<meta name="description" content="Request a car, agree your fare, and get moving with GoBYE. Coming to Lagos and Abuja.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<link rel="stylesheet" href="styles.css">
+
+<div class="topbar" id="topbar">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="#top" aria-label="GoBYE home">
+      <img class="logo-light" src="assets/logo-mark-inverse.png" alt="" width="34" height="34" />
+      <img class="logo-dark" src="assets/logo-mark.png" alt="" width="34" height="34" />
+      <span data-text="brand.name">GoBYE</span>
+    </a>
+    <div class="nav-right">
+      <div class="seg seg-nav" role="group" aria-label="Show the page for">
+        <button type="button" class="seg-btn" data-aud="rider" aria-pressed="true">For riders</button>
+        <button type="button" class="seg-btn" data-aud="driver" aria-pressed="false">For drivers</button>
+      </div>
+      <button class="btn btn-grad btn-sm" type="button" data-open-waitlist>Join the waitlist</button>
+    </div>
+  </nav>
+</div>
+
+<header class="hero" id="top" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <h1 id="hero-title" class="reveal" data-text="hero.headline">Your next move.</h1>
+    <p class="lede reveal d1" data-text="hero.supporting">Request a car, agree your fare, and get moving with GoBYE.</p>
+    <p class="cities reveal d2"><span class="icon" data-icon="mapPin" aria-hidden="true"></span><span data-text="hero.cityLine">Coming to Lagos and Abuja.</span></p>
+  </div>
+
+  <figure class="hero-video reveal-media">
+    <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="assets/hero-poster.jpg" aria-label="A hand holding a phone showing the GoBYE passenger app on a Lagos roadside at sunset.">
+      <source src="assets/hero.mp4" type="video/mp4" />
+      <source src="assets/hero.webm" type="video/webm" />
+    </video>
+    <button class="video-toggle" type="button" id="video-toggle" aria-pressed="false" aria-label="Pause background video"><span class="icon" data-icon="pause" aria-hidden="true"></span></button>
+  </figure>
+
+  <div class="hero-cta reveal d3">
+    <div id="cta-waitlist" style="display:contents">
+      <button class="btn btn-primary" type="button" data-open-waitlist><span data-text="hero.ctaLabel">Join the waitlist</span><span class="btn-arrow" aria-hidden="true"><span class="icon" data-icon="arrow"></span></span></button>
+    </div>
+    <div id="cta-stores" class="stores" hidden></div>
+    <aside class="qr-card" id="qr-card" hidden aria-label="QR code">
+      <div class="qr"></div>
+      <p></p>
+    </aside>
+  </div>
+</header>
+
+<main>
+  <section class="sec steps" id="how" aria-labelledby="steps-title">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="stack" id="stack">
+      <div class="stack-pin">
+        <div class="wrap head">
+          <div class="seg seg-inline" role="group" aria-label="Show the page for">
+            <button type="button" class="seg-btn" data-aud="rider" aria-pressed="true">For riders</button>
+            <button type="button" class="seg-btn" data-aud="driver" aria-pressed="false">For drivers</button>
+          </div>
+          <p class="eyebrow" data-a="steps.eyebrow">STEP BY STEP</p>
+          <h2 class="display" id="steps-title" data-a-lines="steps.lines">One app.<br>Every trip.<br>No stress.</h2>
+        </div>
+        <ol class="deck" id="deck"></ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec features" id="features" aria-labelledby="features-title">
+    <div class="wrap head">
+      <p class="eyebrow" data-a="features.eyebrow">ADDITIONAL FEATURES</p>
+      <h2 class="title" id="features-title" data-a-lines="features.lines">Everything a trip needs,<br>in one place.</h2>
+    </div>
+    <ul class="bento" id="rail" aria-label="Features"></ul>
+  </section>
+
+  <section class="sec people" aria-labelledby="people-title">
+    <div class="wrap head">
+      <p class="eyebrow" data-text="people.eyebrow">MADE FOR LAGOS AND ABUJA</p>
+      <h2 class="title" id="people-title" data-lines="people.lines">Built for the way<br>your city moves.</h2>
+    </div>
+    <div class="wrap mosaic" id="mosaic"></div>
+  </section>
+
+  <section class="sec trust" id="trust" aria-labelledby="trust-title" hidden>
+    <div class="trust-inner" id="trust-content">
+      <p class="eyebrow">MEET GOBYE</p>
+      <h2 id="trust-title" class="title">A better way to make your next move.</h2>
+      <p class="sub">Starting with Lagos and Abuja.</p>
+    </div>
+  </section>
+
+  <section class="sec statement" aria-label="Why GoBYE">
+    <p class="fill" id="statement">Getting around Lagos and Abuja shouldn’t mean arguing over the fare at the roadside. With GoBYE you agree it before you go, and pay only when you arrive.</p>
+  </section>
+
+  <section class="sec compare" aria-labelledby="compare-title">
+    <div class="wrap head">
+      <p class="eyebrow" data-a="compare.eyebrow">DESIGNED FOR RIDERS</p>
+      <h2 class="title" id="compare-title" data-a-lines="compare.lines">A better trip,<br>from booking to receipt.</h2>
+    </div>
+    <div class="vs" id="vs"></div>
+  </section>
+
+  <section class="sec safety" id="safety" aria-labelledby="safety-title">
+    <div class="wrap head">
+      <p class="eyebrow" data-a="safety.eyebrow">SAFETY</p>
+      <h2 class="title" id="safety-title" data-a-lines="safety.lines">Safe from pickup<br>to drop off.</h2>
+    </div>
+    <div class="wrap safe-grid" id="safe-grid"></div>
+  </section>
+
+</main>
+
+<footer class="foot" id="footer">
+  <div class="foot-top">
+    <h2 class="foot-title">Every journey starts with GoBYE.</h2>
+    <p class="foot-sub">Move around your city with confidence. Simple bookings, fares agreed upfront, and a better way to get there.</p>
+    <button class="btn btn-primary foot-cta" type="button" id="foot-cta" data-open-waitlist><span id="foot-cta-label">Join the waitlist</span><span class="btn-arrow" aria-hidden="true"><span class="icon" data-icon="arrow"></span></span></button>
+    <aside class="founder" id="founder" hidden aria-label="From the founder"></aside>
+  </div>
+
+  <div class="foot-stage" id="foot-stage">
+    <div class="wordmark" aria-hidden="true">GoBYE</div>
+    <canvas class="road" id="road-canvas" aria-hidden="true"></canvas>
+  </div>
+
+  <div class="foot-nav">
+    <div class="foot-brand">
+      <a class="brand" href="#top"><img src="assets/logo-mark.png" alt="" width="30" height="30" /><span>GoBYE</span></a>
+      <p>Ride hailing for Lagos and Abuja. Agree your fare before you go.</p>
+      <div class="social" id="social"></div>
+    </div>
+    <nav class="foot-col" aria-label="Riders">
+      <h3>Riders</h3>
+      <ul>
+        <li><a href="#how" data-aud-link="rider">How it works</a></li>
+        <li><a href="#features" data-aud-link="rider">Features</a></li>
+        <li><a href="#safety" data-aud-link="rider">Safety</a></li>
+        <li><button type="button" class="linkish" data-open-waitlist data-intent="ride">Join the waitlist</button></li>
+      </ul>
+    </nav>
+    <nav class="foot-col" aria-label="Drivers">
+      <h3>Drivers</h3>
+      <ul>
+        <li><a href="#how" data-aud-link="driver">How it works</a></li>
+        <li><a href="#features" data-aud-link="driver">Earnings and tools</a></li>
+        <li><a href="#safety" data-aud-link="driver">Safety</a></li>
+        <li><button type="button" class="linkish" data-open-waitlist data-intent="drive">Drive with GoBYE</button></li>
+      </ul>
+    </nav>
+    <nav class="foot-col" aria-label="Get the app">
+      <h3>Get the app</h3>
+      <ul id="foot-apps"></ul>
+    </nav>
+    <nav class="foot-col" id="foot-company" aria-label="Company and help" hidden>
+      <h3>Company and help</h3>
+      <ul></ul>
+    </nav>
+  </div>
+
+  <div class="foot-base">
+    <span>© GoBYE <span id="year">2026</span>. All rights reserved.</span>
+    <span class="foot-cities"><span class="lbl">CITIES</span><span id="foot-cities">Lagos · Abuja</span></span>
+  </div>
+</footer>
+
+<dialog class="sheet" id="waitlist" aria-labelledby="wl-title">
+  <div class="sheet-body">
+    <div class="sheet-head">
+      <div>
+        <h2 id="wl-title">Join the waitlist</h2>
+        <p>Be first to hear when GoBYE launches in your city.</p>
+      </div>
+      <button class="x" type="button" id="wl-close" aria-label="Close"><span class="icon" data-icon="close"></span></button>
+    </div>
+
+    <form id="waitlist-form" novalidate>
+      <div class="stack" style="display:flex;flex-direction:column;gap:16px">
+        <div class="field">
+          <label for="wl-email">Email address</label>
+          <input id="wl-email" name="email" type="email" autocomplete="email" inputmode="email" required aria-describedby="wl-email-err" />
+          <span class="err" id="wl-email-err" hidden></span>
+        </div>
+        <div class="field">
+          <label for="wl-city">City</label>
+          <select id="wl-city" name="city" required aria-describedby="wl-city-err"></select>
+          <span class="err" id="wl-city-err" hidden></span>
+        </div>
+        <fieldset class="field" id="wl-intent" aria-describedby="wl-intent-err">
+          <legend>I want to</legend>
+          <div class="choice">
+            <label><input type="radio" name="intent" value="ride" id="wl-ride" />Ride</label>
+            <label><input type="radio" name="intent" value="drive" id="wl-drive" />Drive</label>
+          </div>
+          <span class="err" id="wl-intent-err" hidden></span>
+        </fieldset>
+        <p class="form-error" id="wl-error" role="alert" hidden></p>
+        <button class="btn btn-primary" type="submit" id="wl-submit">Join the waitlist</button>
+        <p class="form-note">We’ll only use your email for GoBYE launch news.</p>
+      </div>
+    </form>
+
+    <div class="result" id="wl-result" hidden role="status" aria-live="polite">
+      <div class="badge"></div>
+      <h3></h3>
+      <p></p>
+      <button class="btn btn-ghost" type="button" id="wl-done">Done</button>
+    </div>
+  </div>
+</dialog>
+
+<script src="site.config.js"></script>
+<script src="icons.js"></script>
+<script src="app.js"></script>

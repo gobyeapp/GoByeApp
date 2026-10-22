@@ -1,0 +1,128 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  :root { --ink:#111; --g2:#6b6b6b; --g3:#9a9a9a; --line:#ececec; --soft:#f4f4f4; --tang:#ff751f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #ddd; font-family: 'Inter', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  .shot { width: 390px; background: #fff; padding: 22px 20px 26px; margin: 0 0 20px; }
+  .i { width: 20px; height: 20px; display: inline-block; flex-shrink: 0; }
+  .i svg { width: 100%; height: 100%; display: block; }
+  .preview { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 8px; border-radius: 999px; background: #fdf3c7; color: #8a4a06; font-size: 13px; font-weight: 500; }
+  .preview .i { width: 16px; height: 16px; }
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  h1 { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { margin: 6px 0 0; color: var(--g2); font-size: 15px; line-height: 1.4; }
+  .list { margin-top: 18px; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; font-size: 15px; font-weight: 500; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .ic { width: 38px; height: 38px; border-radius: 12px; background: var(--soft); display: grid; place-items: center; }
+  .row .grow { flex: 1; }
+  .row small { display: block; font-size: 13px; color: var(--g2); font-weight: 400; margin-top: 2px; }
+  .st { font-size: 12.5px; font-weight: 600; padding: 4px 9px; border-radius: 999px; }
+  .ok { background: #e7f6ec; color: #15803d; }
+  .wait { background: #fdf3c7; color: #8a4a06; }
+  .btn { margin-top: 18px; height: 50px; border-radius: 999px; background: #111; color: #fff; font-size: 16px; font-weight: 600; display: grid; place-items: center; }
+  .btn.ghost { background: #fff; color: #111; border: 1.5px solid #111; }
+  .btn.off { background: #e4e4e4; color: #9a9a9a; }
+  .opts { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt { border: 1px solid #dedede; border-radius: 18px; padding: 16px; min-height: 150px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+  .opt.sel { border: 1.5px solid #111; background: var(--soft); }
+  .opt .radio { position: absolute; right: 14px; top: 14px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid #d4d4d4; }
+  .opt.sel .radio { border-color: #111; box-shadow: inset 0 0 0 4px #f4f4f4, inset 0 0 0 11px #111; }
+  .opt .i { width: 24px; height: 24px; margin-bottom: 6px; }
+  .opt b { font-size: 18px; }
+  .opt span { font-size: 14px; color: var(--g2); line-height: 1.35; }
+  .note { margin-top: 14px; display: flex; gap: 10px; align-items: center; padding: 12px 14px; border-radius: 14px; background: var(--soft); font-size: 14.5px; font-weight: 500; }
+  .note .i { color: #15803d; }
+  .req-head { display: flex; justify-content: space-between; align-items: flex-start; }
+  .timer { display: inline-flex; gap: 6px; align-items: center; font-weight: 600; font-size: 14px; padding: 6px 10px; border-radius: 999px; background: #fff1e6; color: #c2540f; }
+  .timer .i { width: 16px; height: 16px; }
+  .fare { margin-top: 14px; font-size: 40px; font-weight: 700; letter-spacing: -0.03em; }
+  .meta { color: var(--g2); font-size: 15px; margin-top: 2px; }
+  .route { margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; display: grid; grid-template-columns: 16px 1fr; column-gap: 12px; row-gap: 14px; position: relative; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: #111; margin-top: 4px; }
+  .sq { width: 12px; height: 12px; background: var(--tang); margin-top: 4px; border-radius: 3px; }
+  .route .line { position: absolute; left: 21px; top: 34px; height: 30px; width: 2px; background: #ddd; }
+  .route small { display: block; color: var(--g2); font-size: 12.5px; }
+  .route div { font-size: 15px; font-weight: 500; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .two .btn { margin-top: 16px; font-size: 15px; }
+  .done { width: 52px; height: 52px; border-radius: 50%; background: #111; color: #fff; display: grid; place-items: center; margin: 4px auto 10px; }
+  .done .i { width: 26px; height: 26px; }
+  .center { text-align: center; }
+  .big { font-size: 44px; font-weight: 700; letter-spacing: -0.03em; margin-top: 6px; }
+  .bd { margin-top: 18px; border: 1px solid var(--line); border-radius: 18px; padding: 6px 16px; }
+  .bd .r { display: flex; justify-content: space-between; padding: 11px 0; font-size: 15px; }
+  .bd .r + .r { border-top: 1px solid var(--line); }
+  .bd .r span:first-child { color: var(--g2); }
+  .bd .r.tot span { color: var(--ink); font-weight: 700; font-size: 16px; }
+  .zero { color: #15803d; font-weight: 600; }
+  .bank { margin-top: 14px; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--soft); font-size: 14.5px; }
+  .bank b { display: block; font-size: 15px; }
+  .bank small { color: var(--g2); }
+</style>
+<script src="driver-ui-icons.js"></script>
+<script src="icons.js"></script>
+</head>
+<body>
+
+<!-- 1. Apply and get verified -->
+<section class="shot" id="s1">
+  <h1>Your documents</h1>
+  <p class="sub">We check everything before you drive.</p>
+  <div class="list">
+    <div class="row"><span class="ic"><i class="i" data-i="idcard"></i></span><span class="grow">Driver’s licence<small>Front and back</small></span><span class="st ok">Approved</span></div>
+    <div class="row"><span class="ic"><i class="i" data-i="file-check"></i></span><span class="grow">Vehicle papers<small>Registration and roadworthiness</small></span><span class="st ok">Approved</span></div>
+    <div class="row"><span class="ic"><i class="i" data-i="shield"></i></span><span class="grow">Insurance<small>Valid certificate</small></span><span class="st wait">In review</span></div>
+    <div class="row"><span class="ic"><i class="i" data-i="user-1"></i></span><span class="grow">Profile photo<small>Clear, face visible</small></span><span class="st ok">Approved</span></div>
+  </div>
+  <div class="btn off">Waiting for review</div>
+</section>
+
+<!-- 2. Choose daily or monthly access -->
+<section class="shot" id="s2">
+  <h1>Choose your access</h1>
+  <p class="sub">Buy a pass to go online. Prices confirmed at launch.</p>
+  <div class="opts">
+    <div class="opt"><span class="radio"></span><i class="i" data-i="calendar-day"></i><b>Daily</b><span>Drive today, pay for one day.</span></div>
+    <div class="opt sel"><span class="radio"></span><i class="i" data-i="calendar-month"></i><b>Monthly</b><span>Drive all month on one pass.</span></div>
+  </div>
+  <div class="note"><i class="i" data-i="check-circle"></i>0% commission on every trip</div>
+  <div class="btn">Continue</div>
+</section>
+
+<!-- 3. See the fare before you accept -->
+<section class="shot" id="s3">
+  <div class="top" style="justify-content:flex-end;margin-bottom:-28px"><span class="timer"><i class="i" data-i="time"></i>18 s</span></div>
+  <div class="req-head"><h1>New trip request</h1></div>
+  <div class="fare">₦7,200</div>
+  <div class="meta">Agreed fare · 27 km · 1 h 14 min</div>
+  <div class="route">
+    <span class="line"></span>
+    <span class="dot"></span><div><small>Pickup · 1.4 km away</small>Near Falomo Shopping Centre</div>
+    <span class="sq"></span><div><small>Destination</small>Murtala Muhammed International Airport</div>
+  </div>
+  <div class="two"><div class="btn ghost">Counter offer</div><div class="btn">Accept</div></div>
+</section>
+
+<!-- 4. Keep the full fare -->
+<section class="shot" id="s4">
+  <div class="center">
+    <div class="done"><i class="i" data-i="check"></i></div>
+    <h1>Trip completed</h1>
+    <div class="big">₦7,200</div>
+    <div class="meta">You keep the full fare</div>
+  </div>
+  <div class="bd">
+    <div class="r"><span>Passenger paid</span><span>₦7,200</span></div>
+    <div class="r"><span>GoBYE commission</span><span class="zero">₦0</span></div>
+    <div class="r tot"><span>Your earnings</span><span>₦7,200</span></div>
+  </div>
+  <div class="bank"><span class="ic"><i class="i" data-i="bank"></i></span><span><b>Verified bank account</b><small>•••• 4821 · earnings paid here</small></span></div>
+</section>
+
+<script>
+document.querySelectorAll('[data-i]').forEach(function (e) { e.innerHTML = window.I[e.dataset.i] || ''; });
+document.querySelectorAll('[data-g]').forEach(function (e) { e.innerHTML = (window.GOBYE_ICONS || {})[e.dataset.g] || ''; });
+</script>
+</body></html>

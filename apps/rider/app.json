@@ -1,0 +1,89 @@
+{
+  "expo": {
+    "name": "GoBye",
+    "slug": "gobye-rider",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "gobye",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "app.gobye.rider",
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "GoBye uses your location to set your pickup point, show drivers near you and share your trip progress while you use the app.",
+        "NSLocationTemporaryUsageDescriptionDictionary": {
+          "pickup": "GoBye needs your precise location so your driver can find you at the right pickup point."
+        },
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          }
+        ]
+      }
+    },
+    "android": {
+      "package": "app.gobye.rider",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "ACCESS_BACKGROUND_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120,
+          "dark": {
+            "backgroundColor": "#000000",
+            "image": "./assets/images/splash-icon-dark.png"
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "GoBye uses your location to set your pickup point, show drivers near you and share your trip progress while you use the app.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      "expo-secure-store",
+      "expo-font",
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "GoBye uses your photos so you can choose a profile picture that helps your driver recognise you at pickup.",
+          "cameraPermission": "GoBye uses the camera so you can take a profile picture that helps your driver recognise you at pickup.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "description": "GoBye \u2014 Your ride. Your say. (Preview build on simulated services.)"
+  }
+}

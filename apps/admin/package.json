@@ -1,0 +1,31 @@
+{
+  "name": "@gobye/admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GoBye management platform (staff web app). Prototype on clearly labelled test data until the backend exists.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@gobye/core": "*",
+    "@mingcute/icons": "3.0.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-router-dom": "7.9.4"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.0",
+    "@types/react": "~19.2.0",
+    "@types/react-dom": "~19.2.0",
+    "@vitejs/plugin-react": "5.0.4",
+    "jsdom": "26.1.0",
+    "typescript": "~6.0.3",
+    "vite": "7.1.12",
+    "vitest": "3.2.4"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "gobye",
+  "private": true,
+  "version": "0.1.0",
+  "description": "GoBye ride-hailing platform: Rider and Driver mobile apps (Expo) and the Management web app",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "rider": "npm run start --workspace apps/rider",
+    "driver": "npm run start --workspace apps/driver",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "doctor": "npm run doctor --workspaces --if-present",
+    "admin": "npm run dev --workspace apps/admin",
+    "admin:build": "npm run build --workspace apps/admin"
+  }
+}
