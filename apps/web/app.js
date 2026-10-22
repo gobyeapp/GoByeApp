@@ -147,7 +147,7 @@
       }
       if (typeof dlg.showModal === 'function') dlg.showModal();
       else dlg.setAttribute('open', '');
-      setTimeout(function () { $('#wl-email').focus(); }, 30);
+      setTimeout(function () { $('#wl-name').focus(); }, 30);
     }
     function close() {
       if (typeof dlg.close === 'function') dlg.close();
@@ -165,15 +165,26 @@
       if (input) input.setAttribute('aria-invalid', msg ? 'true' : 'false');
       if (err) { err.textContent = msg || ''; err.hidden = !msg; }
     }
+    // Nigerian mobile numbers: accept 0803..., 803..., +234 803..., 234803...; store as +2348031234567.
+    function normPhone(v) {
+      var d = String(v || '').replace(/\D/g, '');
+      if (d.indexOf('234') === 0) d = d.slice(3);
+      if (d.charAt(0) === '0') d = d.slice(1);
+      return /^[789][01]\d{8}$/.test(d) ? '+234' + d : null;
+    }
     function validate() {
+      var name = $('#wl-name').value.replace(/\s+/g, ' ').trim();
+      var phone = normPhone($('#wl-phone').value);
       var email = $('#wl-email').value.trim();
       var city = (form.querySelector('input[name="city"]:checked') || {}).value;
       var intent = (form.querySelector('input[name="intent"]:checked') || {}).value;
       var ok = true;
+      if (name.length < 2) { fieldError('wl-name', 'Enter your full name'); ok = false; } else fieldError('wl-name');
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { fieldError('wl-email', 'Enter an email address like name@example.com'); ok = false; } else fieldError('wl-email');
+      if (!phone) { fieldError('wl-phone', 'Enter a Nigerian mobile number, like 0803 123 4567'); ok = false; } else fieldError('wl-phone');
       if (!city) { fieldError('wl-city', 'Choose a city'); ok = false; } else fieldError('wl-city');
       if (!intent) { fieldError('wl-intent', 'Choose ride or drive'); ok = false; } else fieldError('wl-intent');
-      return ok ? { email: email, city: city, intent: intent, source: 'website' } : null;
+      return ok ? { full_name: name, email: email, phone: phone, city: city, intent: intent, source: 'website' } : null;
     }
     function result(kind, title, body) {
       form.hidden = true;
@@ -191,6 +202,8 @@
     $('#wl-email').addEventListener('input', function () {
       if ($('#wl-email').getAttribute('aria-invalid') === 'true' && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('#wl-email').value.trim())) fieldError('wl-email');
     });
+    $('#wl-name').addEventListener('input', function () { if ($('#wl-name').value.trim().length >= 2) fieldError('wl-name'); });
+    $('#wl-phone').addEventListener('input', function () { if (normPhone($('#wl-phone').value)) fieldError('wl-phone'); });
     form.addEventListener('change', function (e) {
       if (e.target.name === 'city') fieldError('wl-city');
       if (e.target.name === 'intent') fieldError('wl-intent');
@@ -232,7 +245,7 @@
         ? fetch(sb.url.replace(/\/+$/, '') + '/rest/v1/' + encodeURIComponent(sb.table || 'waitlist'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', apikey: sb.anonKey, Authorization: 'Bearer ' + sb.anonKey, Prefer: 'return=minimal' },
-            body: JSON.stringify({ email: data.email.toLowerCase(), city: data.city, intent: data.intent, source: data.source }),
+            body: JSON.stringify({ full_name: data.full_name, email: data.email.toLowerCase(), phone: data.phone, city: data.city, intent: data.intent, source: data.source }),
           })
         : fetch(C.waitlist.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       req

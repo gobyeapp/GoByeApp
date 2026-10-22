@@ -422,3 +422,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Behaviour:** errors clear as each field is fixed. Success shows a gradient check badge with a ring pulse, "You're on the list", and a primary Done. Phones (560 px and below) get a bottom sheet that slides up.
   - **Desktop nav:** the top state is now a 700 px centred group instead of full width, so the logo, toggle and CTA sit together.
   - **Checked:** Playwright at 1440 and 390 (empty, errors, filled, success); the Supabase stand-in tests still pass (201, 409, 500).
+- **Website: waitlist now captures full name and phone number (owner request).**
+  - **Form:** Full name (2 to 80 characters, spaces collapsed) and Phone number with a fixed +234 prefix. Accepted inputs are 0803…, 803…, +234 803… and 234803…, all normalised to E.164 `+234[789][01]XXXXXXXX`. Errors clear as each field is fixed, and the privacy line now says "details".
+  - **Supabase:** `20261022_waitlist.sql` now creates `full_name` and `phone` (not null, checked). For tables created earlier, `20261022b_waitlist_contact.sql` adds both columns with NOT VALID checks (enforced for new rows) and grants anon insert on them.
+  - **Tested:** Playwright against the Supabase stand-in with six phone formats, an invalid number and a short name. The payload is `{full_name, email, phone, city, intent, source}`.
+  - Phone numbers are personal data: the privacy notice (Q-063) is now more pressing.

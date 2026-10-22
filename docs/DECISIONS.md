@@ -306,7 +306,7 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 
 ## D-042 — Website waitlist stored in Supabase (2026-10-22)
 - **Decision:** the landing page writes sign ups straight to Supabase (`public.waitlist`, project `morqitxqsfiprefczduo`) through the REST API with the public anon key.
-- **Security:** row level security plus column grants let the anon role INSERT (email, city, intent, source) and nothing else; it cannot read, update or delete. Check constraints validate the email format, city, intent and source, and a unique index on `lower(email)` blocks duplicates (409, shown as "You're already on the list"). There is a hidden honeypot field against simple bots.
+- **Security:** row level security plus column grants let the anon role INSERT (full_name, email, phone, city, intent, source) and nothing else; phone is stored as +234 E.164; it cannot read, update or delete. Check constraints validate the email format, city, intent and source, and a unique index on `lower(email)` blocks duplicates (409, shown as "You're already on the list"). There is a hidden honeypot field against simple bots.
 - **Secrets:** the service_role key is never shipped to the browser or committed. It was shared in chat on 2026-10-22 and must be rotated.
 - **Migration:** `supabase/migrations/20261022_waitlist.sql`, run manually in the SQL Editor because this workspace cannot reach the project.
 - **Open:** a privacy notice must be linked from the form before launch (Q-063). There is no rate limiting beyond Supabase defaults.
