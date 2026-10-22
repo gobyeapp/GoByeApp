@@ -7,6 +7,10 @@
 <link rel="stylesheet" href="styles.css">
 
 <div class="topbar" id="topbar">
+  <div class="aud-tabs" role="group" aria-label="Show the page for">
+    <button type="button" data-aud="rider" aria-pressed="true">For riders</button>
+    <button type="button" data-aud="driver" aria-pressed="false">For drivers</button>
+  </div>
   <nav class="nav" aria-label="Main">
     <a class="brand" href="#top" aria-label="GoBYE home">
       <img class="logo-light" src="assets/logo-mark-inverse.png" alt="" width="34" height="34" />
@@ -213,6 +217,11 @@
             <fieldset class="field" id="wl-city" aria-describedby="wl-city-err">
               <legend class="sr">City</legend>
               <div class="cities-pick" id="wl-city-opts"></div>
+              <div class="state-pick" id="wl-state-wrap" hidden>
+                <label for="wl-state">Which state?</label>
+                <div class="select-ico"><span class="icon" data-icon="mapPin" aria-hidden="true"></span><select id="wl-state" name="state" aria-describedby="wl-state-err"><option value="">Choose your state</option></select></div>
+                <span class="err" id="wl-state-err" hidden></span>
+              </div>
               <span class="err" id="wl-city-err" hidden></span>
             </fieldset>
           </section>

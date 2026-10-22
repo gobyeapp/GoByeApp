@@ -144,8 +144,16 @@
     $('#wl-city-opts').innerHTML = C.waitlist.cities.map(function (c, i) {
       var other = !cityLine[c];
       return '<label class="ctile' + (other ? ' wide' : '') + '"><input type="radio" name="city" value="' + esc(c) + '" id="wl-city-' + i + '">' +
-        icon('mapPin') + '<span><b>' + esc(c) + '</b><small>' + (other ? 'Tell us where you are' : cityLine[c]) + '</small></span></label>';
+        icon('mapPin') + '<span><b>' + esc(c) + '</b><small>' + (other ? 'Pick your state' : cityLine[c]) + '</small></span></label>';
     }).join('');
+    var stateSel = $('#wl-state');
+    stateSel.innerHTML += (C.waitlist.otherStates || []).map(function (s) { return '<option>' + esc(s) + '</option>'; }).join('');
+    function syncState() {
+      var other = val.city() === 'Another city';
+      $('#wl-state-wrap').hidden = !other;
+      if (!other) fieldError('wl-state');
+      fitHeight();
+    }
 
     // Nigerian mobile numbers: accept 0803..., 803..., +234 803..., 234803...; store as +2348031234567.
     function normPhone(v) {
@@ -166,12 +174,17 @@
       name: function () { return $('#wl-name').value.replace(/\s+/g, ' ').trim(); },
       intent: function () { return (form.querySelector('input[name="intent"]:checked') || {}).value; },
       city: function () { return (form.querySelector('input[name="city"]:checked') || {}).value; },
+      state: function () { return val.city() === 'Another city' ? stateSel.value : null; },
     };
     // Checks one step; returns true when it may move on.
     function check(n) {
       if (n === 0) { if (val.name().length < 2) { fieldError('wl-name', 'Enter your full name'); return false; } fieldError('wl-name'); return true; }
       if (n === 1) { if (!val.intent()) { fieldError('wl-intent', 'Choose ride or drive'); return false; } fieldError('wl-intent'); return true; }
-      if (n === 2) { if (!val.city()) { fieldError('wl-city', 'Choose a city'); return false; } fieldError('wl-city'); return true; }
+      if (n === 2) {
+        if (!val.city()) { fieldError('wl-city', 'Choose a city'); return false; } fieldError('wl-city');
+        if (val.city() === 'Another city' && !stateSel.value) { fieldError('wl-state', 'Choose your state'); return false; } fieldError('wl-state');
+        return true;
+      }
       var ok = true;
       if (!EMAIL.test($('#wl-email').value.trim())) { fieldError('wl-email', 'Enter an email address like name@example.com'); ok = false; } else fieldError('wl-email');
       if (!normPhone($('#wl-phone').value)) { fieldError('wl-phone', 'Enter a Nigerian mobile number, like 0803 123 4567'); ok = false; } else fieldError('wl-phone');
@@ -233,7 +246,7 @@
       if (kind === 'ok' && d) {
         $('#pass-name').textContent = d.full_name || '';
         $('#pass-role').textContent = d.intent === 'drive' ? 'Driver' : 'Rider';
-        $('#pass-city').textContent = d.city;
+        $('#pass-city').textContent = d.state || d.city;
         $('#pass-note').textContent = body;
         setRoute(STEPS);
       }
@@ -254,14 +267,19 @@
     $('#wl-phone').addEventListener('input', function () { if (normPhone($('#wl-phone').value)) fieldError('wl-phone'); });
     form.addEventListener('change', function (e) {
       if (e.target.name === 'intent') { fieldError('wl-intent'); if (step === 1) setTimeout(function () { go(2); }, 260); }
-      if (e.target.name === 'city') { fieldError('wl-city'); if (step === 2) setTimeout(function () { go(3); }, 260); }
+      if (e.target.name === 'city') {
+        fieldError('wl-city'); syncState();
+        if (val.city() === 'Another city') { setTimeout(function () { stateSel.focus(); }, 60); }
+        else if (step === 2) setTimeout(function () { go(3); }, 260);
+      }
+      if (e.target.name === 'state' && stateSel.value) { fieldError('wl-state'); if (step === 2) setTimeout(function () { go(3); }, 260); }
     });
     // A click on an already selected card also moves on.
     form.addEventListener('click', function (e) {
       var lab = e.target.closest && e.target.closest('.role label, .ctile');
       if (!lab) return;
       var inp = lab.querySelector('input');
-      if (inp && inp.checked && e.detail > 0) { var s = step; setTimeout(function () { if (step === s && check(s)) go(s + 1); }, 260); }
+      if (inp && inp.checked && e.detail > 0 && inp.value !== 'Another city') { var s = step; setTimeout(function () { if (step === s && check(s)) go(s + 1); }, 260); }
     });
 
     var submitIdle = btn.innerHTML;
@@ -270,12 +288,12 @@
       if (step < STEPS - 1) { if (check(step)) go(step + 1); return; }
       if (!check(3)) { var bad = steps[3].querySelector('[aria-invalid="true"]'); if (bad) bad.focus(); return; }
       for (var i = 0; i < 3; i++) if (!check(i)) { go(i); return; }
-      var data = { full_name: val.name(), email: $('#wl-email').value.trim(), phone: normPhone($('#wl-phone').value), city: val.city(), intent: val.intent(), source: 'website' };
+      var data = { full_name: val.name(), email: $('#wl-email').value.trim(), phone: normPhone($('#wl-phone').value), city: val.city(), state: val.state(), intent: val.intent(), source: 'website' };
       btn.disabled = true;
       btn.innerHTML = '<span class="spin" aria-hidden="true"></span><span>Saving your pass</span>';
       $('#wl-error').hidden = true;
       var done = function () { btn.disabled = false; btn.innerHTML = submitIdle; $('.lbl', btn).textContent = 'Get my pass'; };
-      var place = data.city === 'Another city' ? 'your city' : data.city;
+      var place = data.state || data.city;
       var okNote = 'We’ll email ' + data.email + ' when GoBYE launches in ' + place + '.';
 
       if (noEndpoint) {
@@ -289,7 +307,7 @@
         ? fetch(sb.url.replace(/\/+$/, '') + '/rest/v1/' + encodeURIComponent(sb.table || 'waitlist'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', apikey: sb.anonKey, Authorization: 'Bearer ' + sb.anonKey, Prefer: 'return=minimal' },
-            body: JSON.stringify({ full_name: data.full_name, email: data.email.toLowerCase(), phone: data.phone, city: data.city, intent: data.intent, source: data.source }),
+            body: JSON.stringify({ full_name: data.full_name, email: data.email.toLowerCase(), phone: data.phone, city: data.city, state: data.state, intent: data.intent, source: data.source }),
           })
         : fetch(C.waitlist.endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
       req

@@ -439,3 +439,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Accessibility:** inactive steps are `inert`, a live region announces "Step n of 4", and reduced motion removes the transitions.
   - The Supabase payload is unchanged. Tested on desktop and phone: per-step errors, auto advance, back, the payload, the pass content and 409 handling.
 - **Website: hero video pause/play button removed (owner request).** The video still autoplays muted and loops; with reduced motion it does not play and the poster shows. Note: WCAG 2.2.2 expects a way to pause motion lasting over 5 s; reduced-motion users are covered, others are not.
+- **Website: state dropdown for "Another city" and a new phone header.**
+  - **State dropdown:** choosing "Another city" reveals a "Which state?" dropdown of the other 35 states (Lagos and the FCT have their own tiles). Picking a state moves on, Continue asks for one if missing, and the pass and success message use the state name. The payload adds `state` (null for Lagos and Abuja).
+  - **SQL:** `supabase/migrations/20261022c_waitlist_state.sql` adds the `state` column, a check tying it to "Another city", and the anon insert grant. It must be run before deploying.
+  - **Phone header (owner reference image):** a full-width two-tab bar (For riders | For drivers, active tab lilac, inactive pale) sits above a white logo row with a hairline. The header CTA and the floating pill are hidden on phones, and the in-section toggle was removed (the tabs replace it). `--nav-h` is 116 px plus the safe area, so the sticky step cards sit below it.
+  - **Checked:** at 390 px; the tabs switch content and there is no overflow.

@@ -137,6 +137,8 @@ window.GOBYE_SITE = {
     /** Alternative: any POST endpoint that answers 2xx only once the sign up is stored. Used when supabase is not set. */
     endpoint: null,
     cities: ['Lagos', 'Abuja', 'Another city'],
+    /** Shown when "Another city" is picked: the other 35 states (Lagos and the FCT have their own tiles). */
+    otherStates: ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'],
   },
 
   /** Official store listings. Badges appear only when status is 'live' and both urls are real. */

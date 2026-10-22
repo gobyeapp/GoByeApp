@@ -584,6 +584,14 @@ fieldset[aria-invalid='true'] .chip, fieldset[aria-invalid='true'] .choice label
 .ctile:has(input:focus-visible) { outline: 3px solid var(--tangerine); outline-offset: 2px; }
 fieldset[aria-invalid='true'] .ctile, fieldset[aria-invalid='true'] .role label { border-color: #f1b7b7; }
 
+.state-pick { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; animation: rise 300ms ease both; }
+.state-pick label { font-size: 13.5px; font-weight: 600; color: var(--grey-700); }
+.select-ico { position: relative; }
+.select-ico .icon { position: absolute; left: 16px; top: 50%; margin-top: -10px; font-size: 20px; color: var(--tangerine); pointer-events: none; }
+.select-ico::after { content: ''; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -6px; border-right: 2px solid #8a8490; border-bottom: 2px solid #8a8490; transform: rotate(45deg); pointer-events: none; }
+.select-ico select { width: 100%; height: 56px; border-radius: 16px; border: 1px solid transparent; padding: 0 44px 0 46px; background: #f5f4f6; color: var(--ink); font: inherit; font-size: 16px; font-weight: 600; appearance: none; -webkit-appearance: none; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
+.select-ico select:focus { outline: none; background: var(--white); border-color: var(--plum); box-shadow: 0 0 0 4px rgba(107, 47, 126, 0.12); }
+.select-ico select[aria-invalid='true'] { border-color: var(--danger); background: #fff7f7; }
 .wl-actions { display: flex; gap: 10px; }
 .wl-actions .wl-submit { flex: 1; margin-top: 0; }
 .round-back { width: 56px; height: 56px; flex-shrink: 0; border-radius: 50%; border: 1px solid #e4e1e6; background: var(--white); color: var(--ink); display: grid; place-items: center; font-size: 20px; cursor: pointer; transition: background-color 0.2s ease, transform 0.15s ease; }
@@ -654,4 +662,20 @@ fieldset[aria-invalid='true'] .ctile, fieldset[aria-invalid='true'] .role label 
   .hero-video { width: calc(100% - 2 * var(--g)); margin: 32px auto 0; border-radius: 28px; aspect-ratio: 4 / 5; }
   .hero-cta { flex: none; padding: 24px var(--g) max(40px, env(safe-area-inset-bottom, 0px)); gap: 0; }
   .hero-cta .btn-primary { width: 100%; max-width: none; min-height: 56px; }
+}
+
+/* ---------- Phone header: full-width audience tabs on top, logo row underneath ---------- */
+.aud-tabs { display: none; }
+@media (max-width: 760px) {
+  :root { --nav-h: calc(env(safe-area-inset-top, 0px) + 116px); }
+  .topbar, .topbar.solid { background: var(--white); box-shadow: 0 1px 0 var(--line); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .aud-tabs { display: grid; grid-template-columns: 1fr 1fr; padding-top: env(safe-area-inset-top, 0px); background: #f6f1f8; }
+  .aud-tabs button { height: 52px; border: 0; background: transparent; color: #a796b0; font: inherit; font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; cursor: pointer; transition: background-color 0.25s ease, color 0.25s ease; }
+  .aud-tabs button[aria-pressed='true'] { background: #e7d8ef; color: var(--aubergine); }
+  .aud-tabs button:focus-visible { outline: 3px solid var(--tangerine); outline-offset: -3px; border-radius: 0; }
+  .topbar .nav, .topbar.solid .nav { width: 100%; margin: 0; padding: 0 var(--g, 24px); height: 64px; border-radius: 0; background: transparent; box-shadow: none; }
+  .topbar .nav-right { display: none; }
+  .topbar .brand img, .topbar .brand picture img, .topbar.solid .brand img, .topbar.solid .brand picture img { width: 30px; height: 30px; }
+  .topbar .brand span, .topbar.solid .brand span { font-size: 21px; }
+  .seg-inline { display: none !important; }
 }
