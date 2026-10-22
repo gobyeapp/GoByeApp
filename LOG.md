@@ -531,3 +531,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - **Core:** `OTHER_NIGERIAN_STATES` (same list as the website) and `passwordStrength`, with tests. The session remembers `homeCity`.
   - **Checked:** web QA in light and dark through the whole journey (Oyo via the state sheet) to the pass. Typecheck passes; tests core 136, rider 33, driver 2; the rider iOS + Android export builds.
   - **Brand note:** this journey uses gradients and tangerine CTAs at the owner's request, an exception to the app's monochrome rule (D-047).
+- **Rider: sign up, sign in and reset password never scroll (owner: "everything should be a focus point").**
+  - **New shared `JourneyFlow`:** the plum hero with route progress, then one step at a time on a sliding track that fills the space between hero and actions, then the round back button and tangerine CTA, with a one-line preview note under it. The hero compacts on phones under 740 pt tall. Each step is pinned to one viewport width. On the web QA build, the viewport also refuses the browser's focus-scroll, which had shifted the last step.
+  - **Create account:** the same 4 steps, now on JourneyFlow without a scroll view.
+  - **Sign in (2 steps):** "Good to see you again" (email or phone, Apple / Google, "New to GoBye? Create account") → "Enter your password" ("Signing in as …", Forgot password?).
+  - **Reset password (3 steps):** Which account? (email) → Check your email (code boxes with resend countdown; moves on after 6 digits) → Choose a new password (strength bars). A wrong code returns to the code step.
+  - **Checked:** every step on 390×844 and 375×667 with nothing cut off and no scrolling; tests updated (rider 33); typecheck passes; the rider iOS + Android export builds.

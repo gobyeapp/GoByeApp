@@ -1,22 +1,20 @@
 import { router } from 'expo-router';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, type LayoutChangeEvent, type TextInput } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { OTHER_NIGERIAN_STATES, passwordStrength, validateEmail, validateFullName, validateNigerianPhone, validatePassword, type SocialProvider } from '@gobye/core';
-import { Button, Icon, RadioRow, Sheet, SimulatedBadge, Text, spacing, useTheme, useToast } from '@gobye/ui';
+import { Icon, RadioRow, Sheet, Text, useTheme, useToast } from '@gobye/ui';
 import { OrDivider, SocialButtons } from '@/features/auth/AuthKit';
-import { ChoiceTile, JourneyField, JourneyHero, RoundBack } from '@/features/auth/Journey';
+import { ChoiceTile, JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
 import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 
 const STEPS = ['You', 'City', 'Contact', 'Secure'] as const;
-const EASE = Easing.bezier(0.3, 0.8, 0.2, 1);
 type Errors = Partial<Record<'name' | 'city' | 'email' | 'phone' | 'password' | 'form', string>>;
 
 const STRENGTH = {
   empty: { bars: 0, label: '' },
-  weak: { bars: 1, label: 'Too weak: 8+ characters with a letter and a number' },
+  weak: { bars: 1, label: 'Too weak' },
   okay: { bars: 2, label: 'Good' },
   strong: { bars: 3, label: 'Strong' },
 } as const;
@@ -29,7 +27,6 @@ const STRENGTH = {
  */
 export default function SignUp() {
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
   const reduce = useReducedMotion();
   const toast = useToast();
   const haptic = useHaptics();
@@ -52,24 +49,6 @@ export default function SignUp() {
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
   const passRef = useRef<TextInput>(null);
-
-  // Horizontal track of steps; the viewport height follows the current step.
-  const [w, setW] = useState(0);
-  const [heights, setHeights] = useState<number[]>([0, 0, 0, 0]);
-  const x = useSharedValue(0);
-  const h = useSharedValue(0);
-  useEffect(() => {
-    if (!w) return;
-    x.value = reduce ? -step * w : withTiming(-step * w, { duration: 500, easing: EASE });
-    const target = heights[step] || 0;
-    if (target) h.value = reduce || !h.value ? target : withTiming(target, { duration: 450, easing: EASE });
-  }, [step, w, heights, reduce, x, h]);
-  const trackStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
-  const viewStyle = useAnimatedStyle(() => (h.value ? { height: h.value } : {}));
-  const measure = (i: number) => (e: LayoutChangeEvent) => {
-    const v = Math.ceil(e.nativeEvent.layout.height);
-    setHeights((prev) => (prev[i] === v ? prev : prev.map((p, j) => (j === i ? v : p))));
-  };
 
   // Focus the step's field once it has slid in.
   useEffect(() => {
@@ -154,29 +133,20 @@ export default function SignUp() {
   const close = () => (router.canGoBack() ? router.back() : router.replace('/onboarding'));
   const back = () => (step === 0 ? close() : go(step - 1));
 
-  const stepView = (i: number, children: ReactNode) => (
-    <View key={i} style={{ width: w || undefined }} onLayout={measure(i)} accessibilityElementsHidden={i !== step} importantForAccessibility={i === step ? 'auto' : 'no-hide-descendants'} pointerEvents={i === step ? 'auto' : 'none'}>
-      <View style={styles.step}>{children}</View>
-    </View>
-  );
-
   return (
-    <KeyboardAvoidingView style={[styles.root, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <JourneyHero eyebrow="JOIN GOBYE" title="Create your account" step={step} labels={[...STEPS]} onClose={close} topInset={insets.top} />
-
-      <ScrollView style={styles.flex} contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View onLayout={(e) => setW(e.nativeEvent.layout.width)}>
-          <Animated.View style={[styles.viewport, viewStyle]}>
-            <Animated.View style={[styles.track, trackStyle]}>
-              {stepView(
-                0,
+    <>
+      <JourneyFlow
+        eyebrow="JOIN GOBYE"
+        title="Create your account"
+        labels={[...STEPS]}
+        step={step}
+        onClose={close}
+        onBack={back}
+        cta={{ title: step === STEPS.length - 1 ? 'Create account' : 'Continue', onPress: submit, loading: busy, loadingLabel: 'Creating account', testID: 'signup-submit' }}
+        footnote={<PreviewNote />}
+        steps={[
                 <>
-                  <Text style={[styles.q, { color: colors.text }]} accessibilityRole="header">
-                    First, what should we call you?
-                  </Text>
-                  <Text variant="callout" color="textSecondary" style={styles.hint}>
-                    Your rider pass will carry your name. Drivers see your first name only.
-                  </Text>
+                  <StepTitle title={'First, what should we call you?'} hint="Your rider pass will carry your name. Drivers see your first name only." />
                   <JourneyField
                     ref={nameRef}
                     icon="account"
@@ -198,16 +168,8 @@ export default function SignUp() {
                   <OrDivider />
                   <SocialButtons layout="row" onPress={withProvider} busy={social} />
                 </>,
-              )}
-              {stepView(
-                1,
                 <>
-                  <Text style={[styles.q, { color: colors.text }]} accessibilityRole="header">
-                    Where will you ride{first ? `, ${first}` : ''}?
-                  </Text>
-                  <Text variant="callout" color="textSecondary" style={styles.hint}>
-                    GoBye launches in Lagos and Abuja first.
-                  </Text>
+                  <StepTitle title={`Where will you ride${first ? `, ${first}` : ''}?`} hint="GoBye launches in Lagos and Abuja first." />
                   <View style={styles.tiles} accessibilityRole="radiogroup" accessibilityLabel="City">
                     <ChoiceTile icon="destination" title="Lagos" subtitle="Launching first" selected={city === 'Lagos'} onPress={() => pickCity('Lagos')} testID="city-lagos" />
                     <ChoiceTile icon="destination" title="Abuja" subtitle="Launching first" selected={city === 'Abuja'} onPress={() => pickCity('Abuja')} testID="city-abuja" />
@@ -230,16 +192,8 @@ export default function SignUp() {
                     </View>
                   ) : null}
                 </>,
-              )}
-              {stepView(
-                2,
                 <>
-                  <Text style={[styles.q, { color: colors.text }]} accessibilityRole="header">
-                    How do we reach you?
-                  </Text>
-                  <Text variant="callout" color="textSecondary" style={styles.hint}>
-                    Receipts go to your email. Your driver calls this number at pickup.
-                  </Text>
+                  <StepTitle title={'How do we reach you?'} hint="Receipts go to your email. Your driver calls this number at pickup." />
                   <JourneyField
                     ref={emailRef}
                     icon="mail"
@@ -278,17 +232,18 @@ export default function SignUp() {
                     error={errors.phone}
                     testID="signup-phone"
                   />
+
+                  {errors.form ? (
+                    <View style={styles.inlineErr} accessibilityLiveRegion="polite" testID="signup-error">
+                      <Icon name="warning" size={14} color="danger" />
+                      <Text variant="footnote" color="danger" style={styles.flex}>
+                        {errors.form}
+                      </Text>
+                    </View>
+                  ) : null}
                 </>,
-              )}
-              {stepView(
-                3,
                 <>
-                  <Text style={[styles.q, { color: colors.text }]} accessibilityRole="header">
-                    Last, secure your account
-                  </Text>
-                  <Text variant="callout" color="textSecondary" style={styles.hint}>
-                    You’ll sign in with your email or phone and this password.
-                  </Text>
+                  <StepTitle title={'Last, secure your account'} hint="You’ll sign in with your email or phone and this password." />
                   <JourneyField
                     ref={passRef}
                     icon="lock"
@@ -332,42 +287,18 @@ export default function SignUp() {
                   <Text variant="footnote" color="textSecondary">
                     By creating an account you agree to the Terms and Privacy notice.
                   </Text>
+
+                  {errors.form ? (
+                    <View style={styles.inlineErr} accessibilityLiveRegion="polite" testID="signup-error">
+                      <Icon name="warning" size={14} color="danger" />
+                      <Text variant="footnote" color="danger" style={styles.flex}>
+                        {errors.form}
+                      </Text>
+                    </View>
+                  ) : null}
                 </>,
-              )}
-            </Animated.View>
-          </Animated.View>
-        </View>
-
-        {errors.form ? (
-          <View style={styles.inlineErr} accessibilityLiveRegion="polite" testID="signup-error">
-            <Icon name="warning" size={14} color="danger" />
-            <Text variant="footnote" color="danger" style={styles.flex}>
-              {errors.form}
-            </Text>
-          </View>
-        ) : null}
-        <View style={styles.note}>
-          <SimulatedBadge />
-          <Text variant="footnote" color="textSecondary" style={styles.flex}>
-            Accounts, SMS, Apple and Google are simulated in this preview.
-          </Text>
-        </View>
-      </ScrollView>
-
-      <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, spacing.lg), borderTopColor: colors.border }]}>
-        {step > 0 ? <RoundBack onPress={back} disabled={busy} /> : null}
-        <Button
-          variant="brand"
-          title={step === STEPS.length - 1 ? 'Create account' : 'Continue'}
-          trailingIcon="arrowRight"
-          loading={busy}
-          loadingLabel="Creating account"
-          onPress={submit}
-          style={styles.flex}
-          testID="signup-submit"
-        />
-      </View>
-
+        ]}
+      />
       <Sheet visible={statesOpen} onClose={() => setStatesOpen(false)} title="Which state?" subtitle="We’ll let you know when GoBye arrives." testID="state-sheet">
         {OTHER_NIGERIAN_STATES.map((s) => (
           <RadioRow
@@ -384,25 +315,16 @@ export default function SignUp() {
           />
         ))}
       </Sheet>
-    </KeyboardAvoidingView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   flex: { flex: 1 },
-  body: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: spacing.xl, gap: spacing.lg },
-  viewport: { overflow: 'hidden' },
-  track: { flexDirection: 'row', alignItems: 'flex-start' },
-  step: { gap: 14, paddingBottom: 8 },
-  q: { fontFamily: 'Inter_700Bold', fontSize: 23, lineHeight: 27, letterSpacing: -0.8 },
-  hint: { marginTop: -6, marginBottom: 4 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   inlineErr: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   meter: { gap: 6 },
   bars: { flexDirection: 'row', gap: 6 },
   bar: { flex: 1, height: 4, borderRadius: 2 },
   eye: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -6 },
-  note: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  actions: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingTop: spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
 });

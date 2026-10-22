@@ -1,8 +1,10 @@
-import { forwardRef, useEffect, useState, type ReactNode } from 'react';
+import { forwardRef, useEffect, useRef, useState, type ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { BRAND_NAME, BrandMark, Icon, Text, brand, fontFamily, spacing, useTheme, type IconName } from '@gobye/ui';
+import { BRAND_NAME, BrandMark, Button, Icon, Text, brand, fontFamily, spacing, useTheme, type IconName } from '@gobye/ui';
 
 /**
  * The website's "Join the waitlist" journey, rebuilt for the app (owner: "adopt the waitlist… down to the
@@ -93,9 +95,9 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
 }
 
 /** The plum header: close, eyebrow, title and the route. */
-export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, arrived }: { eyebrow: string; title: string; step: number; labels: string[]; onClose: () => void; topInset: number; arrived?: boolean }) {
+export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, arrived, compact }: { eyebrow: string; title: string; step: number; labels: string[]; onClose: () => void; topInset: number; arrived?: boolean; compact?: boolean }) {
   return (
-    <View style={[styles.hero, { paddingTop: topInset + spacing.lg }]}>
+    <View style={[styles.hero, { paddingTop: topInset + (compact ? spacing.sm : spacing.lg) }, compact && styles.heroCompact]}>
       <PlumBackground />
       <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8} style={({ pressed }) => [styles.x, { top: topInset + spacing.md, opacity: pressed ? 0.7 : 1 }]} testID="journey-close">
         <Icon name="close" size={17} color="#FFFFFF" />
@@ -103,10 +105,121 @@ export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, a
       <Text variant="caption" style={styles.eyebrow}>
         {eyebrow}
       </Text>
-      <Text style={styles.heroTitle} accessibilityRole="header">
+      <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]} accessibilityRole="header">
         {title}
       </Text>
       <RouteProgress step={step} labels={labels} arrived={arrived} />
+    </View>
+  );
+}
+
+/**
+ * A whole journey screen with no scrolling (owner: "everything should be a focus point"): the plum hero,
+ * one step in view at a time on a sliding track that fills the space between hero and actions, then the
+ * round back button beside the tangerine CTA. On short phones the hero compacts.
+ */
+export function JourneyFlow({
+  eyebrow,
+  title,
+  labels,
+  step,
+  steps,
+  onClose,
+  onBack,
+  cta,
+  footnote,
+}: {
+  eyebrow: string;
+  title: string;
+  labels: string[];
+  step: number;
+  steps: ReactNode[];
+  onClose: () => void;
+  onBack: () => void;
+  cta: { title: string; onPress: () => void; loading?: boolean; loadingLabel?: string; disabled?: boolean; testID?: string };
+  footnote?: ReactNode;
+}) {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const reduce = useReducedMotion();
+  const compact = height < 740;
+  const [w, setW] = useState(0);
+  const x = useSharedValue(0);
+  useEffect(() => {
+    if (!w) return;
+    x.value = reduce ? -step * w : withTiming(-step * w, { duration: 500, easing: EASE });
+  }, [step, w, reduce, x]);
+  const track = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+
+  // Web QA build only: a browser scrolls an overflow-hidden box to show a focused input, which would
+  // shift the track. Keep the viewport pinned (native views never scroll themselves).
+  const viewportRef = useRef<View>(null);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const node = viewportRef.current as unknown as HTMLElement | null;
+    if (!node?.addEventListener) return;
+    const pin = () => {
+      if (node.scrollLeft) node.scrollLeft = 0;
+    };
+    node.addEventListener('scroll', pin);
+    return () => node.removeEventListener('scroll', pin);
+  }, []);
+
+  return (
+    <KeyboardAvoidingView style={[styles.flowRoot, { backgroundColor: colors.background }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <JourneyHero eyebrow={eyebrow} title={title} step={step} labels={labels} onClose={onClose} topInset={insets.top} compact={compact} />
+      <View ref={viewportRef} style={styles.viewport} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+        <Animated.View style={[styles.flowTrack, { width: w * steps.length || undefined }, track]}>
+          {steps.map((node, i) => (
+            <View
+              key={i}
+              style={[styles.flowStep, { width: w || undefined, maxWidth: w || undefined, paddingTop: compact ? 18 : 26 }]}
+              accessibilityElementsHidden={i !== step}
+              importantForAccessibility={i === step ? 'auto' : 'no-hide-descendants'}
+              pointerEvents={i === step ? 'auto' : 'none'}
+            >
+              {node}
+            </View>
+          ))}
+        </Animated.View>
+      </View>
+      <View style={[styles.flowActions, { paddingBottom: Math.max(insets.bottom, spacing.md) + (compact ? 0 : 4) }]}>
+        <View style={styles.flowRow}>
+          {step > 0 ? <RoundBack onPress={onBack} disabled={cta.loading} /> : null}
+          <Button variant="brand" title={cta.title} trailingIcon="arrowRight" loading={cta.loading} loadingLabel={cta.loadingLabel} disabled={cta.disabled} onPress={cta.onPress} style={styles.flex} testID={cta.testID} />
+        </View>
+        {footnote ? <View style={styles.flowFoot}>{footnote}</View> : null}
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+/** One quiet line under the CTA: what's simulated in this preview. */
+export function PreviewNote({ text = 'Preview: accounts, SMS, Apple and Google are simulated.' }: { text?: string }) {
+  return (
+    <View style={styles.preview} accessible accessibilityLabel={text}>
+      <Icon name="info" size={12} color="textSecondary" />
+      <Text variant="caption" weight="regular" color="textSecondary">
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+/** Step heading + hint, the website's `.q` and `.hint`. */
+export function StepTitle({ title, hint }: { title: string; hint?: ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.stepHead}>
+      <Text style={[styles.q, { color: colors.text }]} accessibilityRole="header">
+        {title}
+      </Text>
+      {hint ? (
+        <Text variant="callout" color="textSecondary">
+          {hint}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -290,9 +403,22 @@ function Kv({ label, value, wide }: { label: string; value: string; wide?: boole
 
 const styles = StyleSheet.create({
   flex: { flex: 1, minWidth: 0 },
+  flowRoot: { flex: 1 },
+  viewport: { flex: 1, overflow: 'hidden' },
+  flowTrack: { flexDirection: 'row', flex: 1 },
+  // Each step is exactly one viewport wide: content can never widen it and shift the steps after it.
+  flowStep: { paddingHorizontal: 20, gap: 14, flexShrink: 0, overflow: 'hidden' },
+  flowActions: { paddingHorizontal: 20, paddingTop: spacing.sm, gap: 6 },
+  flowRow: { flexDirection: 'row', gap: 10 },
+  flowFoot: { alignItems: 'center' },
+  stepHead: { gap: 6, marginBottom: 4 },
+  preview: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  q: { fontFamily: 'Inter_700Bold', fontSize: 23, lineHeight: 27, letterSpacing: -0.8 },
   hero: { paddingHorizontal: 24, paddingBottom: 18, overflow: 'hidden' },
   x: { position: 'absolute', right: 18, width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', zIndex: 2 },
   eyebrow: { color: PLUM.eyebrow, fontFamily: 'Inter_700Bold', letterSpacing: 3, fontSize: 11 },
+  heroCompact: { paddingBottom: 10 },
+  heroTitleCompact: { fontSize: 24, lineHeight: 28, marginTop: 4 },
   heroTitle: { color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 30, lineHeight: 32, letterSpacing: -1.3, marginTop: 8 },
   route: { height: 54, marginTop: 18 },
   track: { position: 'absolute', left: 10, right: 10, top: 15, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.16)', overflow: 'hidden' },

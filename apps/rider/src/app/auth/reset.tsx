@@ -1,34 +1,57 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { validateEmail, validatePassword } from '@gobye/core';
-import { Button, CodeBoxes, FieldMessage, Screen, Text, TextField, spacing, useToast } from '@gobye/ui';
-import { AuthHeading, AuthTopBar, PasswordField, TextLink } from '@/features/auth/AuthKit';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
+import { passwordStrength, validateEmail, validatePassword } from '@gobye/core';
+import { CodeBoxes, FieldMessage, Icon, Text, spacing, useTheme, useToast } from '@gobye/ui';
+import { TextLink } from '@/features/auth/AuthKit';
+import { JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
+import { useHaptics } from '@/state/haptics';
 import { useNow } from '@/state/useNow';
 import { useSession } from '@/state/session';
 
+const STEPS = ['Email', 'Code', 'New password'];
+const STRENGTH = { empty: 0, weak: 1, okay: 2, strong: 3 } as const;
+
 /**
- * Reset password (owner design), two steps on one screen: the account email → a 6 digit code from the
- * email plus a new password. The request always "succeeds" for a valid email so it can't be used to
- * find out who has an account.
+ * Reset password as a three-step journey, no scrolling: account email → the 6 digit code from the email
+ * → a new password. The code is checked when the new password is saved; a wrong code goes back to the
+ * code step. The request always "succeeds" for a valid email so it can't reveal who has an account.
  */
 export default function ResetPassword() {
   const params = useLocalSearchParams<{ email?: string }>();
-  const { requestPasswordReset, resetPassword } = useSession();
+  const { colors } = useTheme();
+  const reduce = useReducedMotion();
   const toast = useToast();
+  const haptic = useHaptics();
   const now = useNow(1000);
+  const { requestPasswordReset, resetPassword } = useSession();
+  const [step, setStep] = useState(0);
   const [email, setEmail] = useState(params.email ?? '');
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [resendAt, setResendAt] = useState(0);
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
+  const [shown, setShown] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; code?: string; password?: string }>({});
   const [busy, setBusy] = useState(false);
+  const emailRef = useRef<TextInput>(null);
+  const pwRef = useRef<TextInput>(null);
   const wait = Math.max(0, Math.ceil((resendAt - now) / 1000));
+  const strength = passwordStrength(password);
+
+  useEffect(() => {
+    const ref = step === 0 ? emailRef : step === 2 ? pwRef : null;
+    const t = setTimeout(() => ref?.current?.focus(), reduce ? 50 : 520);
+    return () => clearTimeout(t);
+  }, [step, reduce]);
 
   const send = async () => {
     const e = validateEmail(email);
-    if (!e.ok || !e.value) return setErrors({ email: 'Enter the email on your account.' });
+    if (!e.ok || !e.value) {
+      haptic('error');
+      return setErrors({ email: 'Enter the email on your account.' });
+    }
     setBusy(true);
     const r = await requestPasswordReset(e.value);
     setBusy(false);
@@ -37,88 +60,163 @@ export default function ResetPassword() {
     setResendAt(Date.now() + r.value.resendAfterSeconds * 1000);
     setCode('');
     setErrors({});
+    setStep(1);
   };
 
-  const save = async () => {
-    if (!sentTo || busy) return;
+  const submit = async () => {
+    if (busy) return;
+    if (step === 0) return send();
+    if (step === 1) {
+      if (code.length < 6) {
+        haptic('error');
+        return setErrors({ code: 'Enter the 6 digit code.' });
+      }
+      setErrors({});
+      haptic('selection');
+      return setStep(2);
+    }
     const pw = validatePassword(password);
-    const next = { code: code.length === 6 ? undefined : 'Enter the 6 digit code.', password: pw.ok ? undefined : pw.error };
-    setErrors(next);
-    if (next.code || next.password) return;
+    if (!pw.ok) {
+      haptic('error');
+      return setErrors({ password: pw.error });
+    }
     setBusy(true);
-    const r = await resetPassword(sentTo, code, password);
+    const r = await resetPassword(sentTo ?? email, code, password);
     setBusy(false);
-    if (!r.ok) return setErrors({ code: r.error });
+    if (!r.ok) {
+      // The code is what failed: take the rider back to it.
+      setCode('');
+      setStep(1);
+      return setErrors({ code: r.error });
+    }
+    haptic('success');
     toast('Password updated. Sign in with your new password.', 'success');
     router.replace('/auth/signin');
   };
 
-  const back = () => (sentTo ? setSentTo(null) : router.canGoBack() ? router.back() : router.replace('/auth/signin'));
-
-  if (!sentTo) {
-    return (
-      <Screen
-        header={<View style={styles.pad}><AuthTopBar onBack={back} /></View>}
-        footer={<Button variant="brand" title="Send code" trailingIcon="arrowRight" onPress={send} loading={busy} disabled={!email.trim()} testID="reset-send" />}
-      >
-        <AuthHeading centered icon="mail" title="Reset password" subtitle="Enter the email on your account and we’ll send you a 6 digit code." />
-        <TextField label="Email address" leadingIcon="mail" placeholder="name@example.com" value={email} onChangeText={(t) => { setEmail(t); setErrors({}); }} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} textContentType="emailAddress" autoComplete="email" error={errors.email} onSubmitEditing={send} testID="reset-email" />
-      </Screen>
-    );
-  }
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/auth/signin'));
 
   return (
-    <Screen
-      header={<View style={styles.pad}><AuthTopBar onBack={back} /></View>}
-      footer={
+    <JourneyFlow
+      eyebrow="ACCOUNT HELP"
+      title="Reset password"
+      labels={STEPS}
+      step={step}
+      onClose={close}
+      onBack={() => {
+        setErrors({});
+        setStep(step - 1);
+      }}
+      cta={{ title: step === 0 ? 'Send code' : step === 1 ? 'Continue' : 'Save new password', onPress: submit, loading: busy, testID: 'reset-submit' }}
+      footnote={<PreviewNote text="Preview: no email is sent. Any code except 000000 works." />}
+      steps={[
         <>
-          <Button variant="brand" title="Save new password" onPress={save} loading={busy} disabled={code.length < 6 || !password} testID="reset-save" />
-          <Text variant="caption" weight="regular" color="textSecondary" align="center">
-            Can’t find it? Check your spam or promotions folder.
-          </Text>
-        </>
-      }
-    >
-      <AuthHeading
-        centered
-        icon="mail"
-        title="Reset password"
-        subtitle={
-          <>
-            We sent a 6 digit code to{' '}
-            <Text variant="body" weight="semibold">
-              {sentTo}
-            </Text>
-            . Enter it to set a new password.
-          </>
-        }
-      />
-      <CodeBoxes value={code} onChange={(v) => { setCode(v); setErrors((e) => ({ ...e, code: undefined })); }} error={!!errors.code} label="Reset code" testID="reset-code" />
-      <FieldMessage error={errors.code} info="Preview: no email is sent. Any code except 000000 works." />
-      <View style={styles.resend}>
-        {wait > 0 ? (
-          <Text variant="callout" color="textSecondary">
-            Resend code in{' '}
-            <Text variant="callout" weight="semibold" tabular>
-              0:{String(wait).padStart(2, '0')}
-            </Text>
-          </Text>
-        ) : (
-          <View style={styles.row}>
-            <Text variant="callout" color="textSecondary">
-              Didn’t get it?
-            </Text>
-            <TextLink title="Resend code" accent onPress={send} />
+          <StepTitle title="Which account?" hint="Enter the email on your account and we’ll send you a 6 digit code." />
+          <JourneyField
+            ref={emailRef}
+            icon="mail"
+            label="Email address"
+            placeholder="name@example.com"
+            value={email}
+            onChangeText={(t) => {
+              setEmail(t);
+              setErrors({});
+            }}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            textContentType="emailAddress"
+            autoComplete="email"
+            onSubmitEditing={submit}
+            error={errors.email}
+            testID="reset-email"
+          />
+        </>,
+        <>
+          <StepTitle
+            title="Check your email"
+            hint={
+              <>
+                We sent a 6 digit code to{' '}
+                <Text variant="callout" weight="semibold">
+                  {sentTo ?? 'your email'}
+                </Text>
+                .
+              </>
+            }
+          />
+          <CodeBoxes
+            value={code}
+            onChange={(v) => {
+              setCode(v);
+              setErrors({});
+              if (v.length === 6) setTimeout(() => setStep(2), reduce ? 0 : 250);
+            }}
+            error={!!errors.code}
+            autoFocus={step === 1}
+            label="Reset code"
+            testID="reset-code"
+          />
+          <FieldMessage error={errors.code} />
+          <View style={styles.resend}>
+            {wait > 0 ? (
+              <Text variant="callout" color="textSecondary">
+                Resend code in{' '}
+                <Text variant="callout" weight="semibold" tabular>
+                  0:{String(wait).padStart(2, '0')}
+                </Text>
+              </Text>
+            ) : (
+              <View style={styles.row}>
+                <Text variant="callout" color="textSecondary">
+                  Didn’t get it?
+                </Text>
+                <TextLink title="Resend code" accent onPress={send} />
+              </View>
+            )}
           </View>
-        )}
-      </View>
-      <PasswordField label="New password" placeholder="Create a new password" value={password} onChangeText={(t) => { setPassword(t); setErrors((e) => ({ ...e, password: undefined })); }} textContentType="newPassword" autoComplete="new-password" helper="At least 8 characters, with a number." error={errors.password} testID="reset-password" />
-    </Screen>
+        </>,
+        <>
+          <StepTitle title="Choose a new password" hint="At least 8 characters, with a letter and a number." />
+          <JourneyField
+            ref={pwRef}
+            icon="lock"
+            label="New password"
+            placeholder="Create a new password"
+            value={password}
+            secureTextEntry={!shown}
+            onChangeText={(t) => {
+              setPassword(t);
+              setErrors({});
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            textContentType="newPassword"
+            autoComplete="new-password"
+            onSubmitEditing={submit}
+            error={errors.password}
+            testID="reset-password"
+            trailing={
+              <Pressable onPress={() => setShown((v) => !v)} accessibilityRole="button" accessibilityLabel={shown ? 'Hide password' : 'Show password'} hitSlop={10} style={styles.eye}>
+                <Icon name={shown ? 'eyeClose' : 'eye'} size={20} color="textSecondary" />
+              </Pressable>
+            }
+          />
+          <View style={styles.bars} accessible accessibilityLabel={`Password strength ${strength}`}>
+            {[1, 2, 3].map((b) => (
+              <View key={b} style={[styles.bar, { backgroundColor: b <= STRENGTH[strength] ? (strength === 'weak' ? colors.danger : strength === 'okay' ? colors.warning : colors.success) : colors.border }]} />
+            ))}
+          </View>
+        </>,
+      ]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  pad: { paddingHorizontal: 20 },
-  resend: { alignItems: 'center', marginBottom: spacing.xl },
+  resend: { alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  bars: { flexDirection: 'row', gap: 6 },
+  bar: { flex: 1, height: 4, borderRadius: 2 },
+  eye: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -6 },
 });

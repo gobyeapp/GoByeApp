@@ -1,34 +1,67 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { parseIdentifier, type SocialProvider } from '@gobye/core';
-import { Button, Screen, SimulatedBadge, Text, TextField, spacing, useToast } from '@gobye/ui';
-import { AuthHeading, AuthTopBar, OrDivider, PasswordField, SocialButtons, TextLink } from '@/features/auth/AuthKit';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
+import { formatPhone, parseIdentifier, type SocialProvider } from '@gobye/core';
+import { Icon, Text, spacing, useToast } from '@gobye/ui';
+import { OrDivider, SocialButtons, TextLink } from '@/features/auth/AuthKit';
+import { JourneyField, JourneyFlow, PreviewNote, StepTitle } from '@/features/auth/Journey';
+import { useHaptics } from '@/state/haptics';
 import { useSession } from '@/state/session';
 
+const STEPS = ['Account', 'Password'];
+
 /**
- * Sign in (owner design): Apple / Google first, then email or phone + password, then a code to the
- * account's phone. One error message for any wrong detail so the form never reveals which accounts exist.
+ * Sign in as a two-step journey, no scrolling: who you are (email or phone, or Apple / Google) →
+ * your password (with Forgot password). Then a code to the account's phone. One neutral message for any
+ * wrong detail so the form never reveals which accounts exist.
  */
 export default function SignIn() {
-  const { signIn, socialSignIn } = useSession();
+  const reduce = useReducedMotion();
   const toast = useToast();
+  const haptic = useHaptics();
+  const { signIn, socialSignIn } = useSession();
+  const [step, setStep] = useState(0);
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
+  const [shown, setShown] = useState(false);
   const [errors, setErrors] = useState<{ id?: string; password?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
   const [social, setSocial] = useState<SocialProvider | null>(null);
+  const idRef = useRef<TextInput>(null);
+  const pwRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    const ref = step === 0 ? idRef : pwRef;
+    const t = setTimeout(() => ref.current?.focus(), reduce ? 50 : 520);
+    return () => clearTimeout(t);
+  }, [step, reduce]);
+
+  const parsed = parseIdentifier(id);
+  const who = parsed.ok ? (parsed.value.kind === 'phone' ? formatPhone(parsed.value.value) : parsed.value.value) : '';
 
   const submit = async () => {
     if (busy) return;
-    const p = parseIdentifier(id);
-    const next = { id: p.ok ? undefined : p.error, password: password ? undefined : 'Enter your password.' };
-    setErrors(next);
-    if (next.id || next.password) return;
+    if (step === 0) {
+      if (!parsed.ok) {
+        haptic('error');
+        return setErrors({ id: parsed.error });
+      }
+      setErrors({});
+      haptic('selection');
+      return setStep(1);
+    }
+    if (!password) {
+      haptic('error');
+      return setErrors({ password: 'Enter your password.' });
+    }
     setBusy(true);
     const r = await signIn(id, password);
     setBusy(false);
-    if (!r.ok) return setErrors({ form: r.error });
+    if (!r.ok) {
+      haptic('error');
+      return setErrors({ form: r.error });
+    }
     router.push('/auth/otp');
   };
 
@@ -40,64 +73,100 @@ export default function SignIn() {
     router.push(r.value.next === 'otp' ? '/auth/otp' : '/auth/phone');
   };
 
+  const close = () => (router.canGoBack() ? router.back() : router.replace('/onboarding'));
+
   return (
-    <Screen
-      header={<View style={styles.pad}><AuthTopBar onBack={() => (router.canGoBack() ? router.back() : router.replace('/onboarding'))} /></View>}
-      footer={
+    <JourneyFlow
+      eyebrow="WELCOME BACK"
+      title="Sign in"
+      labels={STEPS}
+      step={step}
+      onClose={close}
+      onBack={() => {
+        setErrors({});
+        setStep(0);
+      }}
+      cta={{ title: step === 0 ? 'Continue' : 'Sign in', onPress: submit, loading: busy, loadingLabel: 'Signing in', testID: 'signin-submit' }}
+      footnote={<PreviewNote />}
+      steps={[
         <>
-          <Button variant="brand" title="Sign in" trailingIcon="arrowRight" onPress={submit} loading={busy} loadingLabel="Signing in" testID="signin-submit" />
+          <StepTitle title="Good to see you again" hint="Use the email or phone number on your account." />
+          <JourneyField
+            ref={idRef}
+            icon="account"
+            label="Email or phone number"
+            placeholder="name@example.com or 0803…"
+            value={id}
+            onChangeText={(t) => {
+              setId(t);
+              setErrors({});
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            textContentType="username"
+            autoComplete="username"
+            returnKeyType="next"
+            onSubmitEditing={submit}
+            error={errors.id}
+            testID="signin-id"
+          />
+          <OrDivider />
+          <SocialButtons layout="row" onPress={withProvider} busy={social} />
           <View style={styles.switch}>
             <Text variant="callout" color="textSecondary">
               New to GoBye?
             </Text>
             <TextLink title="Create account" onPress={() => router.replace('/auth/signup')} testID="to-signup" />
           </View>
-        </>
-      }
-    >
-      <AuthHeading title="Sign in" subtitle="Welcome back. Pick up where your last trip ended." />
-      <SocialButtons onPress={withProvider} busy={social} />
-      <OrDivider />
-      <View style={styles.fields}>
-        <TextField
-          label="Email or phone number"
-          leadingIcon="account"
-          placeholder="name@example.com or 0803…"
-          value={id}
-          onChangeText={(t) => { setId(t); setErrors({}); }}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          textContentType="username"
-          autoComplete="username"
-          error={errors.id}
-          testID="signin-id"
-        />
-        <PasswordField label="Password" placeholder="Your password" value={password} onChangeText={(t) => { setPassword(t); setErrors({}); }} textContentType="password" autoComplete="current-password" error={errors.password} onSubmitEditing={submit} testID="signin-password" />
-        {errors.form ? (
-          <Text variant="footnote" color="danger" accessibilityLiveRegion="polite" testID="signin-error">
-            {errors.form}
-          </Text>
-        ) : null}
-        <View style={styles.forgot}>
-          <TextLink title="Forgot password?" accent onPress={() => router.push({ pathname: '/auth/reset', params: id.includes('@') ? { email: id.trim() } : {} })} testID="to-reset" />
-        </View>
-        <View style={styles.note}>
-          <SimulatedBadge />
-          <Text variant="footnote" color="textSecondary" style={styles.flex}>
-            Accounts, SMS, Apple and Google are simulated in this preview.
-          </Text>
-        </View>
-      </View>
-    </Screen>
+        </>,
+        <>
+          <StepTitle title="Enter your password" hint={who ? `Signing in as ${who}` : undefined} />
+          <JourneyField
+            ref={pwRef}
+            icon="lock"
+            label="Password"
+            placeholder="Your password"
+            value={password}
+            secureTextEntry={!shown}
+            onChangeText={(t) => {
+              setPassword(t);
+              setErrors({});
+            }}
+            autoCapitalize="none"
+            autoCorrect={false}
+            textContentType="password"
+            autoComplete="current-password"
+            onSubmitEditing={submit}
+            error={errors.password}
+            testID="signin-password"
+            trailing={
+              <Pressable onPress={() => setShown((v) => !v)} accessibilityRole="button" accessibilityLabel={shown ? 'Hide password' : 'Show password'} hitSlop={10} style={styles.eye}>
+                <Icon name={shown ? 'eyeClose' : 'eye'} size={20} color="textSecondary" />
+              </Pressable>
+            }
+          />
+          {errors.form ? (
+            <View style={styles.err} accessibilityLiveRegion="polite" testID="signin-error">
+              <Icon name="warning" size={14} color="danger" />
+              <Text variant="footnote" color="danger" style={styles.flex}>
+                {errors.form}
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.forgot}>
+            <TextLink title="Forgot password?" accent onPress={() => router.push({ pathname: '/auth/reset', params: id.includes('@') ? { email: id.trim() } : {} })} testID="to-reset" />
+          </View>
+        </>,
+      ]}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  pad: { paddingHorizontal: 20 },
   flex: { flex: 1 },
-  note: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  fields: { gap: spacing.lg },
-  forgot: { alignItems: 'flex-end', marginTop: -spacing.sm },
   switch: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
+  forgot: { alignItems: 'flex-end', marginTop: -spacing.xs },
+  err: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  eye: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', marginRight: -6 },
 });

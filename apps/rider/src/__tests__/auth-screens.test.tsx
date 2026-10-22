@@ -87,9 +87,18 @@ describe('Create account and Sign in', () => {
     expect(mockPush).toHaveBeenCalledWith({ pathname: '/auth/otp', params: { next: 'pass' } });
   });
 
-  it('signs in to that account and rejects a wrong password with a neutral message', async () => {
+  it('signs in over two steps and rejects a wrong password with a neutral message', async () => {
     await mount(<SignIn />);
+    await fireEvent.changeText(screen.getByTestId('signin-id'), 'ada@');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signin-submit'));
+    });
+    expect(screen.getByText('Enter a valid email address.')).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('signin-id'), 'ada@example.com');
+    await act(async () => {
+      await fireEvent.press(screen.getByTestId('signin-submit'));
+    });
+    expect(screen.getByText('Signing in as ada@example.com')).toBeTruthy();
     await fireEvent.changeText(screen.getByTestId('signin-password'), 'wrongpass1');
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signin-submit'));
