@@ -26,11 +26,12 @@ export const MOCK_PAYMENTS_CONFIG: PaymentsConfig = {
 };
 
 /**
- * Driver access packages (Q-002). Prices are PROVISIONAL: ₦2,000 daily, ₦60,000 monthly.
+ * Driver access packages. CONFIRMED by the owner (2026-10-23): daily ₦2,000 for 24 hours from successful
+ * activation, monthly ₦60,000 for 30 consecutive days. Trip commission stays 0% (BR-060).
  */
 export const DRIVER_ACCESS_PACKAGES: readonly DriverAccessPackage[] = [
-  { id: 'daily', name: 'Daily access', price: naira(2000), durationDays: 1, provisional: true },
-  { id: 'monthly', name: 'Monthly access', price: naira(60000), durationDays: 30, provisional: true },
+  { id: 'daily', name: 'Daily access', price: naira(2000), durationDays: 1, provisional: false },
+  { id: 'monthly', name: 'Monthly access', price: naira(60000), durationDays: 30, provisional: false },
 ];
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethodType, string> = {

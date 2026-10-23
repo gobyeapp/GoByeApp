@@ -16,6 +16,8 @@ const KIND_LABEL: Record<ApprovalKind, string> = {
   payments_activation: 'Payments activation',
   announcement: 'Announcement',
   staff_role: 'Staff access',
+  fee_schedule: 'Fee schedule',
+  automation_config: 'Automation setting',
 };
 const STATUS: Record<ApprovalRequest['status'], { tone: Tone; text: string }> = {
   pending: { tone: 'warning', text: 'Pending' },

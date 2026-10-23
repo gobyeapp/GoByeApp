@@ -83,6 +83,11 @@ export const PERMISSIONS = [
   'integrations.configure',
   'integrations.secrets',
   'logs.view',
+  // Payments configuration and the Automation Centre (D-054, D-055)
+  'fees.edit',
+  'automation.view',
+  'automation.configure',
+  'automation.retry',
   // Growth
   'comms.view',
   'comms.draft',
@@ -110,17 +115,19 @@ export const ROLE_PERMISSIONS: Record<StaffRole, readonly Permission[]> = {
   admin: [
     'overview.view', 'passengers.view', 'passengers.restrict', 'drivers.view', 'drivers.verify', 'drivers.restrict', 'trips.view', 'live.view',
     'config.view', 'config.edit', 'cases.view', 'approvals.view', 'audit.view', 'reports.view', 'promos.manage', 'referrals.manage', 'events.manage', 'comms.view', 'comms.draft',
+    'automation.view',
   ],
-  operations: ['overview.view', 'live.view', 'live.dispatch', 'trips.view', 'trips.intervene', 'drivers.view', 'passengers.view', 'cases.view', 'config.view'],
+  operations: ['overview.view', 'live.view', 'live.dispatch', 'trips.view', 'trips.intervene', 'drivers.view', 'passengers.view', 'cases.view', 'config.view', 'automation.view'],
   onboarding: ['drivers.view', 'drivers.verify', 'drivers.contact_details', 'cases.view'],
   care: ['passengers.view', 'passengers.contact_details', 'drivers.view', 'trips.view', 'cases.view', 'cases.work', 'cases.assign', 'finance.view', 'refunds.request'],
   safety: ['safety.view', 'safety.work', 'safety.location', 'trips.view', 'passengers.view', 'passengers.contact_details', 'drivers.view', 'drivers.contact_details', 'drivers.restrict', 'passengers.restrict', 'cases.view'],
   finance: [
     'overview.view', 'finance.view', 'ledger.view', 'ledger.adjust', 'refunds.request', 'refunds.approve', 'withdrawals.view', 'withdrawals.review', 'withdrawals.process',
     'reconciliation.work', 'reports.view', 'reports.export', 'trips.view', 'passengers.view', 'drivers.view', 'payments_setup.view', 'approvals.view', 'audit.view',
+    'fees.edit', 'automation.view', 'automation.retry',
   ],
   marketing: ['comms.view', 'comms.draft', 'comms.publish', 'promos.manage', 'referrals.manage', 'events.manage', 'reports.view', 'config.view'],
-  developer: ['integrations.view', 'integrations.configure', 'integrations.secrets', 'logs.view', 'payments_setup.view', 'audit.view'],
+  developer: ['integrations.view', 'integrations.configure', 'integrations.secrets', 'logs.view', 'payments_setup.view', 'audit.view', 'automation.view', 'automation.configure', 'automation.retry'],
   // Read only by construction: only `.view` permissions, never contact details or precise safety location.
   auditor: VIEW_ALL.filter((p) => p !== 'safety.view'),
 };

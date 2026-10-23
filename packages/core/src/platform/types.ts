@@ -42,7 +42,10 @@ export type RecordType =
   | 'integration'
   | 'staff'
   | 'approval'
-  | 'event';
+  | 'event'
+  | 'fee_schedule'
+  | 'automation'
+  | 'automation_run';
 
 export interface PassengerRecord {
   id: string;
@@ -156,6 +159,8 @@ export type LedgerAccount =
   | { kind: 'provider_clearing'; provider: string }
   | { kind: 'promotions_expense' }
   | { kind: 'processing_costs' }
+  /** GoBye's own transaction fees (wallet funding, withdrawals), kept apart from package revenue (D-054). */
+  | { kind: 'fee_income' }
   /** Unexplained differences found in reconciliation, held here until investigated and cleared. */
   | { kind: 'suspense' };
 
@@ -337,7 +342,7 @@ export interface Announcement {
   delivery: Record<Channel, { attempted: number; delivered: number; failed: number }>;
 }
 
-export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role';
+export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role' | 'fee_schedule' | 'automation_config';
 export interface ApprovalRequest {
   id: string;
   kind: ApprovalKind;

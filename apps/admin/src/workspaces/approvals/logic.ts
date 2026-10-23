@@ -7,6 +7,8 @@ import {
   canDecide,
   canGoLive,
   canTransition,
+  approveFeeSchedule,
+  decideSettingChange,
   postApprovedAdjustment,
   releaseWithdrawal,
   type Actor,
@@ -140,6 +142,14 @@ function approveEffect(draft: PlatformDataset, req: ApprovalRequest, ctx: { now:
       draft.ledger = res.entries;
       return { ok: true };
     }
+    case 'fee_schedule': {
+      const by = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
+      return approveFeeSchedule(draft.feeSchedules, req.target.id, by, ctx.now);
+    }
+    case 'automation_config': {
+      const by = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
+      return decideSettingChange(draft.automationChanges.find((c) => c.id === req.note), 'approved', by, ctx.now);
+    }
   }
 }
 
@@ -177,6 +187,20 @@ function rejectEffect(draft: PlatformDataset, req: ApprovalRequest, ctx: { now: 
       w.history.push({ at: ctx.now, status: 'rejected', by: ctx.actor, note: reason });
       return { ok: true };
     }
+    case 'fee_schedule': {
+      const f = draft.feeSchedules.find((x) => x.id === req.target.id);
+      if (f && f.status === 'pending_approval') f.status = 'rejected';
+      return { ok: true };
+    }
+    case 'automation_config': {
+      const c = draft.automationChanges.find((x) => x.id === req.note);
+      if (c && c.status === 'pending_approval') {
+        c.status = 'rejected';
+        c.decidedBy = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
+        c.decidedAt = ctx.now;
+      }
+      return { ok: true };
+    }
     default:
       return { ok: true };
   }
@@ -197,6 +221,10 @@ export function approvalEffectText(req: ApprovalRequest): string {
       return 'The provider switches to live, only if every live check has passed.';
     case 'staff_role':
       return 'The requested roles are added to the staff member.';
+    case 'fee_schedule':
+      return 'The fee schedule is scheduled for its start date. Customers see the new fees before they confirm; nothing changes before that date.';
+    case 'automation_config':
+      return 'The automation setting changes for runs that start after approval. Runs already in progress keep the old value.';
     case 'ledger_adjustment':
       return req.adjustment?.reverseJournalId ? 'A reversal journal posts against the original. Nothing is edited.' : 'An adjustment journal posts exactly the lines shown, with this reason. Nothing is edited.';
   }

@@ -76,6 +76,30 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    // Payment infrastructure and fees (D-054). Provider-independent; nothing here moves real money yet.
+    title: 'Payments',
+    subnav: true,
+    items: [
+      { path: '/payments', label: 'Payment providers', icon: 'bank', anyOf: ['payments_setup.view'], page: L(() => import('@/workspaces/payments/PaymentsSetup')), keywords: 'gateway provider paystack flutterwave go live switch adapter' },
+      { path: '/payments/fees', label: 'Fee configuration', icon: 'ticket', anyOf: ['payments_setup.view', 'fees.edit', 'finance.view'], page: L(() => import('@/workspaces/payments/Fees')), keywords: 'transaction fees wallet funding withdrawal charges schedule' },
+      { path: '/payments/health', label: 'Gateway health', icon: 'radar', anyOf: ['payments_setup.view', 'integrations.view'], page: L(() => import('@/workspaces/payments/Health')), keywords: 'webhooks status uptime provider' },
+      { path: '/payments/operations', label: 'Payment operations', icon: 'exchange', anyOf: ['finance.view', 'payments_setup.view'], page: L(() => import('@/workspaces/payments/Operations')), keywords: 'money movement breakdown stuck pending payouts collections' },
+    ],
+  },
+  {
+    // Automation Centre (D-055): registry of server-side workflows. No job runner is connected yet.
+    title: 'Automation',
+    subnav: true,
+    items: [
+      { path: '/automation', label: 'Workflow registry', icon: 'layout', anyOf: ['automation.view'], page: L(() => import('@/workspaces/automation/Registry')), keywords: 'automations workflows jobs background' },
+      { path: '/automation/schedules', label: 'Scheduled jobs', icon: 'calendar', anyOf: ['automation.view'], page: L(() => import('@/workspaces/automation/Schedules')), keywords: 'cron timers schedule' },
+      { path: '/automation/runs', label: 'Execution history', icon: 'history', anyOf: ['automation.view'], page: L(() => import('@/workspaces/automation/Runs')), keywords: 'runs executions log' },
+      { path: '/automation/failed', label: 'Failed jobs', icon: 'alert', anyOf: ['automation.view'], page: L(() => import('@/workspaces/automation/Failed')), badge: (d) => d.automationRuns.filter((r) => r.status === 'failed' || r.status === 'needs_lookup').length, keywords: 'dead letter errors retry lookup' },
+      { path: '/automation/settings', label: 'Automation settings', icon: 'settings', anyOf: ['automation.view'], page: L(() => import('@/workspaces/automation/Settings')), keywords: 'configuration timings reminders thresholds' },
+      { path: '/automation/audit', label: 'Audit history', icon: 'fileCheck', anyOf: ['automation.view', 'audit.view'], page: L(() => import('@/workspaces/automation/AuditHistory')), keywords: 'changes trail fees automation payments' },
+    ],
+  },
+  {
     title: 'Growth',
     items: [
       { path: '/comms', label: 'Announcements', icon: 'announcement', anyOf: ['comms.view'], page: L(() => import('@/workspaces/growth/Announcements')), keywords: 'messages notifications broadcast' },
@@ -108,7 +132,6 @@ export const NAV: NavGroup[] = [
   {
     title: 'Technical',
     items: [
-      { path: '/payments', label: 'Payments setup', icon: 'bank', anyOf: ['payments_setup.view'], page: L(() => import('@/workspaces/payments/PaymentsSetup')), keywords: 'provider paystack flutterwave go live' },
       { path: '/developer', label: 'Integrations', icon: 'plugin', anyOf: ['integrations.view'], page: L(() => import('@/workspaces/developer/Integrations')), badge: (d) => d.integrations.filter((i) => i.state === 'degraded').length },
       { path: '/developer/events', label: 'Events and failures', icon: 'webhook', anyOf: ['logs.view'], page: L(() => import('@/workspaces/developer/EventLog')), keywords: 'webhooks jobs errors' },
       // Simulated until a backend and a live control plane exist (D-051). The page also checks roles itself.

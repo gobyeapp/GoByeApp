@@ -65,10 +65,10 @@ describe('payments (Q-001, Q-002)', () => {
     expect(walletCovers(naira(3000), paymentCharge(naira(3050), 'wallet'))).toBe(false);
   });
 
-  it('defines provisional daily and monthly driver packages', () => {
-    expect(DRIVER_ACCESS_PACKAGES.map((p) => [p.id, p.price, p.provisional])).toEqual([
-      ['daily', naira(2000), true],
-      ['monthly', naira(60000), true],
+  it('uses the confirmed driver packages: ₦2,000 for 24 hours, ₦60,000 for 30 days', () => {
+    expect(DRIVER_ACCESS_PACKAGES.map((p) => [p.id, p.price, p.durationDays, p.provisional])).toEqual([
+      ['daily', naira(2000), 1, false],
+      ['monthly', naira(60000), 30, false],
     ]);
   });
 

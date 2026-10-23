@@ -1,3 +1,7 @@
+import type { FeeSchedule } from '../gateway/fees';
+import type { AutomationRun } from '../automation/runs';
+import { simulatedAutomationRuns, simulatedFeeSchedules, simulatedSettingChanges } from '../automation/simulate';
+import type { AutomationSettingChange } from '../automation/settings';
 import { naira } from '../money';
 import { seededRandom } from '../mocks/data';
 import type { Kobo } from '../types';
@@ -51,6 +55,11 @@ export interface PlatformDataset {
   approvals: ApprovalRequest[];
   events: EventPartnership[];
   audit: AuditEvent[];
+  /** Wallet funding and withdrawal fee schedules (D-054). Test data: every fee is "Not set". */
+  feeSchedules: FeeSchedule[];
+  /** SIMULATED automation run history (D-055). No job runner exists yet. */
+  automationRuns: AutomationRun[];
+  automationChanges: AutomationSettingChange[];
 }
 
 const HOUR = 3_600_000;
@@ -189,7 +198,7 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
         post(creditWalletFunding(ledger, { passengerId: p.id, amount, provider: PROVIDER, reference, now: at }));
         // The provider's fee on the funding is GoBye's processing cost (the passenger is credited in full).
         const fee = Math.round(amount * 0.015) as Kobo;
-        post(postJournal(ledger, { lines: [{ account: { kind: 'processing_costs' }, amount: fee }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: -fee as Kobo }], kind: 'processing_fee', description: 'Provider fee on wallet funding', by: { kind: 'provider', name: PROVIDER }, now: at, reference: `${reference}-fee`, provider: PROVIDER }));
+        post(postJournal(ledger, { lines: [{ account: { kind: 'processing_costs' }, amount: -fee as Kobo }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: fee }], kind: 'processing_fee', description: 'Provider fee on wallet funding', by: { kind: 'provider', name: PROVIDER }, now: at, reference: `${reference}-fee`, provider: PROVIDER }));
       }
     }
   });
@@ -210,7 +219,7 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
       collections.push({ id: `col-p-${i}-${k}`, purpose: 'package_purchase', payerType: 'driver', payerId: d.id, amount, fee: Math.round(amount * 0.015) as Kobo, provider: PROVIDER, reference, status: 'successful', createdAt: at, verifiedAt: at + 30_000, events: [{ at: at + 30_000, event: 'charge.success' }] });
       post(postJournal(ledger, { lines: [{ account: { kind: 'company_revenue' }, amount }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: -amount as Kobo }], kind: 'package_purchase', description: `${monthly ? 'Monthly' : 'Daily'} access package`, by: { kind: 'provider', name: PROVIDER }, now: at, reference, provider: PROVIDER }));
       const fee = Math.round(amount * 0.015) as Kobo;
-      post(postJournal(ledger, { lines: [{ account: { kind: 'processing_costs' }, amount: fee }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: -fee as Kobo }], kind: 'processing_fee', description: 'Provider fee on package purchase', by: { kind: 'provider', name: PROVIDER }, now: at, reference: `${reference}-fee`, provider: PROVIDER }));
+      post(postJournal(ledger, { lines: [{ account: { kind: 'processing_costs' }, amount: -fee as Kobo }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: fee }], kind: 'processing_fee', description: 'Provider fee on package purchase', by: { kind: 'provider', name: PROVIDER }, now: at, reference: `${reference}-fee`, provider: PROVIDER }));
     }
   });
 
@@ -448,7 +457,7 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
     { id: 'cfg-fares-1', key: 'fares', version: 1, value: { base: 500, perKm: 180, perMin: 25, minimum: 1200 }, status: 'superseded', effectiveFrom: now - 60 * DAY, createdBy: actor('stf-admin'), createdAt: now - 61 * DAY, approvedBy: actor('stf-owner'), note: 'Launch fares (placeholder)' },
     { id: 'cfg-fares-2', key: 'fares', version: 2, value: { base: 500, perKm: 190, perMin: 25, minimum: 1200 }, status: 'active', effectiveFrom: now - 10 * DAY, createdBy: actor('stf-admin'), createdAt: now - 12 * DAY, approvedBy: actor('stf-owner'), note: 'Fuel price change' },
     { id: 'cfg-fares-3', key: 'fares', version: 3, value: { base: 500, perKm: 200, perMin: 28, minimum: 1300 }, status: 'pending_approval', effectiveFrom: now + 5 * DAY, createdBy: actor('stf-admin'), createdAt: now - 4 * HOUR, note: 'Proposed December rates' },
-    { id: 'cfg-pkg-1', key: 'packages', version: 1, value: { daily: 2000, monthly: 60000 }, status: 'active', effectiveFrom: now - 60 * DAY, createdBy: actor('stf-admin'), createdAt: now - 61 * DAY, approvedBy: actor('stf-owner'), note: 'Provisional prices (D-024)' },
+    { id: 'cfg-pkg-1', key: 'packages', version: 1, value: { daily: 2000, monthly: 60000 }, status: 'active', effectiveFrom: now - 60 * DAY, createdBy: actor('stf-admin'), createdAt: now - 61 * DAY, approvedBy: actor('stf-owner'), note: 'Confirmed prices: daily ₦2,000 for 24 hours, monthly ₦60,000 for 30 days (confirmed by the owner, 23 Oct 2026)' },
     { id: 'cfg-ref-1', key: 'referrals', version: 1, value: { reward: 500, maxRewarded: 10, qualifying: 'first paid trip' }, status: 'active', effectiveFrom: now - 40 * DAY, createdBy: actor('stf-mkt'), createdAt: now - 41 * DAY, approvedBy: actor('stf-owner'), note: 'Referral launch' },
     { id: 'cfg-cat-1', key: 'categories', version: 1, value: { enabled: ['GoBye Car'] }, status: 'active', effectiveFrom: now - 60 * DAY, createdBy: actor('stf-admin'), createdAt: now - 61 * DAY, approvedBy: actor('stf-owner'), note: 'One car category at launch' },
     { id: 'cfg-can-1', key: 'cancellation', version: 1, value: { freeMinutes: 2, fee: 500, waitingFreeMinutes: 5 }, status: 'active', effectiveFrom: now - 60 * DAY, createdBy: actor('stf-admin'), createdAt: now - 61 * DAY, approvedBy: actor('stf-owner'), note: 'Launch rules' },
@@ -494,5 +503,10 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
     { id: 'aud-6', at: now - 5 * HOUR, actor: actor('stf-owner'), action: 'staff.invited', target: { type: 'staff', id: 'stf-new', label: 'Pending Invite' }, summary: 'Invited new care agent (Lagos)' },
   ];
 
-  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit };
+  const feeSchedules = simulatedFeeSchedules(now, { id: 'stf-fin', name: 'Grace Finance' });
+  const automationRuns = simulatedAutomationRuns({ collections, withdrawals, drivers, cases }, now);
+  const automationChanges = simulatedSettingChanges(now, { mkt: { id: 'stf-mkt', name: 'Lola Marketing' }, owner: { id: 'stf-owner', name: 'Akorede (Owner)' }, care: { id: 'stf-care', name: 'Ruth Care' } });
+  approvals.push({ id: 'apr-0006', kind: 'automation_config', title: 'Daily package reminder: 2 → 3 hours before', requestedBy: actor('stf-mkt'), requestedAt: now - 5 * HOUR, target: { type: 'automation', id: 'subscription.reminder', label: 'Package renewal reminders' }, status: 'pending', approverRoles: ['owner', 'admin'], note: 'asc-0001' });
+
+  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges };
 }

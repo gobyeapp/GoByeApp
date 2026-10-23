@@ -25,6 +25,7 @@ const WORDING: Record<string, { one: string; many: string; tone: Tone }> = {
   '/safety': { one: 'safety case is open', many: 'safety cases are open', tone: 'danger' },
   '/finance/withdrawals': { one: 'withdrawal is waiting for review', many: 'withdrawals are waiting for review', tone: 'warning' },
   '/developer': { one: 'integration is degraded', many: 'integrations are degraded', tone: 'danger' },
+  '/automation/failed': { one: 'automation run needs a person', many: 'automation runs need a person', tone: 'danger' },
 };
 
 export function attentionNotes(d: PlatformDataset, now: number, can: (p: Permission) => boolean, inScope: (c: CityId) => boolean): AttentionNote[] {

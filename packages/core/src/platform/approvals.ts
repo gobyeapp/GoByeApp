@@ -15,6 +15,8 @@ export const APPROVAL_RULES: Record<ApprovalKind, { approverRoles: StaffRole[]; 
   payments_activation: { approverRoles: ['owner'], note: 'Switching a payment provider to live, or changing settlement destination' },
   announcement: { approverRoles: ['owner', 'admin'], note: 'Messages to all users, or any SMS campaign' },
   staff_role: { approverRoles: ['owner'], note: 'Granting owner, finance or developer access' },
+  fee_schedule: { approverRoles: ['owner'], note: 'A new wallet funding or withdrawal fee schedule (prepared by finance)' },
+  automation_config: { approverRoles: ['owner', 'admin'], note: 'Changing an automation setting (timings, reminders, thresholds)' },
 };
 
 export function needsApproval(kind: ApprovalKind, amount?: Kobo): boolean {

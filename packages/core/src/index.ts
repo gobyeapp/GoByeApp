@@ -25,3 +25,5 @@ export * from './booking/history';
 export * from './infra';
 export * from './files';
 export * from './traffic';
+export * from './gateway';
+export * from './automation';

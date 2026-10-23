@@ -11,7 +11,7 @@ import { useNow } from '@/state/useNow';
 
 /**
  * Access pass (F-D12, D-024): drivers pay a flat daily or monthly fee instead of a per-trip commission.
- * Buying while a pass is active extends it from the current expiry. Prices are provisional.
+ * Buying while a pass is active extends it from the current expiry. Prices confirmed 2026-10-23: daily ₦2,000 / 24 hours, monthly ₦60,000 / 30 days.
  */
 export default function Access() {
   const { colors } = useTheme();
@@ -87,7 +87,7 @@ export default function Access() {
       </View>
 
       <Text variant="footnote" color="textSecondary">
-        Prices are provisional while GoBye prepares to launch. Riders pay you directly by bank transfer or through the GoBye Wallet.
+        Daily gives you 24 hours from when your payment is confirmed; monthly gives you 30 days. GoBye takes 0% of your fares. Riders pay you directly by bank transfer or through the GoBye Wallet.
       </Text>
       <View style={styles.sim}>
         <SimNote>No money moves in this preview.</SimNote>

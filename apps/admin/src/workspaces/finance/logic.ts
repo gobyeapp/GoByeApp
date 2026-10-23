@@ -133,7 +133,7 @@ export function postCollectionJournal(d: PlatformDataset, c: CollectionRecord, n
     const r = postJournal(d.ledger, { lines: [{ account: { kind: 'company_revenue' }, amount: c.amount }, { account: clearing, amount: -c.amount as Kobo }], kind: 'package_purchase', description: `${planForAmount(d, c.amount)} access package`, by, now, reference: c.reference, provider: c.provider });
     if (!r.ok) return { ok: false, error: r.error };
     if (!c.fee) return { ok: true, entries: r.entries, duplicate: r.duplicate };
-    const f = postJournal(r.entries, { lines: [{ account: { kind: 'processing_costs' }, amount: c.fee }, { account: clearing, amount: -c.fee as Kobo }], kind: 'processing_fee', description: 'Provider fee on package purchase', by, now, reference: `${c.reference}-fee`, provider: c.provider });
+    const f = postJournal(r.entries, { lines: [{ account: { kind: 'processing_costs' }, amount: -c.fee as Kobo }, { account: clearing, amount: c.fee }], kind: 'processing_fee', description: 'Provider fee on package purchase', by, now, reference: `${c.reference}-fee`, provider: c.provider });
     return f.ok ? { ok: true, entries: f.entries, duplicate: r.duplicate && f.duplicate } : { ok: false, error: f.error };
   }
   const tripId = tripIdFromReference(c.reference);
@@ -635,6 +635,7 @@ export const ACCOUNT_LABEL: Record<LedgerAccount['kind'], string> = {
   provider_clearing: 'Provider clearing',
   promotions_expense: 'Promotions and goodwill',
   processing_costs: 'Processing costs',
+  fee_income: 'GoBye fee income',
   suspense: 'Unexplained differences',
 };
 
@@ -678,7 +679,8 @@ export function accountBalances(ledger: readonly LedgerEntry[]) {
   return {
     companyRevenue: by('company_revenue'),
     promotionsSpend: -by('promotions_expense'),
-    processingCosts: by('processing_costs'),
+    // Expense accounts carry negative balances (debits); shown as a positive cost.
+    processingCosts: -by('processing_costs'),
     passengerWallets: by('passenger_wallet'),
     driverEarnings: by('driver_earnings'),
     withdrawalReserves: by('driver_withdrawal_reserve'),
@@ -706,7 +708,7 @@ export function reportData(d: PlatformDataset, include: Include) {
   const revenueByPlan = [...revenue.values()].sort((a, b) => b.amount - a.amount);
 
   const costs = {
-    processing: sum(d.ledger.filter((e) => e.account.kind === 'processing_costs' && inc(e)).map((e) => e.amount)),
+    processing: -sum(d.ledger.filter((e) => e.account.kind === 'processing_costs' && inc(e)).map((e) => e.amount)),
     referralRewards: -sum(d.ledger.filter((e) => e.account.kind === 'promotions_expense' && e.kind === 'referral_reward' && inc(e)).map((e) => e.amount)),
     goodwillRefunds: -sum(d.ledger.filter((e) => e.account.kind === 'promotions_expense' && e.kind === 'refund' && inc(e)).map((e) => e.amount)),
     otherPromotions: -sum(d.ledger.filter((e) => e.account.kind === 'promotions_expense' && e.kind !== 'refund' && e.kind !== 'referral_reward' && inc(e)).map((e) => e.amount)),
