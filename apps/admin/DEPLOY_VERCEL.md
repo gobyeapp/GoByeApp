@@ -18,7 +18,7 @@ It connects to the backend later through `https://api.gobye.app/v1` once the bac
 
 | Setting | Value | Why |
 |---|---|---|
-| `installCommand` | Checks the whole repository is present, then `cd ../.. && npm ci --workspace apps/admin --include-workspace-root=false` | Installs only the admin's packages from the shared lock file (about 230 packages in about 10 s), not the mobile apps |
+| `installCommand` | `sh scripts/vercel-install.sh`: checks the whole repository is present, then `cd ../.. && npm ci --workspace apps/admin --include-workspace-root=false` (a script because Vercel limits commands to 256 characters) | Installs only the admin's packages from the shared lock file (about 230 packages in about 10 s), not the mobile apps |
 | `buildCommand` | `npm run build` | Typecheck, then a Vite production build |
 | `outputDirectory` | `dist` | Static files; hash routing (`/#/…`) so no rewrites are needed |
 | `ignoreCommand` | `git diff --quiet HEAD^ HEAD -- . ../../packages/core` | Skips a build when a push changes neither the admin nor the shared core, so landing-page pushes don't rebuild the admin |

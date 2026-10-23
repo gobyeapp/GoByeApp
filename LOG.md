@@ -784,3 +784,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Simulated the admin-only upload: clear message, exit 1.
   - Simulated the full repository: install and build pass.
 - **Owner step:** turn the setting on and redeploy.
+
+## 2026-10-23 — Admin Vercel install command shortened
+
+- **Problem:** Vercel rejected the guarded install command because commands are limited to 256 characters.
+- **Fix:** the check and `npm ci` now live in `apps/admin/scripts/vercel-install.sh`. The `installCommand` is `sh scripts/vercel-install.sh` (28 characters).
+- **Checks (both simulated again):**
+  - Admin-only upload: clear message, exit 1.
+  - Full repository: install and build pass.
