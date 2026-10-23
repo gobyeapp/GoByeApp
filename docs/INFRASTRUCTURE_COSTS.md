@@ -1,5 +1,7 @@
 # Infrastructure costs (D-051)
 
+**Staging (Phase 1.5): the consolidated estimate is in `STAGING_COST_ESTIMATE.md`**: $0 + SMS on free tiers, or ≥ $25 + StackShift quote + SMS on paid tiers. Nothing paid is active.
+
 ## Backend Phase 1: requirements and expected monthly cost (2026-10-23)
 
 **Actual costs incurred by Phase 1: none.**

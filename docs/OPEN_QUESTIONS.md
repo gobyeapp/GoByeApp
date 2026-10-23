@@ -508,18 +508,18 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Question:** Where does StackShift run our containers (region and data centre)? What do the plans cost? What are the bandwidth limits and the uptime commitment below Enterprise? Can it build `apps/api/Dockerfile` with the repository root as context?
 - **Why:** the public pages don't say (checked 2026-10-23). Production is blocked until `DEPLOYMENT_STACKSHIFT.md` §4 passes (deployment, latency from Lagos, bandwidth, 14-day reliability, load, origin lockdown).
 - **Owner:** Owner / Engineering · **Blocks:** staging deployment, the cost estimate, production
-- **Assumption:** Staging only, on a paid plan with two services (API + worker).
+- **Assumption:** Staging only. Updated 2026-10-23 (Phase 1.5): the Free plan (0.5 vCPU, 512 MB) fits staging with the worker in-process (measured ≈ 61 MB under load). Paid plans still show no price; a written quote is needed before any paid plan.
 
 ### Q-076 — Supabase region, plan and backups
 - **Question:** Which region for the staging and production Supabase projects (closest to Lagos, and acceptable under the NDPA for personal data)? Pro plan for both? Point-in-time recovery for production (extra cost)?
 - **Why:** latency (the API host should be in or near the same region) and data-location obligations.
 - **Owner:** Owner / Legal · **Blocks:** creating the projects and running migrations
-- **Assumption:** Pro organisation; production on Small compute with daily backups; PITR not yet bought.
+- **Assumption:** Pro organisation; production on Small compute with daily backups; PITR not yet bought. Staging can start on the **Free** plan (`STAGING_SUPABASE.md`, `STAGING_COST_ESTIMATE.md`) unless Pro is approved.
 
 ### Q-077 — How riders and drivers prove their phone on sign-in
 - **Question:** D-045/D-048 say every sign-in ends with a phone code. Supabase's phone MFA costs $75/month (first project) plus SMS. Options: (a) phone MFA on every sign-in; (b) verify the phone at sign-up, again on a new device and on sensitive changes; (c) phone OTP as the sign-in itself.
 - **Owner:** Owner / Product · **Blocks:** Phase 2 WP1–WP2 (`BACKEND_PHASE_2_PLAN.md` A-3)
-- **Assumption:** (b) recommended.
+- **Assumption:** (b) recommended, now written up as **D-062 (Proposed)** with device verification, step-up for sensitive and financial actions, and abuse controls. Not approved.
 
 ### Q-078 — SMS route for one-time codes
 - **Question:** A provider built into Supabase, or the Send SMS hook to a Nigerian gateway? Decide on delivery rates to MTN, Airtel, Glo and 9mobile, and the price per message.

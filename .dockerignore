@@ -14,6 +14,7 @@
 !apps/api/tsconfig.json
 !apps/api/tsconfig.build.json
 !apps/api/scripts/health-check.mjs
+!apps/api/scripts/prune-to-runtime.mjs
 !packages/core/src/**
 packages/core/src/__tests__/**
 !infra/cloudflare/src/r2/sigv4.ts

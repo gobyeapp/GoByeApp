@@ -68,7 +68,10 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Every write that creates or changes something takes an `Idempotency-Key` (`withIdempotency`) and writes its audit row in the same transaction.
 - No real-money wallet, ledger, payouts or webhook endpoints until the reviews in `BACKEND_ARCHITECTURE.md` §9 are done.
 - No Redis, ClickHouse, Kubernetes or new paid services without a measured need.
-- Run `npm test -w apps/api` with PostgreSQL available. The database tests skip without it, so a pass without Postgres proves little.
+- Run `npm test -w apps/api` with PostgreSQL available. The database tests skip without it, so a pass without Postgres proves little. CI runs `npm run test:ci -w apps/api` with PgBouncer (`apps/api/test/pooler/start.sh`, `TEST_POOLER_URL`), where any skip fails.
+- Database connections send **no session settings at start-up** (Supavisor transaction mode, C-1). Timeouts live on the role (`apps/api/db/roles.sql`) and in `SET LOCAL`.
+- `npm run lint` (ESLint, root `eslint.config.mjs`) must be clean. Fix the code; don't disable rules to pass.
+- Staging is not ready until `docs/BACKEND_PHASE_1_VERIFICATION.md` §4.6 is all ticked. Never use the website/waitlist Supabase project for the backend.
 
 ## Documentation maintenance
 

@@ -7,7 +7,7 @@
 # ADMIN_URL: a role that may CREATE DATABASE and CREATE ROLE (like Supabase's `postgres`). The script
 # creates a throwaway database, runs roles.sql, the migrations FROM THE IMAGE, grants.sql, then checks:
 #   1. invalid configuration exits 78 (EX_CONFIG) and prints which variable is wrong, no secrets;
-#   2. the image runs as a non-root user and contains no TypeScript sources;
+#   2. the image runs as a non-root user and contains no TypeScript sources or build-only packages;
 #   3. migrate status/up and check-runtime work from the image (runtime role timeouts, no DDL);
 #   4. the API starts, /health/live and /health/ready are 200, envelopes and headers are right
 #      (scripts/health-check.mjs, run from the image), Docker's HEALTHCHECK turns healthy;
@@ -57,6 +57,8 @@ echo "$out" | grep -q 'very-secret-value' && bad "config error printed a secret"
 # 2. Non-root, no sources
 [ "$(run --entrypoint id "$IMAGE" -u)" != 0 ] && ok "runs as non-root ($(run --entrypoint id "$IMAGE" -un))" || bad "runs as root"
 run --entrypoint sh "$IMAGE" -c 'test ! -d apps/api/src && test -z "$(find / -xdev -name "*.ts" -path "*/apps/api/*" 2>/dev/null | grep -v node_modules | head -1)"' && ok "no TypeScript sources in the image" || bad "sources found in the image"
+
+run --entrypoint sh "$IMAGE" -c 'for p in typescript tsc-alias braces micromatch @types/node jest eslint; do [ -e node_modules/$p ] || [ -e apps/api/node_modules/$p ] && { echo "dev package in image: $p"; exit 1; }; done; exit 0' && ok "no build-only packages in the image (pruned to the runtime graph)" || bad "build-only packages found in the image"
 
 # 3. Database: roles, migrations from the image, grants, runtime check
 psql "$ADMIN_URL" -X -q -v ON_ERROR_STOP=1 -c "create database $DB" >/dev/null

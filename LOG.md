@@ -929,3 +929,40 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **New cost found:** Supabase phone MFA is $75/month (first project). This matters for D-045's "every sign-in ends with a phone code"; the alternative is decision A-3(b).
 - **Phase 2 planned (not started):** `docs/BACKEND_PHASE_2_PLAN.md`, covering real rider/driver authentication and driver onboarding (WP0–WP5).
 - **Next:** owner actions C-6, A-2, A-3, A-4, A-6 and a Supabase staging project; then WP0.
+
+## 2026-10-23 — Backend Phase 1.5: corrections and staging readiness (no deploy, no Phase 2)
+
+- **C-1 fixed:** `poolConfig()` no longer sends `statement_timeout` at connection start; only `application_name` is sent. Timeouts now come from three places:
+  - the role (`apps/api/db/roles.sql`: 5s / 3s / 30s);
+  - `SET LOCAL` per transaction;
+  - the client `query_timeout`.
+  - `apps/api/db/grants.sql` runs as `gobye_migrator`.
+  - `migrate.js check-runtime` checks a real environment's runtime connection without printing secrets.
+  - 8 new tests through **PgBouncer in transaction mode** (`test/pooler.test.ts`); PgBouncer is not Supavisor, which is still to prove on staging.
+- **CI:** `.github/workflows/ci.yml` (pushed; the first run was not observable here because the GitHub API is blocked). It covers:
+  - typecheck, lint, all tests, the Expo exports and the admin build;
+  - the API on Postgres 16 + PgBouncer, where skips fail (`test:ci`, `scripts/test-strict.mjs`);
+  - an image build with the digest-pinned base, plus `scripts/docker-smoke.sh`.
+- **Lint:** ESLint 10 + typescript-eslint + react-hooks, 0 problems. The fixes included a stale `useMemo` in the admin driver detail (missing `d.subscriptions`).
+- **Docker:**
+  - The base is pinned to `node:22.23.4-bookworm-slim@sha256:de170b39…f38d`.
+  - Built locally on a stand-in base (Docker Hub blocked); smoke test 15/15.
+  - Found that `npm ci --omit=dev` in a workspace shipped typescript and micromatch/braces (braces has a high advisory). `scripts/prune-to-runtime.mjs` now keeps only the runtime graph: `node_modules` 62 → 35 MB.
+- **Measured at 0.5 CPU / 512 MB:** ≈ 61 MB, ≈ 1,200 rps on health and 401 routes, 0 errors.
+- **Docs:**
+  - `STAGING_SUPABASE.md`: a new dedicated project on the Free plan unless Pro is approved, with the owner steps.
+  - `SECURITY_CREDENTIAL_ROTATION.md` (C-6): three exposed credentials, each with a check that the old value is dead. No secret was found in git history.
+  - `STAGING_COST_ESTIMATE.md`: $0 + SMS, or ≥ $25 + StackShift quote + SMS.
+  - **D-062 (Proposed, not approved):** phone verification at onboarding, on new devices and as a step-up before sensitive actions; no paid phone-MFA add-on.
+  - D-063: engineering checks.
+  - The verification report has a new §4.
+- **Tests:** 841 run, 841 passed, 0 skipped (API 80, core 265, admin 405, rider 36, driver 14, infra 41).
+- **Staging: NOT READY.** No dedicated Supabase project and no deployed API. Checklist: verification report §4.6.
+- **Next (owner):**
+  1. Rotate the three credentials and verify each old value is dead.
+  2. Check the first CI run.
+  3. Create the staging Supabase project (Q-076).
+  4. Set up a StackShift account (Free) and get a quote.
+  5. Decide D-062 / A-4 / A-6.
+  6. Deploy the staging gateway Worker after the Cloudflare token is rotated.
+- **Next (engineering):** after those steps, items S-6 to S-11 of §4.6. Phase 2 starts only after staging is ready.

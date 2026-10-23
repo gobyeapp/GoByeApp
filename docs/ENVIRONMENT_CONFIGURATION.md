@@ -67,6 +67,9 @@ placeholders only; `.env.local` is git-ignored.
 - A GitHub personal access token and the Supabase service_role key were shared in chat on 2026-10-22.
   Neither is in the repository (checked with a pattern search of the working tree and history), but both
   must be rotated (DECISIONS D-045 note, OPEN_QUESTIONS).
+- A Cloudflare API token was saved into the AI workspace for the setup script (D-051). The file was
+  deleted on 2026-10-23; the token must still be revoked.
+- **Rotation steps and the check that each old value is dead:** `SECURITY_CREDENTIAL_ROTATION.md` (C-6). Open as of 2026-10-23.
 - The website contains the Supabase **anon** key by design (insert-only RLS on `waitlist`; the demo
   tables are wider, see DEMO_CONNECTED.md).
 

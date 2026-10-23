@@ -212,15 +212,15 @@ Owner restriction: no real-money wallet before the ledger, reconciliation, payme
 
 Before adding Redis, the first steps are `LISTEN/NOTIFY` wake-ups and partitioning `ops.jobs` by status.
 
-## 11. Deployment (Built; image build not run here)
+## 11. Deployment (Built; image built and smoke-tested on a stand-in base; real base in CI)
 
 | Item | State |
 |---|---|
-| `apps/api/Dockerfile` | Multi-stage (deps → build → prod-deps → runtime), Node 22 slim, non-root `node` user, `HEALTHCHECK` on `/health/live`, `APP_VERSION` build argument. |
-| Docker build | **Not run here:** Docker Hub is blocked from the build workspace. Every stage's commands were rehearsed with the same file allowlist. The rehearsal found and fixed a missing `apps/api/node_modules` copy (zod). The runtime layout passed all 11 deploy checks. |
+| `apps/api/Dockerfile` | Multi-stage (deps → build → prod-deps → runtime), non-root `node` user, `HEALTHCHECK` on `/health/live`, `APP_VERSION` build argument. Base **pinned by index digest**: `node:22.23.4-bookworm-slim@sha256:de170b39…f38d` (Phase 1.5). The prod-deps stage prunes to the API's real runtime graph (`scripts/prune-to-runtime.mjs`). Without that, typescript and micromatch/braces (dev-only for the API, production for the Expo apps) would ship in the image. |
+| Docker build | Docker Hub is blocked from the build workspace. On 2026-10-23 the image was **built from this Dockerfile on a stand-in Node 22 base** (Ubuntu + the same Node major) and passed `scripts/docker-smoke.sh` (15/15). CI builds the **real digest-pinned base** and runs the same smoke test (job `docker`). |
 | `.dockerignore` | Allowlist: no `.env` files, no app sources, no git. |
-| StackShift | Plan and test checklist in `DEPLOYMENT_STACKSHIFT.md`. Nothing deployed. |
-| CI | Template at `apps/api/ci/github-actions-api.yml`. Move it to `.github/workflows/` when the repository token has workflow permission. |
+| StackShift | Plan and test checklist in `DEPLOYMENT_STACKSHIFT.md` (§6: what was verified locally). Nothing deployed. |
+| CI | `.github/workflows/ci.yml` (active from commit `6aceb8c`): typecheck, lint, all tests, Expo exports, admin build, API tests on Postgres + PgBouncer with no skips allowed, image build + smoke test. Read-only; no deploys, no secrets. |
 | Post-deploy check | `scripts/health-check.mjs` (11 checks, exits non-zero on failure). Tested against a live in-process server. |
 
 ## 12. API conventions (Built + tested)

@@ -2,6 +2,7 @@
 
 **Date:** 2026-10-23 (afternoon, Lagos).
 **Commit audited:** `170efda` (GitHub `main`, working tree identical).
+**Updated by Phase 1.5** (corrections and staging readiness): §2.3, §2.7 status notes and **§4**. Sections 1 and 2 otherwise describe the audit as it was.
 **Method:** every result below was produced again for this audit. The repository was freshly cloned from GitHub into a clean folder, with a clean `npm ci` of the API workspace. Nothing was taken from earlier reports.
 **Nothing was deployed and no paid service was activated.**
 
@@ -338,13 +339,13 @@ The API foundation (items 1, 2, 3 locally, 5, 6, 7 locally, 9, 11, 12, 14) and t
 
 | # | Priority | Problem | Correction |
 |---|---|---|---|
-| **C-1** | **Before staging** | `poolConfig` sends `statement_timeout` as a connection start-up parameter (`apps/api/src/database/database.ts`). Supabase documents role-level timeouts. Its docs say session-level settings don't work through Supavisor transaction mode (port 6543), and say nothing about start-up parameters. PgBouncer is known to reject exactly this parameter ("unsupported startup parameter: statement_timeout"). If Supavisor does the same, **every pooled connection would fail**. | Remove the start-up parameter (or make it opt-in for direct connections). Rely on `alter role gobye_api set statement_timeout` (already in `DATABASE_MIGRATIONS.md`) plus the existing `SET LOCAL` in transactions. Test against the staging pooler. |
-| C-2 | Before Phase 2 grows the code | No linter for the API, admin, core or infra | Add ESLint with typescript-eslint (recommended plus a few safety rules) and a `lint` script; run it in CI |
-| C-3 | Before staging | The CI workflow isn't active, so nothing builds the image | Move `apps/api/ci/github-actions-api.yml` to `.github/workflows/api.yml` (needs a token with the workflow permission, or the owner adds it in the GitHub web UI). This also produces the first real image build. |
-| C-4 | With C-3 | Base image pinned by tag, not digest | Pin `node:22.22.0-bookworm-slim@sha256:<index digest>` from the first CI build |
-| C-5 | Phase 2 | No route-level rider or driver guards; no server-side two-person approvals | `@RequireRole()` / `@RequireApprovedDriver()` guards; approvals table and endpoints before staff write actions |
-| C-6 | Owner, now | Credentials shared in chat are still not rotated. The deploy token used for every push this week is one of them. | Rotate the GitHub PAT, the Supabase service-role key and the Cloudflare token (risk R-1) |
-| C-7 | Low | `docker-compose.yml` never run | Run it once on a machine with Docker Hub access |
+| **C-1** | **Before staging** | `poolConfig` sends `statement_timeout` as a connection start-up parameter (`apps/api/src/database/database.ts`). Supabase documents role-level timeouts. Its docs say session-level settings don't work through Supavisor transaction mode (port 6543), and say nothing about start-up parameters. PgBouncer is known to reject exactly this parameter ("unsupported startup parameter: statement_timeout"). If Supavisor does the same, **every pooled connection would fail**. | Remove the start-up parameter (or make it opt-in for direct connections). Rely on `alter role gobye_api set statement_timeout` (already in `DATABASE_MIGRATIONS.md`) plus the existing `SET LOCAL` in transactions. Test against the staging pooler. **Phase 1.5: fixed in code** (`database.ts`, `db/roles.sql`); regression-tested through PgBouncer in transaction mode; still to prove on Supavisor with `migrate.js check-runtime` (blocked: no staging project). |
+| C-2 | Before Phase 2 grows the code | No linter for the API, admin, core or infra | Add ESLint with typescript-eslint (recommended plus a few safety rules) and a `lint` script; run it in CI. **Phase 1.5: done** (ESLint 10 + typescript-eslint + react-hooks; 0 problems). |
+| C-3 | Before staging | The CI workflow isn't active, so nothing builds the image | Move `apps/api/ci/github-actions-api.yml` to `.github/workflows/api.yml` (needs a token with the workflow permission, or the owner adds it in the GitHub web UI). This also produces the first real image build. **Phase 1.5: done**: `.github/workflows/ci.yml` pushed in `6aceb8c` (the push was accepted, so the token has workflow scope). Result of the first run **not visible from this workspace** (GitHub API blocked); owner to check the Actions tab. |
+| C-4 | With C-3 | Base image pinned by tag, not digest | Pin `node:22.22.0-bookworm-slim@sha256:<index digest>` from the first CI build. **Phase 1.5: done**: pinned to `node:22.23.4-bookworm-slim@sha256:de170b39…f38d` (index digest read from Docker Hub); real-base build happens in CI. |
+| C-5 | Phase 2 | No route-level rider or driver guards; no server-side two-person approvals | `@RequireRole()` / `@RequireApprovedDriver()` guards; approvals table and endpoints before staff write actions. Phase 2 (unchanged). |
+| C-6 | Owner, now | Credentials shared in chat are still not rotated. The deploy token used for every push this week is one of them. | Rotate the GitHub PAT, the Supabase service-role key and the Cloudflare token (risk R-1). **Phase 1.5: checklist written** (`SECURITY_CREDENTIAL_ROTATION.md`); **not rotated yet (owner)**. |
+| C-7 | Low | `docker-compose.yml` never run | Run it once on a machine with Docker Hub access. Still not run (postgres:16-alpine is also on the blocked Docker Hub). The image itself is now built and smoke-tested (§4). |
 
 ### 2.4 Required environment variables
 
@@ -394,15 +395,15 @@ Not needed by the API: the Supabase service-role key, and any payment secret (no
 
 | # | Risk | Severity | Mitigation / status |
 |---|---|---|---|
-| R-1 | GitHub PAT, Supabase service-role key and Cloudflare token exposed in chat; the PAT is still in use | **High** | Rotate now (C-6) |
-| R-2 | C-1 could stop all database connections on the pooler | High (availability) | Fix before staging |
+| R-1 | GitHub PAT, Supabase service-role key and Cloudflare token exposed in chat; the PAT is still in use | **High** | Rotate now (C-6). Phase 1.5: unchanged, **High**, until the three rotations are verified. |
+| R-2 | C-1 could stop all database connections on the pooler | High (availability) | Fix before staging. Phase 1.5: **mitigated in code**; residual until `check-runtime` passes on the staging pooler. |
 | R-3 | Signature replay across instances: the replay cache is per instance, so a captured header could be used once on each other instance within 60 s. It still needs a valid user token and the same method and path. | Low | Accept for now. A shared cache (database table) is possible if there are many instances. |
 | R-4 | Tokens remain valid until they expire after sign-out (stateless JWT) | Medium | Short access-token lifetime (A-6). Suspension takes effect immediately, because principals are read from the database on every request. |
 | R-5 | Phone OTP cost abuse (SMS pumping) once sign-up opens | Medium | Phase 2: Nigerian numbers only, CAPTCHA (Turnstile) on web, Supabase rate limits plus gateway limits, alerts on SMS spend |
 | R-6 | The website's Supabase project lets `anon` write to the demo tables | Medium | Keep the backend in separate projects (§2.5). Remove the demo tables before launch (D-049). |
 | R-7 | No malware scanner, so uploaded documents can't be approved | Medium (blocks onboarding) | Q-067 decision. Fail closed until then. |
-| R-8 | Image never built; dependencies not scanned | Medium | C-3/C-4. Add `npm audit` or similar to CI. |
-| R-9 | No linter | Low | C-2 |
+| R-8 | Image never built; dependencies not scanned | Medium | C-3/C-4. Add `npm audit` or similar to CI. Phase 1.5: image built (stand-in base) and pruned to runtime dependencies (removed typescript, micromatch/braces with a high advisory); real-base build in CI. **Dependency scanning in CI still to add.** |
+| R-9 | No linter | Low | C-2. Phase 1.5: **closed** (C-2). |
 
 ### 2.8 Expected infrastructure costs
 
@@ -443,3 +444,106 @@ Before Phase 2 code:
 1. C-1 and C-6.
 2. Decisions A-2, A-3, A-4, A-6.
 3. A Supabase staging project, which unblocks items 3, 4 and 7.
+
+## 4. Phase 1.5: corrections and staging readiness (2026-10-23, evening)
+
+**Verdict: STAGING IS NOT READY.** No staging API is deployed, and no dedicated staging database exists. The completion rule says staging is ready only after a deployed API has connected to the dedicated staging database and passed its health and smoke tests, so it cannot be marked ready.
+- Every correction that could be done without the owner's accounts is done and tested.
+- Phase 2 was **not** started.
+- Nothing was deployed, the waitlist database was not touched, and nothing paid was activated.
+
+### 4.1 Results by task
+
+| # | Task | Result | Evidence |
+|---|---|---|---|
+| 1 | Pooler compatibility (C-1) | **Fixed in code, tested through PgBouncer; Supavisor not yet proven** | The exact code was `poolConfig()` in `apps/api/src/database/database.ts`, which sent `statement_timeout` at connection start. It is removed; only `application_name` is sent (`STARTUP_PARAMETERS_ALLOWED`). Role-level timeouts are in `apps/api/db/roles.sql` (`5s` / `3s` / `30s`); `SET LOCAL` per transaction and the client `query_timeout` are kept. `test/pooler.test.ts` (8 tests) proves, through **PgBouncer 1.22 in transaction mode**: the old start-up parameter is refused ("unsupported startup parameter"); the role timeouts apply with nothing sent; 12 concurrent transactions on 4 server connections; `SET LOCAL` doesn't leak; a `pg_sleep(8)` is cancelled by the server at 5 s; rollback leaves no state. **PgBouncer is not Supavisor:** the staging check is `migrate.js check-runtime` (new). |
+| 2 | GitHub Actions CI | **Built and pushed; first run not observed** | `.github/workflows/ci.yml` (commit `6aceb8c`), with jobs: install + typecheck + lint + no `.only`/`.skip` + env-secret check; API on Postgres 16 + PgBouncer with a non-superuser admin like Supabase's; shared packages and edge workers; admin tests + build; Rider and Driver tests + Expo export; image build + smoke test. Database tests **cannot skip** in CI: `REQUIRE_DATABASE_TESTS=1`, `REQUIRE_POOLER_TESTS=1` and `STRICT_NO_SKIPS=1` with `scripts/test-strict.mjs`, which also catches a Node 22 quirk where a failing suite prints `not ok` but exits 0. Verified locally that an unreachable database, a missing pooler and a skipped test each fail the run. The GitHub API is blocked from this workspace, so **the owner must check the Actions tab** for the result. |
+| 3 | Lint | **Done, 0 problems** | `eslint.config.mjs` (ESLint 10.13.0, typescript-eslint 8.72.0, react-hooks 7.1.1). The first run found 1,553 errors, of which 1,495 were in the vendored minified three.js (now ignored as third-party code). The rest were fixed in code: unused imports and variables, a real **stale-memo bug** in `Drivers.tsx` (missing `d.subscriptions` dependency), a `useCallback` for `customerOf`, comma-expression statements, `@ts-ignore` → `@ts-expect-error`, `any` in tests → types, `cause` on the migration error, and stale `eslint-disable` lines. Relaxations, each explained in the config: Metro asset `require()`, Jest mock factories, `_`-prefixed unused names. |
+| 4 | Docker | **Built and smoke-tested on a stand-in base; real base builds in CI** | The base is pinned to `node:22.23.4-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d`. That is the **index** digest from Docker Hub's tag API; two reads (`22.23.4-bookworm-slim` and `22-bookworm-slim`) agree. Docker Hub is blocked here, so the image was built from the real Dockerfile on a **stand-in base** (Ubuntu 24.04 minbase + Node 22.22.0 + user `node` uid 1000). `scripts/docker-smoke.sh` passed **15/15**: invalid config exits 78 without secrets; non-root; no sources; no build-only packages; migrations, `status` and `check-runtime` from the image; `health-check.mjs` from the image; Docker HEALTHCHECK healthy; ready 503 with no database; API and worker stop cleanly on SIGTERM. **Found and fixed:** `npm ci --omit=dev` in a workspace kept dev-only packages such as typescript and micromatch/braces (braces ≤ 3.0.3 has a high advisory), because the Expo apps need them. The new `scripts/prune-to-runtime.mjs` keeps only the API's real runtime graph: `node_modules` 62 MB → 35 MB. **Per the brief, Docker is not "verified" until CI builds the real base and the smoke test passes there.** |
+| 5 | Supabase staging | **Designed; blocked on the owner** | `STAGING_SUPABASE.md`: a new dedicated project (never `morqitxqsfiprefczduo`); Free plan unless Pro is approved; connection modes; variable names; 9 owner steps; a readiness checklist. Placeholders added for the apps' publishable key (Phase 2). No project was created and no credential handled. |
+| 6 | StackShift | **Prepared; no account, nothing deployed** | `DEPLOYMENT_STACKSHIFT.md` §6. Locally measured at 0.5 CPU / 512 MB: ≈ 50 MB idle, ≈ 61 MB under load, ≈ 1,200 requests/s, 0 errors. Logging and worker behaviour are covered there. Prices, bandwidth, regions and SLA are **not published**; a quote is needed (Q-075). |
+| 7 | Security (C-6) | **Checklist written; rotation not done (owner)** | `SECURITY_CREDENTIAL_ROTATION.md`. Three exposed credentials: the GitHub token, the website project's `service_role` key and the Cloudflare token. Each has rotation steps and a check that the old value is dead. The full git history was scanned: **no real secret is in git** (only the public anon key, AWS's documented example key, and test-only passwords). Note: the CI push succeeded, so the GitHub token has **workflow** scope. |
+| 8 | Authentication direction | **Proposed, not approved** | **D-062 (Proposed)** in `DECISIONS.md`, with detail in `AUTHENTICATION_PLAN.md` §6: phone verified at onboarding; again on new or untrusted devices; step-up OTP (≤ 5 min) for sensitive account and financial actions; 15-min access tokens with refresh rotation and reuse detection; no paid Advanced MFA Phone add-on. D-045 stays in force until the owner approves. |
+| 9 | Staging cost | **Estimated** | `STAGING_COST_ESTIMATE.md`: option A **$0 + SMS** (all free tiers); option B **$25 (+$20 Vercel Pro) + StackShift quote + SMS**. Spent: $0. |
+| 10 | Final verification | Below | |
+
+### 4.2 Tests executed (2026-10-23, after the last change)
+
+| Workspace | Command | Executed | Passed | Failed | Skipped |
+|---|---|---|---|---|---|
+| API | `npm run test:ci -w apps/api` with Postgres 16 + PgBouncer, `STRICT_NO_SKIPS=1` | 80 | 80 | 0 | **0** |
+| Core | `npm test -w packages/core` | 265 | 265 | 0 | 0 |
+| Admin | `npm test -w apps/admin` | 405 | 405 | 0 | 0 |
+| Rider | `npm test -w apps/rider` | 36 | 36 | 0 | 0 |
+| Driver | `npm test -w apps/driver` | 14 | 14 | 0 | 0 |
+| Edge workers | `npm test -w infra/cloudflare` | 41 | 41 | 0 | 0 |
+| **Total** | | **841** | **841** | **0** | **0** |
+
+Also passed:
+- `npm run typecheck` (all workspaces);
+- `npm run lint` (0 problems);
+- `npx expo export --platform android --platform ios` for the Rider and Driver apps;
+- `npm run build -w apps/admin`;
+- `check-env` on all 9 env templates and wrangler files;
+- `docker-smoke.sh` 15/15 on the stand-in-base image;
+- `migrate.js check-runtime` through PgBouncer.
+
+API tests went from 72 to 80: 8 pooler and role tests.
+
+### 4.3 Final report
+
+| Item | Result |
+|---|---|
+| Tests | 841 executed, 841 passed, 0 failed, 0 skipped (§4.2) |
+| Docker build | **Pass on a stand-in base** (local). **Real digest-pinned base: pending the first CI run** (job `docker`). |
+| Deployment | **None** (no StackShift account; not authorised) |
+| Supabase connection | **None.** No dedicated staging project exists. The waitlist project was not used. |
+| Estimated monthly staging cost | **$0 + SMS** (option A) or **$25+ + StackShift quote + SMS** (option B) |
+
+**Files changed (code):**
+- API source: `apps/api/src/database/database.ts`, `src/migrate.ts`, `src/database/migrations.ts`.
+- New API files: `apps/api/db/roles.sql` and `db/grants.sql`; `scripts/test-strict.mjs`, `scripts/docker-smoke.sh` and `scripts/prune-to-runtime.mjs`; `test/pooler.test.ts` and `test/pooler/*`.
+- Other API files changed: `scripts/health-check.mjs`, `test/helpers.ts`, `Dockerfile`, `package.json`, `env/staging.env.example`.
+- Removed: `apps/api/ci/github-actions-api.yml`.
+- Repository root: new `.github/workflows/ci.yml` and `eslint.config.mjs`; `.dockerignore`, root `package.json` and the lock file changed.
+- Lint fixes in 15 files across admin, rider, driver, core, infra and tools.
+- `.env.example` placeholders for rider, driver and admin.
+
+**Files changed (docs):**
+- New: `STAGING_SUPABASE.md`, `SECURITY_CREDENTIAL_ROTATION.md`, `STAGING_COST_ESTIMATE.md`.
+- Updated: `DECISIONS.md` (D-062 proposed, D-063), `AUTHENTICATION_PLAN.md`, `DATABASE_MIGRATIONS.md`, `DEPLOYMENT_STACKSHIFT.md`, `BACKEND_ARCHITECTURE.md`, `BACKEND_PHASE_2_PLAN.md`, this file, `LOG.md`, `CLAUDE.md`, `TEST_PLAN.md`, `OPEN_QUESTIONS.md`, `DEPENDENCIES_AND_LICENSES.md`, `ENVIRONMENT_CONFIGURATION.md`, `INFRASTRUCTURE_COSTS.md`.
+
+### 4.4 Blockers (owner)
+
+1. **Rotate the three credentials** and verify each old value is dead (`SECURITY_CREDENTIAL_ROTATION.md`). Decide how this workspace pushes afterwards; the GitHub integration with write access is recommended.
+2. **Check the first CI run** at github.com/gobyeapp/gobyeapp/actions. If the `docker` job fails on the base digest, read the tag's current index digest and update the Dockerfile.
+3. **Create the staging Supabase project** (`STAGING_SUPABASE.md` §4), Free or approved Pro, and choose the region (Q-076).
+4. **StackShift:** create an account (Free plan fits staging) and get a written quote for anything paid (Q-075).
+5. **Decide** D-062 (A-3), the SMS route (A-4) and the token lifetime (A-6).
+6. Deploy the staging Cloudflare gateway Worker (needed because staging requires the gateway signature) after the Cloudflare token is rotated.
+
+### 4.5 Security concerns still open
+
+- **R-1 High:** the exposed credentials are not rotated. The GitHub token can change workflows.
+- The website project's demo tables are writable by `anon` (R-6).
+- No dependency scanning in CI yet. `npm audit` on the whole tree reports a high advisory in braces ≤ 3.0.3 (no fixed release yet), reached through dev tools and the Expo toolchain. It is **no longer in the API image**.
+- Supavisor behaviour (start-up parameters, role settings, `bypassrls`) is unproven until `check-runtime` runs on staging.
+
+### 4.6 Staging-readiness checklist
+
+| # | Gate | State |
+|---|---|---|
+| S-1 | C-1 fixed in code and regression-tested through a transaction pooler | ✅ (PgBouncer) |
+| S-2 | Lint and typecheck clean; all tests pass with database tests executed | ✅ locally; ☐ first CI run green |
+| S-3 | Image builds from the digest-pinned base and passes `docker-smoke.sh` | ✅ stand-in base locally; ☐ real base in CI |
+| S-4 | Exposed credentials rotated and verified dead (C-6) | ☐ owner |
+| S-5 | Dedicated staging Supabase project created (not the waitlist project), signing keys asymmetric, legacy keys disabled | ☐ owner |
+| S-6 | `roles.sql`, `migrate up`, `grants.sql` on staging; `migrate.js status` → nothing pending | ☐ |
+| S-7 | `check-runtime` through the **transaction pooler** passes (C-1 proven on Supavisor) | ☐ |
+| S-8 | Staging host (StackShift Free or approved plan) running the image by digest, with variables in the encrypted store | ☐ owner |
+| S-9 | Staging gateway Worker deployed with the shared origin secret | ☐ owner |
+| S-10 | `health-check.mjs --expect-version <sha>` passes on the origin and through the gateway, `ready` = `ok` | ☐ |
+| S-11 | Smoke: a real staging token → `/v1/me` 200; a foreign token → 401; unsigned origin → 403 | ☐ |
+| S-12 | Staging cost choice recorded (option A or approved B) | ☐ owner |
+
+**Staging is ready when S-1 to S-12 are all ticked.** Today: 1 complete, 2 partly complete (local yes, CI pending), 9 open.

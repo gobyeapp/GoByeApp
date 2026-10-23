@@ -38,7 +38,11 @@ RUN npm run build --workspace apps/api
 
 # ---- 3. Production dependencies only ----
 FROM deps AS prod-deps
+COPY apps/api/scripts/prune-to-runtime.mjs apps/api/scripts/
+# --omit=dev alone keeps packages that are dev-only for the API but production for another workspace
+# (typescript, micromatch/braces via the Expo apps), so the graph is pruned to what the API imports.
 RUN npm ci --workspace apps/api --include-workspace-root=false --omit=dev --no-audit --no-fund \
+ && node apps/api/scripts/prune-to-runtime.mjs \
  && mkdir -p apps/api/node_modules
 
 # ---- 4. Runtime: small, non-root, no compilers, no source ----

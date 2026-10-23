@@ -2,10 +2,11 @@
 
 **Status: PLAN ONLY.** Nothing in this document is implemented yet.
 
-**Prerequisites** (from `BACKEND_PHASE_1_VERIFICATION.md`):
-- corrections **C-1** (pooler start-up parameter) and **C-6** (rotate credentials);
-- owner decisions **A-2, A-3, A-4, A-6**;
-- a **Supabase staging project**.
+**Prerequisites** (from `BACKEND_PHASE_1_VERIFICATION.md`; Phase 1.5 status in §4 there):
+- correction **C-1** (pooler start-up parameter): **fixed in code and tested through PgBouncer**; still to prove on the Supabase pooler (`migrate.js check-runtime`);
+- correction **C-6** (rotate credentials): **open, owner** (`SECURITY_CREDENTIAL_ROTATION.md`);
+- owner decisions **A-2, A-3 (now proposed as D-062), A-4, A-6**;
+- a **Supabase staging project** (`STAGING_SUPABASE.md`) and a staging API that passed its health and smoke tests.
 
 **Scope:**
 - Real accounts for riders and drivers (sign-up, sign-in, phone verification, password reset, Apple/Google, sign-out, account deletion).
@@ -34,7 +35,7 @@
 
 | # | Question | Options | Recommendation |
 |---|---|---|---|
-| A-3 | "Every sign-in ends with a phone code" (D-045/D-048) | (a) Supabase phone MFA on every sign-in: +$75/month for the first project, +$10 each additional, plus SMS. (b) Verify the phone once at sign-up, again on a new device, and on sensitive changes. (c) Phone OTP *is* the sign-in (no password). | **(b)** |
+| A-3 | "Every sign-in ends with a phone code" (D-045/D-048) | (a) Supabase phone MFA on every sign-in: +$75/month for the first project, +$10 each additional, plus SMS. (b) Verify the phone once at sign-up, again on a new device, and on sensitive changes. (c) Phone OTP *is* the sign-in (no password). | **(b)**, written up as **D-062 (Proposed)** with its threat controls (`AUTHENTICATION_PLAN.md` §6). Not approved yet. |
 | A-4 | SMS route for one-time codes | A provider built into Supabase (Twilio, MessageBird, Vonage, Textlocal), or the **Send SMS hook** (verified with Standard Webhooks) to a Nigerian gateway | Test delivery and price to MTN, Airtel, Glo and 9mobile on staging, then choose |
 | A-6 | Access-token lifetime | 5–60 min | 15 min |
 | A-9 | Identity checks for drivers (NIN, licence) | Manual staff review only at launch, or a KYC provider (NIN/BVN/licence lookup) | Manual at launch; choose a provider in Phase 2b |
@@ -45,12 +46,12 @@
 
 ### WP0: preconditions (1–2 days of engineering after the owner's steps)
 
-1. **C-1:** drop the start-up `statement_timeout`. Set it on the role, test through the staging pooler (6543) and directly (5432).
-2. Create the staging Supabase project and roles (`DATABASE_MIGRATIONS.md` §Roles). Run `migrate up`. Point a locally running API at it. Prove the verification items blocked in Phase 1:
+1. ~~**C-1:** drop the start-up `statement_timeout`.~~ **Done in Phase 1.5** (role-level timeouts, `apps/api/db/roles.sql`; PgBouncer tests). Remaining: `migrate.js check-runtime` through the staging pooler (6543) and directly (5432).
+2. Create the staging Supabase project and roles (`STAGING_SUPABASE.md` §4, `DATABASE_MIGRATIONS.md` §Roles). Run `migrate up`. Point a deployed staging API at it. Prove the verification items blocked in Phase 1:
    - real JWKS, a real token on `/v1/me`, key rotation;
    - `bypassrls` (or the policy fallback);
    - the CA certificate.
-3. Activate CI (C-3), add ESLint (C-2), and get the first real image build, pinned by digest (C-4).
+3. ~~Activate CI (C-3), add ESLint (C-2), pin the image by digest (C-4).~~ **Done in Phase 1.5.** Remaining: confirm the first CI run is green, including the real-base image build (job `docker`).
 4. Supabase Auth settings: email + password, phone, Apple, Google, TOTP; the A-6 token lifetime; refresh-token reuse detection; redirect URLs `gobye://auth-callback` (rider) and `gobyedriver://auth-callback` (driver), staging variants included.
 5. Rate limits and abuse controls:
    - Supabase Auth limits for sign-ups, OTP and password reset, set to Nigerian-scale numbers;
@@ -191,7 +192,7 @@ WP1 and WP2 can ship to staging before WP3. Riders can sign up while driver docu
 
 | Item | Cost | Note |
 |---|---|---|
-| Supabase Pro (staging and production projects) | ≈ $40/month (see `INFRASTRUCTURE_COSTS.md`) | Needed for no pausing, backups and the auth features |
+| Supabase Pro (staging and production projects) | ≈ $40/month (see `INFRASTRUCTURE_COSTS.md`) | Production needs it (backups, no pausing). Staging can start on **Free** (`STAGING_COST_ESTIMATE.md`, option A). |
 | SMS one-time codes | Per message; provider not chosen | Volume ≈ sign-ups + new-device sign-ins under A-3(b) |
 | Supabase phone MFA (only if A-3(a)) | $75/month first project + $10 each additional | Avoided by A-3(b) |
 | Malware scanner (Q-067) | Unknown | Needed before documents can be approved |

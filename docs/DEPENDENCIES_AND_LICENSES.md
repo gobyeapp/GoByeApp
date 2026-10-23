@@ -122,4 +122,20 @@ Inter is reused from `@expo-google-fonts/inter` (SIL OFL 1.1) and bundled by Vit
 
 Tests use Node's built-in `node:test`; no test framework dependency.
 
-**Base image:** `node:22.22.0-bookworm-slim`. Pin it by digest once the first image is built by CI (Docker Hub is not reachable from the build workspace).
+**Base image:** `node:22.23.4-bookworm-slim`, pinned by index digest `sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d` (Phase 1.5). The runtime stage keeps only the API's runtime dependency graph (`scripts/prune-to-runtime.mjs`).
+
+## Lint and CI (repository root, dev only, added 2026-10-23, Phase 1.5, D-063)
+
+| Package | Version | Licence | Purpose |
+|---|---|---|---|
+| eslint | 10.13.0 | MIT | Linter (`npm run lint`, flat config `eslint.config.mjs`) |
+| @eslint/js | 10.0.1 | MIT | Recommended JavaScript rules |
+| typescript-eslint | 8.72.0 | MIT | TypeScript parser and recommended rules |
+| eslint-plugin-react-hooks | 7.1.1 | MIT | Rules of hooks and effect dependencies (Rider, Driver, UI, admin) |
+| globals | 17.13.0 | MIT | Environment globals (Node, browser, Jest, workers) |
+
+**CI only (not installed in the repo):**
+- PgBouncer from Ubuntu packages, for the transaction-pooler tests;
+- GitHub Actions `actions/checkout` v7.0.1 and `actions/setup-node` v7.1.0, pinned by commit SHA in `.github/workflows/ci.yml`.
+
+`expo lint` was replaced by `eslint .`: its config package was never installed, so the old script could not run.
