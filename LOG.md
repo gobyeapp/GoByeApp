@@ -800,3 +800,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Typecheck: 0 errors.
   - Tests: core 265, admin 405, all pass.
   - Admin build: OK.
+
+## 2026-10-23 — Test owner account renamed again
+
+- **Change:** the owner account is now **Liquid (Owner)**, at the owner's request (id `stf-owner` unchanged).
+- **Checks:** typecheck 0 errors; core 265 and admin 405 tests pass; admin build OK.

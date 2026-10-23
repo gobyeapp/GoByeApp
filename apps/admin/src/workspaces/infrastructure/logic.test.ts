@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { canManageInfra, canViewInfra, createInfraStore, expectedShare, toTrafficActor } from './logic';
 
 const t0 = Date.UTC(2026, 9, 23, 9);
-const owner = { id: 'st-owner', name: 'Emeka', roles: ['owner'] as const };
+const owner = { id: 'st-owner', name: 'Liquid', roles: ['owner'] as const };
 const dev = { id: 'st-dev', name: 'Sani', roles: ['developer'] as const };
 const care = { id: 'st-care', name: 'Funke', roles: ['care'] as const };
 
