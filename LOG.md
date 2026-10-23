@@ -900,3 +900,32 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Next:**
   - Owner: rotate credentials; choose the Supabase region and plan (Q-076); create a StackShift account and run the staging tests (Q-075); move the CI template into `.github/workflows/`.
   - Then Phase 2 endpoints (`BACKEND_ARCHITECTURE.md` §14).
+
+## 2026-10-23 — Backend Phase 1 verified (audit only, no code changes)
+
+- **Method:** fresh clone of `170efda` from GitHub, a clean `npm ci`, a fresh database, and every check re-run. Report: `docs/BACKEND_PHASE_1_VERIFICATION.md`.
+- **Verified:**
+  - **API build and start:** the API builds, starts, migrates a fresh database (5 applied, then 0 on re-run), serves health and error envelopes, runs its worker and stops on SIGTERM. It refuses an unsafe production config (exit 78).
+  - **Routes:** the 7 registered routes match `API_CONTRACTS.md` §10 exactly.
+  - **Deploy check:** passes 11/11 against the live server.
+  - **API tests:** 72/72 pass with PostgreSQL. Without it, 28 pass and 44 skip, with the reason printed.
+  - **No regression in the other workspaces:**
+    - typecheck clean;
+    - core 265, rider 36, driver 14, admin 405, infra 41;
+    - rider and driver Android/iOS exports pass;
+    - admin build passes;
+    - the admin's Vercel install command works in a clean clone.
+- **Classification:** 11 of 15 items implemented and tested.
+  - Supabase auth (only with local keys), R2 (presigning only, no bucket) and StackShift (the image was never built because Docker Hub is blocked here; no account) are partial or blocked.
+  - Rider/driver route guards are partial.
+- **Corrections found:**
+  - **C-1:** the start-up `statement_timeout` may be rejected by Supabase's transaction pooler. Fix before staging.
+  - **C-2:** no linter.
+  - **C-3:** CI not active.
+  - **C-4:** base image not pinned by digest.
+  - **C-5:** rider/driver guards and server-side approvals.
+  - **C-6:** credentials still not rotated.
+  - **C-7:** docker-compose never run.
+- **New cost found:** Supabase phone MFA is $75/month (first project). This matters for D-045's "every sign-in ends with a phone code"; the alternative is decision A-3(b).
+- **Phase 2 planned (not started):** `docs/BACKEND_PHASE_2_PLAN.md`, covering real rider/driver authentication and driver onboarding (WP0–WP5).
+- **Next:** owner actions C-6, A-2, A-3, A-4, A-6 and a Supabase staging project; then WP0.

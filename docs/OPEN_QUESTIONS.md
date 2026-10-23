@@ -516,3 +516,17 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Owner:** Owner / Legal · **Blocks:** creating the projects and running migrations
 - **Assumption:** Pro organisation; production on Small compute with daily backups; PITR not yet bought.
 
+### Q-077 — How riders and drivers prove their phone on sign-in
+- **Question:** D-045/D-048 say every sign-in ends with a phone code. Supabase's phone MFA costs $75/month (first project) plus SMS. Options: (a) phone MFA on every sign-in; (b) verify the phone at sign-up, again on a new device and on sensitive changes; (c) phone OTP as the sign-in itself.
+- **Owner:** Owner / Product · **Blocks:** Phase 2 WP1–WP2 (`BACKEND_PHASE_2_PLAN.md` A-3)
+- **Assumption:** (b) recommended.
+
+### Q-078 — SMS route for one-time codes
+- **Question:** A provider built into Supabase, or the Send SMS hook to a Nigerian gateway? Decide on delivery rates to MTN, Airtel, Glo and 9mobile, and the price per message.
+- **Owner:** Owner / Engineering · **Blocks:** real sign-up (A-4)
+
+### Q-079 — Driver identity checks
+- **Question:** Manual staff review of NIN, licence and vehicle papers at launch, or a KYC provider for lookups?
+- **Owner:** Owner / Operations / Legal · **Blocks:** Phase 2b (A-9)
+- **Assumption:** Manual review at launch.
+

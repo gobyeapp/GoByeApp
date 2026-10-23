@@ -289,7 +289,9 @@ Endpoints and payloads: `API_CONTRACTS.md` §10.
 - [ ] Set `ORIGIN_AUTH_SECRET` on the staging gateway and API; point `ORIGINS_JSON` at the StackShift URL
 - [ ] Move the CI template into `.github/workflows/`
 
-**Phase 2: first product endpoints (proposed order)**
+**Phase 1 verification:** `BACKEND_PHASE_1_VERIFICATION.md` (2026-10-23): 11 of 15 items implemented and tested; corrections C-1 to C-7.
+
+**Phase 2: first product endpoints (proposed order).** The detailed plan for authentication and onboarding is `BACKEND_PHASE_2_PLAN.md`.
 - [ ] Sign-up completion (`POST /v1/me/profile`) and account deletion pipeline
 - [ ] Driver onboarding + documents (files API over `ops.files` + the upload signer)
 - [ ] Pricing quotes (server-side, versioned config) and `POST /v1/rides` (Quick Match), then negotiation
