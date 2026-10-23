@@ -865,3 +865,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - The driver hero is unchanged.
   - The video code was removed from the page; the video files are kept for `preview.html`.
 - **Checks:** Chromium at iPhone size and 1440 px, for both riders and drivers. The only console errors were Google Fonts being unreachable from the build workspace.
+
+## 2026-10-23 — Website: asset version bumped
+
+- **Change:** CSS and JS links moved to `?v=2026102302`, so returning visitors load the new styles and scripts (the waitlist fix, Nigeria wording and rider photo).
+- **Finding:** the live site at gobyeapp.vercel.app was still serving an older build ("Coming to Lagos and Abuja") although GitHub `main` had every commit. The landing page project on Vercel is not deploying from GitHub; the owner needs to connect it or redeploy.
