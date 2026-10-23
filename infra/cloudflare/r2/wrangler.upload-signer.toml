@@ -12,7 +12,7 @@ workers_dev = false
 
 [env.staging]
 name = "gobye-upload-signer-staging"
-vars = { DEPLOY_ENV = "staging", PUBLIC_MEDIA_BASE_URL = "https://media.staging.gobye.app" }
+vars = { DEPLOY_ENV = "staging", PUBLIC_MEDIA_BASE_URL = "https://media-staging.gobye.app" }
 r2_buckets = [
   { binding = "UPLOADS", bucket_name = "gobye-staging-private-uploads" },
   { binding = "DOCUMENTS", bucket_name = "gobye-staging-private-documents" },

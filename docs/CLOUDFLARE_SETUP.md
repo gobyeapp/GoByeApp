@@ -4,6 +4,24 @@ What to create in Cloudflare for GoBye, and in what order. **Nothing on this pag
 
 API gateway, DNS and load balancing: see `API_GATEWAY.md`, `NETWORK_ARCHITECTURE.md` and `LOAD_BALANCING_FAILOVER.md`.
 
+
+## One-command setup from your computer (2026-10-23)
+
+This workspace can't reach the Cloudflare API on the free Claude plan, so the setup runs on the owner's computer with `tools/cloudflare-setup.mjs` (no extra installs; it downloads Wrangler with `npx` when deploying).
+
+```powershell
+# from the GOBYE folder, PowerShell
+$env:CLOUDFLARE_API_TOKEN="<the setup token>"
+node tools/cloudflare-setup.mjs            # look only: prints what it would do, changes nothing
+node tools/cloudflare-setup.mjs --apply    # makes the changes
+```
+
+`--apply` (idempotent, safe to re-run): verifies the token; finds the account and the gobye.app zone; saves a DNS backup to `cloudflare-dns-backup-<time>.json`; creates the 8 R2 buckets (`gobye-{staging,prod}-{public-media,private-documents,private-evidence,private-uploads}`, r2.dev off); applies CORS from `r2/cors.*.json` to uploads and public-media; deploys the API gateway to `api-staging.gobye.app` / `api.gobye.app` and the public media Worker to `media-staging.gobye.app` / `media.gobye.app` as Worker custom domains; stores a random `ORIGIN_AUTH_SECRET` in Cloudflare; checks the addresses. It never touches `gobye.app` / `www` (Vercel) and skips any hostname that already has an unrelated DNS record. A summary without secrets is written to `cloudflare-setup-report.json`. Both output files are git-ignored.
+
+Not done by the script (needs a separate R2 S3 key): the upload signer Worker. Status after the owner runs it: **Pending deployment** until the report comes back.
+
+Staging hostnames are one level (`api-staging`, `media-staging`) so Cloudflare's free Universal SSL certificate covers them (Q-070).
+
 ## 0. Before you start
 
 - **Account:** use one Cloudflare account owned by GoBye (not a personal one), with 2FA on every member, and add a second owner.
@@ -32,7 +50,7 @@ Then check every bucket in the dashboard (R2 → bucket → Settings):
 - **Public access → R2.dev subdomain: Disabled** on all eight, including public-media.
 - **Custom domains:**
   - none on the three private buckets, ever;
-  - `media.staging.gobye.app` → `gobye-staging-public-media`, and `media.gobye.app` → `gobye-prod-public-media`, only once the hostname is approved. Alternatively serve them through the media-gateway Worker (section 4); choose one route, not both.
+  - `media-staging.gobye.app` → `gobye-staging-public-media`, and `media.gobye.app` → `gobye-prod-public-media`, only once the hostname is approved. Alternatively serve them through the media-gateway Worker (section 4); choose one route, not both.
 - **CORS:**
   - apply `cors.staging.json` / `cors.production.json` to the `private-uploads` and `public-media` buckets only;
   - check the origin list first.
@@ -84,7 +102,7 @@ Template: `infra/cloudflare/r2/wrangler.media-gateway.toml`. No secrets.
 npx wrangler deploy --config wrangler.media-gateway.toml --env staging
 ```
 
-- **Prerequisites:** the zone must be on Cloudflare and `media.staging.gobye.app` approved. The route in the template attaches the Worker to that hostname.
+- **Prerequisites:** the zone must be on Cloudflare and `media-staging.gobye.app` approved. The route in the template attaches the Worker to that hostname.
 - **Bucket:** it is bound to the public bucket only.
 
 ## 5. Staging verification (before any production step)

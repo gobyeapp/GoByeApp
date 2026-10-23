@@ -79,7 +79,7 @@ media is served by a Worker bound to the public bucket only. Realtime has its ow
 | | Development | Staging (proposed) | Production (proposed) |
 |---|---|---|---|
 | Website | localhost / Vercel preview | Vercel preview or `staging.gobye.app` | `gobye.app`, `www.gobye.app` (Vercel) |
-| Admin | `npm run admin` | `admin.staging.gobye.app` | `admin.gobye.app` (Vercel) |
+| Admin | `npm run admin` | `admin-staging.gobye.app` | `admin.gobye.app` (Vercel) |
 | API | `http://localhost:8787/v1` | `https://api-staging.gobye.app/v1` | `https://api.gobye.app/v1` |
 | Buckets | none / fakes | `gobye-staging-*` | `gobye-prod-*` |
 | Secrets | personal test keys | staging Worker secrets | production Worker secrets |

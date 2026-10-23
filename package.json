@@ -20,6 +20,7 @@
     "admin:build": "npm run build --workspace apps/admin",
     "demo:relay": "node tools/demo-relay/server.mjs",
     "infra:test": "npm run test --workspace infra/cloudflare",
-    "check:env": "node tools/check-env.mjs"
+    "check:env": "node tools/check-env.mjs",
+    "cloudflare:setup": "node tools/cloudflare-setup.mjs"
   }
 }

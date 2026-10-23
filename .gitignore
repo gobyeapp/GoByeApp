@@ -45,3 +45,7 @@ apps/*/android/
 .env.local
 **/.env.local
 tools/demo-relay/data.json
+
+# Cloudflare setup output (local only)
+cloudflare-dns-backup-*.json
+cloudflare-setup-report.json

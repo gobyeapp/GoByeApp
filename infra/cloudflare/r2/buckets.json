@@ -11,7 +11,7 @@
       "environment": "staging",
       "role": "public-media",
       "public": true,
-      "publicAccess": "custom domain media.staging.gobye.app",
+      "publicAccess": "custom domain media-staging.gobye.app",
       "r2DevUrl": false,
       "locationHint": "weur",
       "storageClass": "Standard",

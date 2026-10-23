@@ -18,7 +18,7 @@ ALLOWED_ORIGINS = ""
 
 [env.staging]
 name = "gobye-api-gateway-staging"
-# routes = [{ pattern = "api-staging.gobye.app/*", zone_name = "gobye.app" }]   # PROPOSED, not applied
+routes = [{ pattern = "api-staging.gobye.app", custom_domain = true }]
 [env.staging.vars]
 ENVIRONMENT = "staging"
 PUBLIC_HOST = "api-staging.gobye.app"
@@ -28,7 +28,7 @@ ALLOWED_ORIGINS = ""
 
 [env.production]
 name = "gobye-api-gateway"
-# routes = [{ pattern = "api.gobye.app/*", zone_name = "gobye.app" }]           # PROPOSED, not applied
+routes = [{ pattern = "api.gobye.app", custom_domain = true }]
 [env.production.vars]
 ENVIRONMENT = "production"
 PUBLIC_HOST = "api.gobye.app"

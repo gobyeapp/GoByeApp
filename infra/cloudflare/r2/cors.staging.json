@@ -5,7 +5,7 @@
     {
       "AllowedOrigins": [
         "https://staging.gobye.app",
-        "https://admin.staging.gobye.app",
+        "https://admin-staging.gobye.app",
         "http://localhost:5173",
         "http://localhost:8081"
       ],
@@ -27,7 +27,7 @@
     {
       "AllowedOrigins": [
         "https://staging.gobye.app",
-        "https://admin.staging.gobye.app",
+        "https://admin-staging.gobye.app",
         "http://localhost:5173",
         "http://localhost:8081"
       ],

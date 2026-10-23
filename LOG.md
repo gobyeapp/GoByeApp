@@ -606,3 +606,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - "For drivers" now shows the owner's photo (a driver in his car checking a trip request) in the hero instead of the rider phone video; riders keep the video. Optimised to `assets/hero-driver-{900,1600}.{webp,jpg}` (41–167 KB), responsive `srcset`, framed on the driver for the phone's portrait box, lighter vignette. The video pauses while the photo shows. Asset versions bumped to `?v=2026102301`. Checked in Chromium at 1440×900 and 390×844 (switching both ways, and the remembered choice after reload). Redeploy on Vercel to publish.
 
+## 2026-10-23 — Cloudflare connection prepared (owner runs it)
+
+- Owner chose a scoped API token and "full incl. DNS". This workspace can't reach api.cloudflare.com (free Claude plan, domain not allowable), so the token was never used from here. Added `tools/cloudflare-setup.mjs` (`npm run cloudflare:setup`): look-only by default, `--apply` creates the R2 buckets + CORS, deploys the gateway and public-media Workers on `api(-staging).gobye.app` / `media(-staging).gobye.app` custom domains with a random ORIGIN_AUTH_SECRET, backs up DNS first, never touches gobye.app/www, writes a secret-free report.
+- Staging hostnames unified to one level (`*-staging.gobye.app`, Q-070 resolved). Wrangler configs now declare custom domains. Both Workers bundle with `wrangler deploy --dry-run` (wrangler 4.152.0). Nothing deployed yet.
+- The setup token was pasted in chat: delete it in Cloudflare after setup.
+

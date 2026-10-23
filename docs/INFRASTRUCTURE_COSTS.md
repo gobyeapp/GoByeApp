@@ -7,7 +7,7 @@ Check current Cloudflare and Vercel pricing pages and the account's plan before 
 | Component | What drives cost | Notes for GoBye | Status |
 |---|---|---|---|
 | Vercel (website, admin) | Plan tier, bandwidth, build minutes, team seats | Static site + static admin SPA; no serverless functions today | Existing (website); admin not deployed |
-| Cloudflare DNS + proxy | Plan tier (Free/Pro/Business) for WAF rules, rate-limiting rules, certificates | Two-level staging names (e.g. `media.staging.gobye.app`) may need an extra certificate (Q-070) | Pending approval |
+| Cloudflare DNS + proxy | Plan tier (Free/Pro/Business) for WAF rules, rate-limiting rules, certificates | Two-level staging names (e.g. `media-staging.gobye.app`) may need an extra certificate (Q-070) | Pending approval |
 | Cloudflare Workers (gateway, signer, media) | Requests and CPU time; plan limits | File bytes go direct to R2, so Workers handle small requests only | Pending deployment |
 | R2 storage | GB-month stored; Class A (writes/lists) and Class B (reads) operations | R2 charges no egress fees (documented R2 property). Documents and evidence grow with drivers and incidents; backups double that storage | Pending credentials |
 | R2 backup copy | Second bucket/account storage + copy operations | Daily copy of documents and evidence (BACKUP_DISASTER_RECOVERY.md) | Proposed |

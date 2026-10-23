@@ -113,7 +113,7 @@ Not found / no evidence: committed credentials, public R2 buckets (none exist), 
 - `docs/API_CONTRACTS.md` names bookings `/bookings`; the gateway's route map uses `/v1/rides`. The
   backend must pick one name; the gateway treats `POST /v1/rides` as booking creation (Q-069).
 - Proposed staging hostnames use `api-staging.gobye.app` (one level), but media uses
-  `media.staging.gobye.app` (two levels). A two-level name may need an extra certificate on Cloudflare; to
+  `media-staging.gobye.app` (two levels). A two-level name may need an extra certificate on Cloudflare; to
   confirm when DNS is planned (Q-070).
 
 ## 4. What changed (summary — details in INFRASTRUCTURE_REPORT.md)

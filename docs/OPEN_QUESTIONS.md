@@ -474,9 +474,7 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Assumption:** Gateway map `/v1/rides` (POST = new booking).
 
 ### Q-070 — Staging hostnames and certificates
-- **Question:** Use one-level staging names (`api-staging.gobye.app`, `media-staging.gobye.app`) or two-level ones (`media.staging.gobye.app`, `admin.staging.gobye.app`)? Two-level names may need an extra certificate on Cloudflare. The current definitions mix both.
-- **Owner:** Engineering · **Blocks:** DNS plan approval
-- **Assumption:** As in `infra/cloudflare/dns/records.proposed.json` and `r2/*.json`, to be unified.
+- **Resolved 2026-10-23:** one-level names only (`api-staging.gobye.app`, `media-staging.gobye.app`, `admin-staging.gobye.app`), because Cloudflare's free Universal SSL covers `*.gobye.app` but not `*.staging.gobye.app`. All definitions updated.
 
 ### Q-071 — Retention periods (legal sign-off)
 - **Question:** Confirm retention for driver documents (proposed: account life + 6 years), incident evidence (7 years or legal hold), location history and logs under the NDPA.

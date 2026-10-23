@@ -18,7 +18,7 @@ Status key: **Implemented** (code exists) · **Tested locally** (automated tests
 | `ENV` value | `development` | `staging` | `production` |
 | API base (proposed) | `http://localhost:8787/v1` (default) | `https://api-staging.gobye.app/v1` | `https://api.gobye.app/v1` |
 | Realtime (proposed) | `ws://localhost:8787/v1/realtime` | `wss://realtime-staging.gobye.app/v1` | `wss://realtime.gobye.app/v1` |
-| Media (proposed) | `http://localhost:8787/media` | `https://media.staging.gobye.app` | `https://media.gobye.app` |
+| Media (proposed) | `http://localhost:8787/media` | `https://media-staging.gobye.app` | `https://media.gobye.app` |
 | Simulated services | On by default | On by default (switch off per test) | **Refused** unless a demo build passes `allowMocksInProduction` |
 | Demo relay (D-049) | Allowed | Allowed | **Refused** |
 | Credentials | Personal test keys only | Separate staging keys | Separate production keys |

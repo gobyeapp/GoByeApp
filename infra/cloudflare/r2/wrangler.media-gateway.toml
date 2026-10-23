@@ -7,10 +7,10 @@ workers_dev = false
 
 [env.staging]
 name = "gobye-media-gateway-staging"
-routes = [{ pattern = "media.staging.gobye.app/*", zone_name = "gobye.app" }]
+routes = [{ pattern = "media-staging.gobye.app", custom_domain = true }]
 r2_buckets = [{ binding = "PUBLIC_MEDIA", bucket_name = "gobye-staging-public-media" }]
 
 [env.production]
 name = "gobye-media-gateway"
-routes = [{ pattern = "media.gobye.app/*", zone_name = "gobye.app" }]
+routes = [{ pattern = "media.gobye.app", custom_domain = true }]
 r2_buckets = [{ binding = "PUBLIC_MEDIA", bucket_name = "gobye-prod-public-media" }]
