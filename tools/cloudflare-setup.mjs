@@ -70,11 +70,15 @@ async function cf(method, path, body) {
 }
 
 function wrangler(args, input, accountId) {
-  const r = spawnSync('npx', ['--yes', 'wrangler@4', ...args], {
+  // Windows needs a shell to run npx; pass one quoted command string (our own fixed arguments) so Node
+  // doesn't warn about unescaped args (DEP0190).
+  const win = process.platform === 'win32';
+  const cmd = win ? ['npx', '--yes', 'wrangler@4', ...args].map((a) => (/^[\w@./:=-]+$/.test(a) ? a : `"${a}"`)).join(' ') : 'npx';
+  const r = spawnSync(cmd, win ? [] : ['--yes', 'wrangler@4', ...args], {
     cwd: root,
     input,
     encoding: 'utf8',
-    shell: process.platform === 'win32',
+    shell: win,
     env: { ...process.env, CLOUDFLARE_API_TOKEN: TOKEN, CLOUDFLARE_ACCOUNT_ID: accountId, WRANGLER_SEND_METRICS: 'false' },
   });
   const out = `${r.stdout || ''}\n${r.stderr || ''}`.replaceAll(TOKEN, '[token]');

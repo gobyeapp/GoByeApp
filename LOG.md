@@ -613,3 +613,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - The setup token was pasted in chat: delete it in Cloudflare after setup.
 - Owner hasn't added gobye.app to Cloudflare (site on Vercel's free plan). The setup script now still creates the R2 buckets and, with no zone, deploys the gateway and public-media Workers to free workers.dev preview addresses (`[env.preview]`, `gobye-api-gateway-preview.<sub>.workers.dev`, `gobye-media-gateway-preview.<sub>.workers.dev`), registering the account's workers.dev subdomain if needed. Both preview bundles build (`wrangler deploy --dry-run`). Custom domains follow once gobye.app is on Cloudflare.
 
+## 2026-10-23 — Cloudflare: first real deployment (owner ran the script)
+
+- Owner enabled R2 and ran `node tools/cloudflare-setup.mjs --apply`: 8 R2 buckets created (r2.dev off), CORS applied to uploads and public-media, `gobye.workers.dev` registered, API gateway and public-media Workers deployed to `gobye-api-gateway-preview.gobye.workers.dev` and `gobye-media-gateway-preview.gobye.workers.dev`, ORIGIN_AUTH_SECRET stored. The script's immediate check got a TLS handshake error (new workers.dev certificate still issuing); verification pending from the owner's browser (this workspace can't reach workers.dev).
+- Script: removed Node's DEP0190 warning on Windows (one quoted command string). Pending: gobye.app on Cloudflare (custom domains), upload signer (R2 S3 key), delete the setup token afterwards.
+

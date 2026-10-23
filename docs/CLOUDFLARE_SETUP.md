@@ -18,7 +18,23 @@ node tools/cloudflare-setup.mjs --apply    # makes the changes
 
 `--apply` (idempotent, safe to re-run): verifies the token; finds the account and the gobye.app zone; saves a DNS backup to `cloudflare-dns-backup-<time>.json`; creates the 8 R2 buckets (`gobye-{staging,prod}-{public-media,private-documents,private-evidence,private-uploads}`, r2.dev off); applies CORS from `r2/cors.*.json` to uploads and public-media; deploys the API gateway to `api-staging.gobye.app` / `api.gobye.app` and the public media Worker to `media-staging.gobye.app` / `media.gobye.app` as Worker custom domains; stores a random `ORIGIN_AUTH_SECRET` in Cloudflare; checks the addresses. It never touches `gobye.app` / `www` (Vercel) and skips any hostname that already has an unrelated DNS record. A summary without secrets is written to `cloudflare-setup-report.json`. Both output files are git-ignored.
 
-Not done by the script (needs a separate R2 S3 key): the upload signer Worker. Status after the owner runs it: **Pending deployment** until the report comes back.
+Not done by the script (needs a separate R2 S3 key): the upload signer Worker.
+
+### Status after the owner's run (2026-10-23, account "Gobyeapp@gmail.com's Account")
+
+| Item | Status |
+|---|---|
+| R2 enabled (free tier, by the owner in the dashboard) | **Configured** |
+| 8 buckets `gobye-{staging,prod}-{public-media,private-documents,private-evidence,private-uploads}`, r2.dev off | **Created** |
+| CORS on staging/prod uploads + public-media | **Applied** |
+| workers.dev subdomain `gobye.workers.dev` | **Registered** |
+| API gateway preview `https://gobye-api-gateway-preview.gobye.workers.dev` (no origins: `/v1/*` answers 503 `backend_not_configured`) | **Deployed**; first check hit a TLS handshake error while the new certificate was issued — **pending verification** |
+| Public media preview `https://gobye-media-gateway-preview.gobye.workers.dev` (staging public bucket only) | **Deployed**; pending verification as above |
+| `ORIGIN_AUTH_SECRET` (preview gateway) | **Stored** as a Worker secret (random, never shown) |
+| gobye.app zone, `api.gobye.app`, `media.gobye.app` | **Pending** — gobye.app is not on Cloudflare |
+| Upload signer Worker | **Pending credentials** (R2 S3 key) |
+
+This workspace can't reach `*.workers.dev` (egress allowlist), so verification is done from the owner's browser.
 
 Staging hostnames are one level (`api-staging`, `media-staging`) so Cloudflare's free Universal SSL certificate covers them (Q-070).
 
