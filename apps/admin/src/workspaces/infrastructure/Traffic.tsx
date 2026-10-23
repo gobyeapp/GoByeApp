@@ -20,7 +20,7 @@ import { canManageInfra, canViewInfra, createInfraStore, expectedShare, toTraffi
 const store = createInfraStore(() => Date.now());
 
 const HEALTH_TONE: Record<BackendOrigin['health'], Tone> = { healthy: 'success', degraded: 'warning', unhealthy: 'danger', unknown: 'neutral' };
-const ago = (t: number | null) => (t ? new Date(t).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }) : '—');
+const ago = (t: number | null) => (t ? new Date(t).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }) : '—');
 
 type ChangeKind = 'policy' | 'weights' | 'drain';
 
@@ -222,7 +222,7 @@ export default function Traffic() {
                 <div>
                   <strong>{a.summary}</strong>
                   <div className="muted small">
-                    {a.actor} · {new Date(a.at).toLocaleString('en-NG')} · “{a.reason}” · v{a.before.version} → v{a.after?.version}
+                    {a.actor} · {new Date(a.at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })} · “{a.reason}” · v{a.before.version} → v{a.after?.version}
                   </div>
                 </div>
                 <Pill tone="warning" icon="info">Simulated</Pill>

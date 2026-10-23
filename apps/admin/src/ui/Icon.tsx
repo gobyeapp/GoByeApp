@@ -66,6 +66,47 @@ import UserForbidIcon from '@mingcute/icons/core-regular/user-forbid';
 import WalletIcon from '@mingcute/icons/core-regular/wallet-4';
 import WarningIcon from '@mingcute/icons/core-regular/warning';
 import WebhookIcon from '@mingcute/icons/core-regular/webhook';
+import ComputerIcon from '@mingcute/icons/core-regular/computer';
+import MenuIcon from '@mingcute/icons/core-regular/menu';
+import SidebarCloseIcon from '@mingcute/icons/core-regular/layout-leftbar-close';
+import SidebarOpenIcon from '@mingcute/icons/core-regular/layout-leftbar-open';
+import CommandIcon from '@mingcute/icons/core-regular/command';
+import UpIcon from '@mingcute/icons/core-regular/up-small';
+import SortAscIcon from '@mingcute/icons/core-regular/sort-ascending';
+import SortDescIcon from '@mingcute/icons/core-regular/sort-descending';
+import EnterIcon from '@mingcute/icons/core-regular/corner-down-left';
+
+import DashboardFilled from '@mingcute/icons/core-filled/dashboard-2';
+import CheckCircleFilled from '@mingcute/icons/core-filled/check-circle';
+import GroupFilled from '@mingcute/icons/core-filled/group-3';
+import HistoryFilled from '@mingcute/icons/core-filled/history';
+import ChartFilled from '@mingcute/icons/core-filled/chart-bar';
+import LinkFilled from '@mingcute/icons/core-filled/link';
+import RadarFilled from '@mingcute/icons/core-filled/radar-2';
+import RouteFilled from '@mingcute/icons/core-filled/route';
+import UserFilled from '@mingcute/icons/core-filled/user-3';
+import SteeringFilled from '@mingcute/icons/core-filled/steering-wheel';
+import HeadphoneFilled from '@mingcute/icons/core-filled/headphone';
+import SafeAlertFilled from '@mingcute/icons/core-filled/safe-alert';
+import ExchangeFilled from '@mingcute/icons/core-filled/exchange-dollar';
+import WalletFilled from '@mingcute/icons/core-filled/wallet-4';
+import BankFilled from '@mingcute/icons/core-filled/bank';
+import RefreshFilled from '@mingcute/icons/core-filled/refresh-2';
+import BillFilled from '@mingcute/icons/core-filled/bill';
+import BalanceFilled from '@mingcute/icons/core-filled/balance';
+import ListFilled from '@mingcute/icons/core-filled/list-check-3';
+import MapPinFilled from '@mingcute/icons/core-filled/map-pin';
+import CarFilled from '@mingcute/icons/core-filled/car';
+import SettingsFilled from '@mingcute/icons/core-filled/settings-3';
+import TicketFilled from '@mingcute/icons/core-filled/ticket';
+import GiftFilled from '@mingcute/icons/core-filled/gift';
+import AnnouncementFilled from '@mingcute/icons/core-filled/announcement';
+import LayoutFilled from '@mingcute/icons/core-filled/layout-grid';
+import CalendarFilled from '@mingcute/icons/core-filled/calendar';
+import PluginFilled from '@mingcute/icons/core-filled/plugin-2';
+import WebhookFilled from '@mingcute/icons/core-filled/webhook';
+import ServerFilled from '@mingcute/icons/core-filled/server';
+import HomeFilled from '@mingcute/icons/core-filled/home-4';
 
 /**
  * MingCute (Core Regular) for the web admin: the same official icon set as the apps, from the
@@ -81,16 +122,22 @@ const ICONS = {
   refresh: RefreshIcon, right: RightIcon, route: RouteIcon, safeAlert: SafeAlertIcon, search: SearchIcon, server: ServerIcon, settings: SettingsIcon,
   shield: ShieldIcon, star: StarIcon, steering: SteeringIcon, sun: SunIcon, ticket: TicketIcon, time: TimeIcon, user: UserIcon, userAdd: UserAddIcon,
   userForbid: UserForbidIcon, wallet: WalletIcon, warning: WarningIcon, webhook: WebhookIcon,
+  computer: ComputerIcon, menu: MenuIcon, sidebarClose: SidebarCloseIcon, sidebarOpen: SidebarOpenIcon, command: CommandIcon, up: UpIcon, sortAsc: SortAscIcon, sortDesc: SortDescIcon, enter: EnterIcon,
 } as const;
 
 export type IconName = keyof typeof ICONS;
+
+/** Core Filled variants, used for the selected navigation item (brief: filled = selected). */
+const FILLED: Partial<Record<IconName, unknown>> = {
+  dashboard: DashboardFilled, checkCircle: CheckCircleFilled, group: GroupFilled, history: HistoryFilled, chart: ChartFilled, link: LinkFilled, radar: RadarFilled, route: RouteFilled, user: UserFilled, steering: SteeringFilled, headphone: HeadphoneFilled, safeAlert: SafeAlertFilled, exchange: ExchangeFilled, wallet: WalletFilled, bank: BankFilled, refresh: RefreshFilled, bill: BillFilled, balance: BalanceFilled, list: ListFilled, mapPin: MapPinFilled, car: CarFilled, settings: SettingsFilled, ticket: TicketFilled, gift: GiftFilled, announcement: AnnouncementFilled, layout: LayoutFilled, calendar: CalendarFilled, plugin: PluginFilled, webhook: WebhookFilled, server: ServerFilled, home: HomeFilled,
+};
 export const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
 type Def = { viewBox: string; elements: { tag: string; attributes: Record<string, string> }[] };
 const camel = (k: string) => k.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
 
-export function Icon({ name, size = 18, label, ...rest }: { name: IconName; size?: number; label?: string } & Omit<SVGProps<SVGSVGElement>, 'name'>) {
-  const def = ICONS[name] as unknown as Def;
+export function Icon({ name, size = 18, label, filled, ...rest }: { name: IconName; size?: number; label?: string; filled?: boolean } & Omit<SVGProps<SVGSVGElement>, 'name'>) {
+  const def = ((filled && FILLED[name]) || ICONS[name]) as unknown as Def;
   return (
     <svg width={size} height={size} viewBox={def.viewBox} aria-hidden={label ? undefined : true} role={label ? 'img' : undefined} aria-label={label} {...rest}>
       {def.elements.map((el, i) => createElement(el.tag, { key: i, ...Object.fromEntries(Object.entries(el.attributes).map(([k, v]) => [camel(k), v])) }))}

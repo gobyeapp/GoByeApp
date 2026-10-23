@@ -84,7 +84,7 @@ function MessageList({ messages, empty }: { messages: CaseRecord['messages']; em
             <span className="strong">{actorName(m.author)}</span>
             <span className="muted">{actorRole(m.author)}</span>
             <span className="muted" style={{ marginLeft: 'auto' }}>
-              {new Date(m.at).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}
+              {new Date(m.at).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', timeZone: 'Africa/Lagos' })}
             </span>
           </div>
           <div style={{ whiteSpace: 'pre-wrap' }}>{m.body}</div>

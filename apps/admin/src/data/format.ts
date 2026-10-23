@@ -4,19 +4,26 @@ export const money = (k: Kobo | number) => formatNaira(k as Kobo);
 export const signedMoney = (k: Kobo | number) => formatNaira(k as Kobo, { signed: true });
 export const city = (c: CityId) => CITY_LABELS[c];
 
+/** Nigerian time everywhere (WAT, UTC+1, no daylight saving), whatever the viewer's computer is set to. */
+export const TZ = 'Africa/Lagos';
+const WAT = 3_600_000;
+/** Day number in Lagos, for "is it today" checks. */
+export const lagosDay = (ms: number) => Math.floor((ms + WAT) / 86_400_000);
+const lagosYear = (ms: number) => new Date(ms + WAT).getUTCFullYear();
+
 export function when(ms: number | undefined, now = Date.now()) {
   if (!ms) return 'Not set';
   const d = new Date(ms);
   const diff = now - ms;
   if (diff >= 0 && diff < 60_000) return 'Just now';
   if (diff >= 0 && diff < 3_600_000) return `${Math.round(diff / 60_000)} min ago`;
-  if (diff >= 0 && diff < 86_400_000 && d.getDate() === new Date(now).getDate()) return `Today, ${d.toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit' })}`;
-  return d.toLocaleString('en-NG', { day: 'numeric', month: 'short', year: d.getFullYear() === new Date(now).getFullYear() ? undefined : 'numeric', hour: 'numeric', minute: '2-digit' });
+  if (diff >= 0 && diff < 86_400_000 && lagosDay(ms) === lagosDay(now)) return `Today, ${d.toLocaleTimeString('en-NG', { hour: 'numeric', minute: '2-digit', timeZone: TZ })}`;
+  return d.toLocaleString('en-NG', { day: 'numeric', month: 'short', year: lagosYear(ms) === lagosYear(now) ? undefined : 'numeric', hour: 'numeric', minute: '2-digit', timeZone: TZ });
 }
 
 export function date(ms: number | undefined) {
   if (!ms) return 'Not set';
-  return new Date(ms).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(ms).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: TZ });
 }
 
 export const pct = (v: number) => `${Math.round(v * 100)}%`;

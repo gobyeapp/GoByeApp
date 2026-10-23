@@ -344,7 +344,7 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
           <div>{c.resolution.summary}</div>
           <div className="small">
             {when(c.resolution.at, t)}
-            {c.resolution.followUpAt ? ` · follow up ${new Date(c.resolution.followUpAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+            {c.resolution.followUpAt ? ` · follow up ${new Date(c.resolution.followUpAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' })}` : ''}
           </div>
         </Notice>
       ) : null}

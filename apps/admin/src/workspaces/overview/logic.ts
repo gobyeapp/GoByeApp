@@ -144,9 +144,10 @@ export function overviewMetrics(d: PlatformDataset, keep: Keep, now: number): Ov
   };
 }
 
-/** Completed trips per day for the last `days` days (oldest first), by completion time. */
+/** Completed trips per Lagos calendar day (WAT, UTC+1) for the last `days` days (oldest first), by completion time. */
 export function dailyCompleted(d: PlatformDataset, keep: Keep, now: number, days: number): { day: number; count: number }[] {
-  const end = Math.floor(now / DAY) * DAY + DAY;
+  const WAT = 3_600_000;
+  const end = Math.floor((now + WAT) / DAY) * DAY + DAY - WAT;
   const out = Array.from({ length: days }, (_, i) => ({ day: end - (days - i) * DAY, count: 0 }));
   for (const t of d.trips) {
     if (t.status !== 'completed' || !t.completedAt || !keep(t.city, undefined)) continue;
