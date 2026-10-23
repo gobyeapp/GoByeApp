@@ -6,7 +6,7 @@ import { useAction, useData, usePlatform } from '@/data/store';
 import { Button, ConfirmDialog, Drawer, Empty, KV, Notice, Pill, Section, Stat, Table, type Column } from '@/ui/kit';
 import { CorrectionDialog } from './CorrectionDialog';
 import { ACCOUNT_LABEL, KIND_LABEL, pendingAdjustments, reconTargetId, reconcile, reconciliationCorrectionLines, unmatchedItems, type ReconRow } from './logic';
-import { Amount, FinanceHead, SubHead } from './parts';
+import { Amount, FinanceHead, FlowSteps, Rule, SubHead } from './parts';
 
 const periodLabel = (r: ReconRow) => `${date(r.settlement.periodStart)} to ${date(r.settlement.periodEnd)}`;
 
@@ -30,10 +30,10 @@ export default function Reconciliation() {
 
   const columns: Column<ReconRow>[] = [
     { key: 'p', label: 'Settlement period', render: (r) => <div><div className="cell-title">{periodLabel(r)}</div><div className="cell-sub">{r.settlement.provider}</div></div> },
-    { key: 'prov', label: 'Provider collected', align: 'right', render: (r) => <span className="num">{money(r.settlement.collected)}</span> },
+    { key: 'prov', label: 'Provider collected', align: 'right', sortValue: (r) => r.settlement.collected, render: (r) => <span className="num">{money(r.settlement.collected)}</span> },
     { key: 'bank', label: 'Bank settled', align: 'right', render: (r) => (r.settlement.settledAt ? <span className="num">{money(r.settlement.settled)}</span> : <span className="muted small">Pending</span>) },
-    { key: 'led', label: 'Our ledger', align: 'right', render: (r) => <span className="num">{money(r.settlement.ledgerTotal)}</span> },
-    { key: 'pl', label: 'Provider vs ledger', align: 'right', render: (r) => <Diff value={r.providerVsLedger} /> },
+    { key: 'led', label: 'Our ledger', align: 'right', sortValue: (r) => r.settlement.ledgerTotal, render: (r) => <span className="num">{money(r.settlement.ledgerTotal)}</span> },
+    { key: 'pl', label: 'Provider vs ledger', align: 'right', sortValue: (r) => Math.abs(r.providerVsLedger), render: (r) => <Diff value={r.providerVsLedger} /> },
     { key: 'pb', label: 'Bank vs expected', align: 'right', render: (r) => <Diff value={r.providerVsBank} pending={!r.settlement.settledAt} /> },
     {
       key: 'st',
@@ -47,10 +47,10 @@ export default function Reconciliation() {
     <>
       <FinanceHead title="Reconciliation" sub="Provider records, bank settlements and our ledger compared for each settlement period." />
       <div className="grid cols-4">
-        <Stat label="Periods matched" value={String(rows.filter((r) => r.state === 'matched').length)} sub={`of ${rows.length} in range`} tone="success" />
-        <Stat label="With differences" value={String(differences.length)} sub={`${differences.filter((r) => !r.investigated).length} not investigated`} tone={differences.some((r) => !r.investigated) ? 'danger' : undefined} />
-        <Stat label="Pending settlement" value={String(rows.filter((r) => !r.settlement.settledAt).length)} sub="Bank side not in yet" />
-        <Stat label="Unmatched items" value={String(unmatchedCount)} sub="Listed at the bottom" tone={unmatchedCount ? 'warning' : undefined} />
+        <Stat icon="checkCircle" label="Periods matched" value={String(rows.filter((r) => r.state === 'matched').length)} sub={`of ${rows.length} in range`} />
+        <Stat icon="alert" label="With differences" value={String(differences.length)} sub={`${differences.filter((r) => !r.investigated).length} not investigated`} tone={differences.some((r) => !r.investigated) ? 'danger' : undefined} />
+        <Stat icon="time" label="Pending settlement" value={String(rows.filter((r) => !r.settlement.settledAt).length)} sub="Bank side not in yet" />
+        <Stat icon="warning" label="Unmatched items" value={String(unmatchedCount)} sub="Listed at the bottom" tone={unmatchedCount ? 'warning' : undefined} />
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
@@ -58,6 +58,14 @@ export default function Reconciliation() {
         </Notice>
       </div>
 
+      <div className="section">
+        <FlowSteps
+          label="How a difference is resolved"
+          title="How a difference is resolved"
+          steps={['Compare provider, bank and ledger', 'Investigate and note what you found', 'Request a correcting adjustment', 'Owner approves, journal posts once']}
+          note="Entries are never edited in place. A correction is a new journal, posted only after someone other than the requester approves it."
+        />
+      </div>
       <div className="section">
         <div className="card flush">
           <Table rows={rows} columns={columns} rowKey={(r) => r.settlement.id} onRowClick={(r) => setOpenId(r.settlement.id)} empty={<Empty title="No settlement periods in this range" icon="balance">Widen the date range at the top.</Empty>} />
@@ -187,6 +195,7 @@ function ReconDrawer({ row, onClose }: { row: ReconRow; onClose: () => void }) {
       {waiting.map((a) => (
         <Notice key={a.id} tone="warning" icon="time">{a.title} waiting for owner approval. Reason: {a.note}</Notice>
       ))}
+      {hasDiff ? <Rule>A correction is a request, not a change: the owner approves it (never the person who asked) and the adjustment journal posts once.</Rule> : null}
       {mode === 'investigate' ? (
         <ConfirmDialog
           title="Mark as investigated"

@@ -4,7 +4,7 @@ import { RecordLink } from '@/data/records';
 import { label, money, when } from '@/data/format';
 import { useSession } from '@/data/session';
 import { useData, usePlatform, useToast } from '@/data/store';
-import { Button, Card, Drawer, Empty, KV, Notice, Pill, SearchInput, Select, Stat, Table, Timeline, type Column } from '@/ui/kit';
+import { Button, Card, Drawer, Empty, FilterBar, KV, Notice, Pill, SearchInput, Select, Stat, Table, Timeline, type Column } from '@/ui/kit';
 import { cityIndex, collectionEntries, collectionTotals, payerCity, verifyCollection } from './logic';
 import { Amount, COLLECTION_TONE, FinanceHead, LedgerLines, SimTag, StatusPill, SubHead, useInclude } from './parts';
 
@@ -43,11 +43,11 @@ export default function Collections() {
   const columns: Column<CollectionRecord>[] = [
     { key: 'purpose', label: 'Purpose', render: (c) => <div><div className="cell-title">{PURPOSE_LABEL[c.purpose]}</div><div className="cell-sub">{PURPOSE_NOTE[c.purpose]}</div></div> },
     { key: 'payer', label: 'Payer', render: (c) => <RecordLink type={c.payerType} id={c.payerId}>{names.get(c.payerId) ?? c.payerId}</RecordLink> },
-    { key: 'amount', label: 'Amount', align: 'right', render: (c) => <Amount value={c.amount} plain strong /> },
-    { key: 'fee', label: 'Fee', align: 'right', render: (c) => <span className="num muted">{c.fee ? money(c.fee) : 'None'}</span> },
+    { key: 'amount', label: 'Amount', align: 'right', sortValue: (c) => c.amount, render: (c) => <Amount value={c.amount} plain strong /> },
+    { key: 'fee', label: 'Fee', align: 'right', sortValue: (c) => c.fee, render: (c) => <span className="num muted">{c.fee ? money(c.fee) : 'None'}</span> },
     { key: 'ref', label: 'Provider and reference', render: (c) => <div><div className="small">{c.provider}</div><div className="cell-sub num">{c.reference}</div></div> },
     { key: 'status', label: 'Status', render: (c) => <div className="row" style={{ gap: 6 }}><StatusPill tone={COLLECTION_TONE[c.status]} status={c.status} />{c.events.some((e) => e.duplicate) ? <Pill tone="neutral" icon="copy">Duplicate event</Pill> : null}</div> },
-    { key: 'time', label: 'Created / verified', render: (c) => <div className="small"><div>{when(c.createdAt, now())}</div><div className="muted">{c.verifiedAt ? `Verified ${when(c.verifiedAt, now())}` : 'Not verified'}</div></div> },
+    { key: 'time', label: 'Created / verified', sortValue: (c) => c.createdAt, render: (c) => <div className="small"><div>{when(c.createdAt, now())}</div><div className="muted">{c.verifiedAt ? `Verified ${when(c.verifiedAt, now())}` : 'Not verified'}</div></div> },
   ];
 
   return (
@@ -58,21 +58,21 @@ export default function Collections() {
       </Notice>
 
       <div className="grid cols-4" style={{ marginTop: 16 }}>
-        <Stat label="Successful" value={money(totals.successful.amount)} sub={`${totals.successful.count} payments · fees ${money(totals.successful.fees)}`} tone="success" onClick={() => setStatus('successful')} />
-        <Stat label="Pending" value={money(totals.pending.amount)} sub={`${totals.pending.count} waiting for the provider`} tone={totals.pending.count ? 'warning' : undefined} onClick={() => setStatus('pending')} />
-        <Stat label="Failed or abandoned" value={money(totals.failed.amount)} sub={`${totals.failed.count} payments, nothing credited`} tone={totals.failed.count ? 'danger' : undefined} onClick={() => setStatus('failed')} />
-        <Stat label="Wallet funding received" value={money(scoped.filter((c) => c.purpose === 'wallet_funding' && c.status === 'successful').reduce((s, c) => s + c.amount, 0))} sub="Held for passengers, not revenue" />
+        <Stat icon="checkCircle" label="Successful" value={money(totals.successful.amount)} sub={`${totals.successful.count} payments · fees ${money(totals.successful.fees)} shown separately`} onClick={() => setStatus('successful')} />
+        <Stat icon="time" label="Pending" value={money(totals.pending.amount)} sub={`${totals.pending.count} waiting for the provider, not credited`} tone={totals.pending.count ? 'warning' : undefined} onClick={() => setStatus('pending')} />
+        <Stat icon="alert" label="Failed or abandoned" value={money(totals.failed.amount)} sub={`${totals.failed.count} payments, nothing credited`} tone={totals.failed.count ? 'danger' : undefined} onClick={() => setStatus('failed')} />
+        <Stat icon="wallet" label="Wallet funding received" value={money(scoped.filter((c) => c.purpose === 'wallet_funding' && c.status === 'successful').reduce((s, c) => s + c.amount, 0))} sub="Held for passengers, not revenue" />
       </div>
 
       <div className="section">
-        <div className="toolbar">
+        <FilterBar count={`${rows.length} of ${scoped.length} in the selected city and dates`}>
           <SearchInput value={q} onChange={setQ} placeholder="Search reference or payer" />
           <Select<Purpose | 'all'> label="Purpose" value={purpose} onChange={setPurpose} options={[{ value: 'all', label: 'All purposes' }, ...(Object.keys(PURPOSE_LABEL) as Purpose[]).map((p) => ({ value: p, label: PURPOSE_LABEL[p] }))]} />
           <Select<CollectionStatus | 'all'> label="Status" value={status} onChange={setStatus} options={[{ value: 'all', label: 'All statuses' }, ...(['initiated', 'pending', 'successful', 'failed', 'abandoned', 'reversed'] as CollectionStatus[]).map((s) => ({ value: s, label: label(s) }))]} />
-          <span className="muted small" style={{ marginLeft: 'auto' }}>{rows.length} of {scoped.length} in the selected city and dates</span>
-        </div>
+        </FilterBar>
         <div className="card flush">
           <Table
+           
             rows={rows}
             columns={columns}
             rowKey={(c) => c.id}

@@ -4,7 +4,7 @@ import { money, when } from '@/data/format';
 import { RANGE_MS, useFilters, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
-import { Button, ConfirmDialog, Drawer, Empty, KV, Notice, Pill, SearchInput, Select, Stat } from '@/ui/kit';
+import { Button, ConfirmDialog, Drawer, Empty, FilterBar, KV, Notice, Pill, SearchInput, Select, Stat } from '@/ui/kit';
 import { ACCOUNT_LABEL, KIND_LABEL, accountBalances, canReverseJournal, journalMatches, journals, pendingAdjustments, requestLedgerAdjustment, type Journal } from './logic';
 import { Amount, FinanceHead, SubHead } from './parts';
 
@@ -31,23 +31,22 @@ export default function Ledger() {
     <>
       <FinanceHead title="Ledger" sub="Every money movement as a balanced journal. Entries are never edited: corrections are new adjustment or reversal journals with a reason." />
       <div className="grid cols-4">
-        <Stat label="Company revenue" value={money(bal.companyRevenue)} sub="Driver access packages" />
-        <Stat label="Promotions and goodwill" value={money(bal.promotionsSpend)} sub="Rewards and goodwill refunds (expense)" />
-        <Stat label="Processing costs" value={money(bal.processingCosts)} sub="Provider fees (expense)" />
-        <Stat label="Passenger wallets" value={money(bal.passengerWallets)} sub="Held for passengers (liability)" />
-        <Stat label="Driver earnings" value={money(bal.driverEarnings)} sub="Withdrawable, owed to drivers" />
-        <Stat label="Withdrawal reserves" value={money(bal.withdrawalReserves)} sub="Requested, not yet paid" />
-        <Stat label="Provider clearing" value={<Amount value={bal.providerClearing} />} sub="Paystack (test): negative means money in, not yet settled out" />
-        <Stat label="Journals" value={String(all.length)} sub={all.every((j) => j.total === 0) ? 'All balance to zero' : 'Some do not balance'} tone={all.every((j) => j.total === 0) ? 'success' : 'danger'} />
+        <Stat icon="chart" label="Company revenue" value={money(bal.companyRevenue)} sub="Driver access packages" />
+        <Stat icon="gift" label="Promotions and goodwill" value={money(bal.promotionsSpend)} sub="Rewards and goodwill refunds (expense)" />
+        <Stat icon="bill" label="Processing costs" value={money(bal.processingCosts)} sub="Provider fees (expense)" />
+        <Stat icon="wallet" label="Passenger wallets" value={money(bal.passengerWallets)} sub="Held for passengers (liability)" />
+        <Stat icon="steering" label="Driver earnings" value={money(bal.driverEarnings)} sub="Withdrawable, owed to drivers" />
+        <Stat icon="time" label="Withdrawal reserves" value={money(bal.withdrawalReserves)} sub="Requested, not yet paid" />
+        <Stat icon="exchange" label="Provider clearing" value={<Amount value={bal.providerClearing} />} sub="Paystack (test): negative means money in, not yet settled out" />
+        <Stat icon="list" label="Journals" value={String(all.length)} sub={all.every((j) => j.total === 0) ? 'All balance to zero' : 'Some do not balance'} tone={all.every((j) => j.total === 0) ? undefined : 'danger'} />
       </div>
 
       <div className="section">
-        <div className="toolbar">
+        <FilterBar count={`${rows.length} journals${city !== 'all' ? ' · City filter does not apply to the ledger' : ''}`}>
           <SearchInput value={q} onChange={(v) => { setQ(v); setLimit(PAGE); }} placeholder="Search description, reference or account" />
           <Select<LedgerEntryKind | 'all'> label="Kind" value={kind} onChange={(v) => { setKind(v); setLimit(PAGE); }} options={[{ value: 'all', label: 'All kinds' }, ...(Object.keys(KIND_LABEL) as LedgerEntryKind[]).map((k) => ({ value: k, label: KIND_LABEL[k] }))]} />
           <Select<LedgerAccount['kind'] | 'all'> label="Account" value={account} onChange={(v) => { setAccount(v); setLimit(PAGE); }} options={[{ value: 'all', label: 'All accounts' }, ...(Object.keys(ACCOUNT_LABEL) as LedgerAccount['kind'][]).map((k) => ({ value: k, label: ACCOUNT_LABEL[k] }))]} />
-          <span className="muted small" style={{ marginLeft: 'auto' }}>{rows.length} journals{city !== 'all' ? ' · City filter does not apply to the ledger' : ''}</span>
-        </div>
+        </FilterBar>
         {rows.length ? (
           <div className="card flush">
             <div className="table-wrap">

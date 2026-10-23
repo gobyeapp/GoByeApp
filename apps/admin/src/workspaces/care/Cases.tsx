@@ -1,12 +1,12 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import type { CaseCategory, CasePriority, CaseRecord, RefundRecord, RefundStatus } from '@gobye/core';
+import type { CaseCategory, CasePriority, CaseRecord, CaseStatus, RefundRecord, RefundStatus } from '@gobye/core';
 import { RecordLink, PAYMENT_STATE } from '@/data/records';
 import { useScopedFilter, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { city, label, money, when } from '@/data/format';
 import { Icon } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Empty, Field, KV, Notice, PageHead, Pill, SearchInput, Segmented, Select, Stat, Table, Tabs, type Column, type Tone } from '@/ui/kit';
-import { ActionTimeline, Block, FormDialog, MessageStreams, PriorityPill, StatusPill, WideDrawer, actorName } from './caseKit';
+import { Button, Card, ConfirmDialog, Empty, Field, FilterBar, KV, Notice, PageHead, Pill, SearchInput, Segmented, Select, Stat, Table, Tabs, type Column, type Tone } from '@/ui/kit';
+import { ActionTimeline, Block, FormDialog, MessageStreams, PriorityPill, STATUS_PILL, StatusPill, WideDrawer, actorName, useDeepLinkedCase } from './caseKit';
 import {
   CARE_CATEGORIES,
   CARE_RESPONSE_TARGET_MIN,
@@ -51,17 +51,21 @@ export const REFUND_PILL: Record<RefundStatus, { tone: Tone; text: string }> = {
 };
 
 const caseTarget = (c: CaseRecord) => ({ type: 'case' as const, id: c.id, label: c.ref });
+const PRIORITY_ORDER: Record<CasePriority, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+const STATUS_ORDER: Record<CaseStatus, number> = { new: 0, escalated: 1, in_progress: 2, waiting: 3, resolved: 4, closed: 5 };
 
 export default function Cases() {
   const d = useData();
   const { now } = usePlatform();
-  const { staff, can } = useSession();
+  const { staff, can, inScope } = useSession();
   const keep = useScopedFilter();
   const [tab, setTab] = useState<QueueTab>(can('cases.work') ? 'mine' : 'open');
   const [category, setCategory] = useState<CaseCategory | 'all'>('all');
   const [priority, setPriority] = useState<CasePriority | 'all'>('all');
+  const [status, setStatus] = useState<CaseStatus | 'all'>('all');
   const [q, setQ] = useState('');
-  const [openId, setOpenId] = useState<string | null>(null);
+  // `?open=<case id>` (command palette, links) opens that case when the viewer can see it.
+  const { openId, setOpenId, close, missing } = useDeepLinkedCase((id) => d.cases.some((c) => c.id === id && c.team === 'care' && inScope(c.city)));
   const [creating, setCreating] = useState(false);
   const t = now();
   const me = staff?.id;
@@ -84,10 +88,11 @@ export default function Cases() {
           inTab(c, tab, me) &&
           (category === 'all' || c.category === category) &&
           (priority === 'all' || c.priority === priority) &&
+          (status === 'all' || c.status === status) &&
           (!s || c.ref.toLowerCase().includes(s) || c.subject.toLowerCase().includes(s) || customerOf(c).toLowerCase().includes(s)),
       ),
     );
-  }, [scoped, tab, me, category, priority, q, nameOf]);
+  }, [scoped, tab, me, category, priority, status, q, nameOf]);
 
   const counts = {
     mine: scoped.filter((c) => inTab(c, 'mine', me)).length,
@@ -96,12 +101,14 @@ export default function Cases() {
     done: scoped.filter((c) => inTab(c, 'done', me)).length,
   };
   const escalated = scoped.filter((c) => c.status === 'escalated').length;
+  const waiting = scoped.filter((c) => c.status === 'waiting').length;
   const overTarget = scoped.filter((c) => overResponseTarget(c, t)).length;
 
   const columns: Column<CaseRecord>[] = [
     {
       key: 'case',
       label: 'Case',
+      sortValue: (c) => c.ref,
       render: (c) => (
         <div>
           <div className="cell-title">{c.subject}</div>
@@ -111,13 +118,15 @@ export default function Cases() {
         </div>
       ),
     },
-    { key: 'customer', label: 'Customer', render: (c) => customerOf(c) },
-    { key: 'priority', label: 'Priority', render: (c) => <PriorityPill p={c.priority} /> },
-    { key: 'status', label: 'Status', render: (c) => <StatusPill s={c.status} /> },
+    { key: 'customer', label: 'Customer', sortValue: (c) => customerOf(c), render: (c) => customerOf(c) },
+    { key: 'priority', label: 'Priority', sortValue: (c) => PRIORITY_ORDER[c.priority], render: (c) => <PriorityPill p={c.priority} /> },
+    { key: 'status', label: 'Status', sortValue: (c) => STATUS_ORDER[c.status], render: (c) => <StatusPill s={c.status} /> },
     { key: 'owner', label: 'Owner', render: (c) => (c.ownerId ? (c.ownerId === me ? 'You' : (nameOf.get(c.ownerId) ?? 'Unknown')) : <span className="muted">Unassigned</span>) },
     {
       key: 'age',
       label: 'Age',
+      // Oldest first when ascending: the case that has waited longest.
+      sortValue: (c) => c.openedAt,
       render: (c) => (
         <div className="stack tight">
           <span className="num">{isOpen(c.status) ? `Open ${formatAge(t - c.openedAt)}` : when(c.resolution?.at ?? c.openedAt, t)}</span>
@@ -137,11 +146,12 @@ export default function Cases() {
     open: { title: 'No open cases', body: 'Try another city, date range or filter.' },
     done: { title: 'No resolved or closed cases', body: 'Try a wider date range.' },
   };
-  const filtered = category !== 'all' || priority !== 'all' || q.trim();
+  const filtered = category !== 'all' || priority !== 'all' || status !== 'all' || q.trim();
 
   return (
     <>
       <PageHead
+        eyebrow="Care"
         title="Support cases"
         sub="Passenger and driver issues, each linked to its trip, people and payment. Test data."
         actions={
@@ -150,6 +160,11 @@ export default function Cases() {
           </Button>
         }
       />
+      {missing ? (
+        <div style={{ marginBottom: 16 }}>
+          <Notice tone="warning" icon="lock">That case isn’t in your support queue. It may belong to Safety, another city or a team you can’t see.</Notice>
+        </div>
+      ) : null}
       {!can('cases.work') ? (
         <div style={{ marginBottom: 16 }}>
           <Notice icon="eye">You have read only access to support cases. Actions are hidden for your role.</Notice>
@@ -157,10 +172,14 @@ export default function Cases() {
       ) : null}
 
       <div className="grid cols-4" style={{ marginBottom: 20 }}>
-        {can('cases.work') ? <Stat label="My open cases" value={counts.mine} onClick={() => setTab('mine')} /> : null}
-        <Stat label="Unassigned" value={counts.unassigned} sub="New, waiting for an owner" onClick={() => setTab('unassigned')} />
-        <Stat label="Escalated" value={escalated} sub="With Finance, Safety or Operations" onClick={() => setTab('open')} />
-        <Stat label="Over response target" value={overTarget} tone={overTarget ? 'danger' : undefined} sub={`Placeholder targets: urgent ${CARE_RESPONSE_TARGET_MIN.urgent} min, high ${CARE_RESPONSE_TARGET_MIN.high / 60} h`} onClick={() => setTab('unassigned')} />
+        {can('cases.work') ? (
+          <Stat icon="user" label="My open cases" value={counts.mine} sub={`${waiting} waiting on a customer in the queue`} onClick={() => setTab('mine')} />
+        ) : (
+          <Stat icon="time" label="Waiting on customer" value={waiting} sub="Paused until the customer replies" onClick={() => (setTab('open'), setStatus('waiting'))} />
+        )}
+        <Stat icon="userAdd" label="Unassigned" value={counts.unassigned} sub="New, waiting for an owner" tone={counts.unassigned ? 'warning' : undefined} onClick={() => setTab('unassigned')} />
+        <Stat icon="flag" label="Escalated" value={escalated} sub="With Finance, Safety or Operations" onClick={() => (setTab('open'), setStatus('escalated'))} />
+        <Stat icon="alarm" label="Over response target" value={overTarget} tone={overTarget ? 'danger' : undefined} sub={`Placeholder targets: urgent ${CARE_RESPONSE_TARGET_MIN.urgent} min, high ${CARE_RESPONSE_TARGET_MIN.high / 60} h`} onClick={() => setTab('unassigned')} />
       </div>
 
       <Tabs
@@ -173,33 +192,44 @@ export default function Cases() {
           { value: 'done', label: 'Resolved and closed', count: counts.done },
         ]}
       />
-      <div className="toolbar">
+      <FilterBar
+        count={`${rows.length} ${rows.length === 1 ? 'case' : 'cases'} · urgent first, then oldest`}
+        end={
+          filtered ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon="close"
+              onClick={() => {
+                setCategory('all');
+                setPriority('all');
+                setStatus('all');
+                setQ('');
+              }}
+            >
+              Clear filters
+            </Button>
+          ) : null
+        }
+      >
         <SearchInput value={q} onChange={setQ} placeholder="Search ref, subject or name" />
-        <Select label="Category" value={category} onChange={setCategory} options={[{ value: 'all', label: 'All categories' }, ...CARE_CATEGORIES.map((c) => ({ value: c, label: label(c) }))]} />
+        <Select
+          label="Status"
+          value={status}
+          onChange={setStatus}
+          options={[{ value: 'all', label: 'All statuses' }, ...(Object.keys(STATUS_PILL) as CaseStatus[]).map((x) => ({ value: x, label: STATUS_PILL[x].text }))]}
+        />
         <Select label="Priority" value={priority} onChange={setPriority} options={[{ value: 'all', label: 'All priorities' }, ...PRIORITIES.map((p) => ({ value: p, label: label(p) }))]} />
-        {filtered ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setCategory('all');
-              setPriority('all');
-              setQ('');
-            }}
-          >
-            Clear filters
-          </Button>
-        ) : null}
-        <span className="muted small" style={{ marginLeft: 'auto' }}>
-          Sorted by priority, then oldest first
-        </span>
-      </div>
+        <Select label="Category" value={category} onChange={setCategory} options={[{ value: 'all', label: 'All categories' }, ...CARE_CATEGORIES.map((c) => ({ value: c, label: label(c) }))]} />
+      </FilterBar>
       <Card flush>
         <Table
           rows={rows}
           columns={columns}
           rowKey={(c) => c.id}
           onRowClick={(c) => setOpenId(c.id)}
+          pageSize={25}
+          caption="Support cases"
           empty={
             <Empty icon="headphone" title={filtered ? 'No cases match these filters' : emptyCopy[tab].title}>
               {filtered ? 'Clear the filters to see the whole queue.' : emptyCopy[tab].body}
@@ -208,7 +238,7 @@ export default function Cases() {
         />
       </Card>
 
-      {openId ? <CaseView id={openId} onClose={() => setOpenId(null)} /> : null}
+      {openId ? <CaseView id={openId} onClose={close} /> : null}
       {creating ? (
         <NewCase
           onClose={() => setCreating(false)}
@@ -258,7 +288,7 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
   };
 
   const header = (
-    <div className="stack">
+    <div className="card muted-card stack" style={{ padding: 16 }}>
       <div className="row wrap">
         <PriorityPill p={c.priority} />
         <StatusPill s={c.status} />
@@ -272,8 +302,18 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
           </Pill>
         ) : null}
       </div>
-      {canWork ? (
-        <div className="row wrap" style={{ gap: 8 }}>
+      <KV
+        items={[
+          ['Opened', `${when(c.openedAt, t)} by ${actorName(c.openedBy)}`],
+          ['Open for', isOpen(c.status) ? formatAge(t - c.openedAt) : 'Closed out'],
+          ['Response target', `${CARE_RESPONSE_TARGET_MIN[c.priority] >= 60 ? `${CARE_RESPONSE_TARGET_MIN[c.priority] / 60} h` : `${CARE_RESPONSE_TARGET_MIN[c.priority]} min`} for ${label(c.priority).toLowerCase()} priority (placeholder)`],
+        ]}
+      />
+    </div>
+  );
+
+  const footer = canWork ? (
+        <div className="row wrap" style={{ gap: 8, width: '100%' }}>
           {has('assign_me') ? (
             <Button
               size="sm"
@@ -330,12 +370,19 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
             </Button>
           ) : null}
         </div>
-      ) : null}
-    </div>
+  ) : (
+    <span className="muted small row" style={{ gap: 6, marginRight: 'auto' }}>
+      <Icon name="eye" size={14} /> Read only for your role
+    </span>
   );
 
   return (
-    <WideDrawer title={`${c.ref} · ${c.subject}`} sub={`${label(c.category)} · ${city(c.city)} · opened ${when(c.openedAt, t)} by ${actorName(c.openedBy)}`} onClose={onClose}>
+    <WideDrawer
+      title={`${c.ref} · ${c.subject}`}
+      sub={`${label(c.category)} · ${city(c.city)} · opened ${when(c.openedAt, t)} by ${actorName(c.openedBy)}`}
+      onClose={onClose}
+      footer={footer}
+    >
       {header}
 
       {c.resolution ? (

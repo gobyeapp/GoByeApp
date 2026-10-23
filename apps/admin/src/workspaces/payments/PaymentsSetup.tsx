@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { APPROVAL_RULES, canDecide, type ApprovalRequest, type IntegrationRecord } from '@gobye/core';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, Section, Table, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Meter, Notice, PageHead, Pill, Section, Stat, Table, type Column, type Tone } from '@/ui/kit';
+import { FlowSteps } from '../finance/parts';
 import type { IconName } from '@/ui/Icon';
 import { STATE_META, nextApprovalId } from '../developer/logic';
 import { StatePill, ago } from '../developer/ui';
@@ -48,10 +49,25 @@ export default function PaymentsSetup() {
   const problems = useMemo(() => setupProblems([live, test]), [live, test]);
   const exposure = useMemo(() => PROVIDERS.map((p) => ({ ...p, ...providerExposure(d, p.key) })), [d]);
   const walletRefunds = openWalletRefunds(d);
+  const testSteps = readinessSteps(test, 'test');
+  const liveSteps = readinessSteps(live, 'live');
+  const progress = (steps: ReadinessStep[]) => {
+    const needed = steps.filter((s) => s.status !== 'not_needed');
+    return { done: needed.filter((s) => s.status === 'done').length, total: needed.length };
+  };
+  const tp = progress(testSteps);
+  const lp = progress(liveSteps);
+  const liveWaiting = d.approvals.filter((a) => isLiveRequest(a) && a.target.id === live?.id && a.status === 'pending').length;
 
   return (
     <>
-      <PageHead title="Payments setup" sub="Choose the payment provider, check readiness and approve going live." />
+      <PageHead eyebrow="Technical" title="Payments setup" sub="Choose the payment provider, check readiness and approve going live." meta={<Pill tone="warning" icon="info">Test mode only · no real money</Pill>} />
+      <div className="grid cols-4" style={{ marginBottom: 16 }}>
+        <Stat icon="code" label="Test mode readiness" value={`${tp.done} of ${tp.total}`} sub="Required steps done" />
+        <Stat icon="lock" label="Live readiness" value={`${lp.done} of ${lp.total}`} sub={liveGate(live).allowed ? 'Every live check passed' : 'Live stays off until every check passes'} tone={liveGate(live).allowed ? undefined : 'warning'} />
+        <Stat icon="checkCircle" label="Live requests waiting" value={String(liveWaiting)} sub="Owner approval, never by the requester" />
+        <Stat icon="alert" label="Setup problems" value={String(problems.length)} sub="Listed below with who owns each" tone={problems.length ? 'warning' : undefined} />
+      </div>
       <div className="stack">
         <Notice tone="warning" icon="info">
           Prototype on test data. Nothing is connected to Paystack or any bank, and no real money moves. Paystack is shown in test mode only.
@@ -101,10 +117,10 @@ export default function PaymentsSetup() {
         </div>
       </Section>
 
-      <Section title="Connection status">
+      <Section title="Connection status" desc="Each environment lists its required steps in order. A step marked Waiting depends on someone outside the dashboard.">
         <div className="grid cols-2">
-          <EnvironmentCard title="Test mode" integ={test} steps={readinessSteps(test, 'test')} now={t} />
-          <EnvironmentCard title="Live" integ={live} steps={readinessSteps(live, 'live')} now={t} />
+          <EnvironmentCard title="Test mode" integ={test} steps={testSteps} now={t} />
+          <EnvironmentCard title="Live" integ={live} steps={liveSteps} now={t} />
         </div>
       </Section>
 
@@ -161,6 +177,16 @@ function EnvironmentCard({ title, integ, steps, now }: { title: string; integ?: 
         <h3>{title}</h3>
         {integ ? <StatePill state={integ.state} /> : <Pill tone="neutral" icon={null}>Not set up</Pill>}
       </div>
+      {(() => {
+        const needed = steps.filter((s) => s.status !== 'not_needed');
+        const done = needed.filter((s) => s.status === 'done').length;
+        return (
+          <div className="ready-meter">
+            <Meter value={needed.length ? done / needed.length : 0} label={`${title}: ${done} of ${needed.length} required steps done`} />
+            <span className="num">{done} of {needed.length} done</span>
+          </div>
+        );
+      })()}
       <ol className="stack tight" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
         {steps.map((s, k) => {
           const m = STEP_PILL[s.status];
@@ -267,6 +293,11 @@ function LiveActivation({ live }: { live?: IntegrationRecord }) {
     <Section title="Live activation">
       <Card>
         <div className="stack">
+          <FlowSteps
+            label="How going live works"
+            steps={['Every live check passes', 'A developer or the owner asks', 'Another owner approves', 'Live payments switch on']}
+            current={live?.state === 'live' ? 4 : pending.length ? (gate.allowed ? 2 : 0) : gate.allowed ? 1 : 0}
+          />
           {gate.allowed ? (
             <Notice tone="success">Every live check has passed. Live can be approved.</Notice>
           ) : (

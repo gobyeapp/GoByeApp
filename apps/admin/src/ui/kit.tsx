@@ -57,7 +57,8 @@ export function Stat({ label, value, sub, onClick, tone, icon }: { label: string
         {label}
         {onClick ? <Icon name="arrowRight" size={16} className="go" /> : null}
       </span>
-      <span className="value" style={tone ? { color: `var(--${tone === 'neutral' ? 'text' : tone})` } : undefined}>
+      {/* Figures read as numbers first: the tone shows on the icon and the card edge, not the value. */}
+      <span className="value">
         {value}
       </span>
       {sub ? <span className="sub">{sub}</span> : null}
@@ -92,6 +93,8 @@ type ButtonProps = {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-soft';
   size?: 'sm' | 'md';
   icon?: IconName;
+  /** Icon after the label (e.g. Next). */
+  iconEnd?: IconName;
   disabled?: boolean;
   /** Disabled with a reason shown as a tooltip and read by screen readers. */
   disabledReason?: string;
@@ -100,7 +103,7 @@ type ButtonProps = {
 };
 
 /** Button that shows progress while its async action runs and can't be pressed twice meanwhile. */
-export function Button({ children, onClick, variant = 'secondary', size = 'md', icon, disabled, disabledReason, type = 'button', title }: ButtonProps) {
+export function Button({ children, onClick, variant = 'secondary', size = 'md', icon, iconEnd, disabled, disabledReason, type = 'button', title }: ButtonProps) {
   const [busy, setBusy] = useState(false);
   const off = disabled || !!disabledReason || busy;
   return (
@@ -126,6 +129,7 @@ export function Button({ children, onClick, variant = 'secondary', size = 'md', 
     >
       {busy ? <span className="spin" aria-hidden /> : icon ? <Icon name={icon} size={16} /> : null}
       {children}
+      {iconEnd && !busy ? <Icon name={iconEnd} size={16} /> : null}
     </button>
   );
 }
@@ -282,7 +286,7 @@ export function Table<T>({
       {pageSize && rows.length > pageSize ? (
         <div className="table-foot">
           <span className="num">
-            {p * pageSize + 1}–{Math.min(rows.length, (p + 1) * pageSize)} of {rows.length.toLocaleString('en-NG')}
+            {p * pageSize + 1} to {Math.min(rows.length, (p + 1) * pageSize)} of {rows.length.toLocaleString('en-NG')}
           </span>
           <span className="pager">
             <Button size="sm" variant="ghost" icon="left" disabledReason={p === 0 ? 'First page' : undefined} onClick={() => setPage(p - 1)}>
@@ -291,7 +295,7 @@ export function Table<T>({
             <span className="num">
               Page {p + 1} of {pages}
             </span>
-            <Button size="sm" variant="ghost" disabledReason={p >= pages - 1 ? 'Last page' : undefined} onClick={() => setPage(p + 1)}>
+            <Button size="sm" variant="ghost" iconEnd="right" disabledReason={p >= pages - 1 ? 'Last page' : undefined} onClick={() => setPage(p + 1)}>
               Next
             </Button>
           </span>

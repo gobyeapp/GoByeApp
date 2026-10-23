@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { balanceOf, withdrawable, type DriverRecord, type PassengerRecord, type TripRecord } from '@gobye/core';
 import { Icon } from '@/ui/Icon';
-import { Button, Card, Drawer, KV, Pill, Timeline, type Tone } from '@/ui/kit';
+import { Button, Drawer, KV, Notice, Pill, Timeline, type Tone } from '@/ui/kit';
+import type { IconName } from '@/ui/Icon';
+import '@/workspaces/people/people.css';
 import { city, date, label, money, when } from './format';
 import { useSession } from './session';
 import { usePlatform, useData } from './store';
@@ -34,8 +36,7 @@ export function RecordLink({ type, id, children }: RecordRef & { children: React
   const open = useOpenRecord();
   return (
     <button
-      className="btn ghost sm"
-      style={{ height: 'auto', padding: '2px 4px', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 3 }}
+      className="link-btn"
       onClick={(e) => {
         e.stopPropagation();
         open({ type, id });
@@ -83,6 +84,22 @@ function Masked({ allowed, value }: { allowed: boolean; value?: string }) {
   );
 }
 
+/** A titled block inside a side sheet: same heading style in every record panel and review drawer. */
+export function PanelSection({ title, icon, aside, children }: { title: string; icon?: IconName; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="panel-section" aria-label={title}>
+      <div className="panel-section-head">
+        {icon ? <Icon name={icon} size={16} /> : null}
+        <h3>{title}</h3>
+        {aside ? <span className="aside">{aside}</span> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+const DOC_TONE: Record<string, Tone> = { accepted: 'success', submitted: 'warning', missing: 'neutral', rejected: 'danger', expired: 'danger' };
+
 function TripPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?: string }) {
   const d = useData();
   const { can } = useSession();
@@ -95,60 +112,89 @@ function TripPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?
   const entries = d.ledger.filter((e) => e.links?.tripId === t.id);
   const st = TRIP_STATUS[t.status];
   const pay = PAYMENT_STATE[t.payment];
+  const person = (name: string, onClick: () => void) => (
+    <button className="link-btn" onClick={onClick}>
+      {name}
+    </button>
+  );
   return (
-    <Drawer title={`Trip ${t.ref}`} sub={sub ?? `${city(t.city)} · ${when(t.requestedAt)}`} onClose={onClose}>
-      <div className="row wrap">
+    <Drawer title={`Trip ${t.ref}`} sub={sub ?? `${city(t.city)} · ${when(t.requestedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
+      <div className="panel-pills">
         <Pill tone={st.tone}>{st.text}</Pill>
-        <Pill tone={pay.tone}>Payment: {pay.text}</Pill>
+        <Pill tone={pay.tone} icon="wallet">Payment: {pay.text}</Pill>
+        <Pill tone="neutral" icon={t.mode === 'negotiate' ? 'exchange' : 'route'}>{t.mode === 'negotiate' ? 'Negotiated' : 'Quick Match'}</Pill>
         {t.directToDriver ? <Pill tone="info">Paid directly to driver</Pill> : null}
       </div>
-      <KV
-        items={[
-          ['From', t.pickup],
-          ['To', t.destination],
-          ['Booking', t.mode === 'negotiate' ? 'Negotiated fare' : 'Quick Match'],
-          ['Suggested fare', money(t.suggestedFare)],
-          ['Agreed fare', t.agreedFare ? money(t.agreedFare) : 'Not agreed yet'],
-          ['Method', t.paymentMethod === 'wallet' ? 'GoBye Wallet' : 'Bank transfer'],
-          ['Passenger', p ? <button className="btn ghost sm" onClick={() => open({ type: 'passenger', id: p.id })}>{p.name}</button> : 'Not set'],
-          ['Driver', dr ? <button className="btn ghost sm" onClick={() => open({ type: 'driver', id: dr.id })}>{dr.name}</button> : 'Not assigned'],
-          ...(t.cancellation ? ([['Cancellation', `${label(t.cancellation.by)}: ${t.cancellation.reason}${t.cancellation.fee ? ` (fee ${money(t.cancellation.fee)})` : ''}`]] as [string, ReactNode][]) : []),
-          ...(t.pickupDelaySeconds ? ([['Pickup delay', `${Math.round(t.pickupDelaySeconds / 60)} min beyond estimate`]] as [string, ReactNode][]) : []),
-        ]}
-      />
-      {t.directToDriver ? (
-        <Card muted>
-          <div className="small">The passenger paid the driver’s own account. It is recorded here, but it is not credited to the driver’s GoBye earnings, so the fare is never counted twice. It can’t be verified automatically.</div>
-        </Card>
-      ) : null}
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Status timeline</h3>
+
+      <PanelSection title="Route" icon="mapPin">
+        <div className="route">
+          <span className="dot from" aria-hidden />
+          <div><div className="cell-sub">Pickup</div><div className="strong">{t.pickup}</div></div>
+          <span className="line" aria-hidden />
+          <span />
+          <span className="dot to" aria-hidden />
+          <div><div className="cell-sub">Destination</div><div className="strong">{t.destination}</div></div>
+        </div>
+      </PanelSection>
+
+      <PanelSection title="Fare and payment" icon="wallet">
+        <KV
+          items={[
+            ['Booking', t.mode === 'negotiate' ? 'Negotiated fare' : 'Quick Match'],
+            ['Suggested fare', <span className="num">{money(t.suggestedFare)}</span>],
+            ['Agreed fare', t.agreedFare ? <span className="num strong">{money(t.agreedFare)}</span> : 'Not agreed yet'],
+            ['Method', t.paymentMethod === 'wallet' ? 'GoBye Wallet' : 'Bank transfer'],
+            ['Payment', pay.text],
+            ...(t.cancellation ? ([['Cancellation', `${label(t.cancellation.by)}: ${t.cancellation.reason}${t.cancellation.fee ? ` (fee ${money(t.cancellation.fee)})` : ''}`]] as [string, ReactNode][]) : []),
+          ]}
+        />
+        {t.directToDriver ? (
+          <Notice icon="info">The passenger paid the driver’s own account. It is recorded here, but it is not credited to the driver’s GoBye earnings, so the fare is never counted twice. It can’t be verified automatically.</Notice>
+        ) : null}
+      </PanelSection>
+
+      <PanelSection title="People" icon="group">
+        <KV
+          items={[
+            ['Passenger', p ? person(p.name, () => open({ type: 'passenger', id: p.id })) : 'Not set'],
+            ['Driver', dr ? person(dr.name, () => open({ type: 'driver', id: dr.id })) : 'Not assigned'],
+            ...(dr ? ([['Vehicle', `${dr.vehicle.colour} ${dr.vehicle.make} ${dr.vehicle.model} · ${dr.vehicle.plate}`]] as [string, ReactNode][]) : []),
+            ...(t.pickupDelaySeconds ? ([['Pickup delay', `${Math.round(t.pickupDelaySeconds / 60)} min beyond estimate`]] as [string, ReactNode][]) : []),
+          ]}
+        />
+      </PanelSection>
+
+      <PanelSection title="Status timeline" icon="history">
         <Timeline items={t.timeline.map((x) => ({ at: x.at, title: x.label }))} />
-      </div>
+      </PanelSection>
+
       {can('ledger.view') && entries.length ? (
-        <div>
-          <h3 className="strong" style={{ marginBottom: 10 }}>Ledger entries</h3>
-          <div className="stack tight">
+        <PanelSection title="Ledger entries" icon="list" aside={`${entries.length}`}>
+          <div className="panel-list">
             {entries.map((e) => (
-              <div key={e.id} className="row small">
-                <span style={{ flex: 1 }}>{e.description} · {label(e.account.kind)}</span>
+              <div key={e.id} className="panel-list-row">
+                <span className="grow">
+                  <span style={{ display: 'block' }}>{e.description}</span>
+                  <span className="cell-sub">{label(e.account.kind)}</span>
+                </span>
                 <span className="num strong" style={{ color: e.amount >= 0 ? 'var(--success)' : 'var(--danger)' }}>{money(e.amount)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </PanelSection>
       ) : null}
       {cases.length ? (
-        <div>
-          <h3 className="strong" style={{ marginBottom: 10 }}>Linked cases</h3>
-          {cases.map((c) => (
-            <div key={c.id} className="row small">
-              <Pill tone={c.team === 'safety' ? 'danger' : 'neutral'} icon={c.team === 'safety' ? 'safeAlert' : 'headphone'}>{c.ref}</Pill>
-              <span>{c.subject}</span>
-              <span className="muted" style={{ marginLeft: 'auto' }}>{label(c.status)}</span>
-            </div>
-          ))}
-        </div>
+        <PanelSection title="Linked cases" icon="headphone" aside={`${cases.length}`}>
+          <div className="panel-list">
+            {cases.map((c) => (
+              <div key={c.id} className="panel-list-row">
+                <Pill tone={c.team === 'safety' ? 'danger' : 'neutral'} icon={c.team === 'safety' ? 'safeAlert' : 'headphone'}>{c.ref}</Pill>
+                <span className="grow">{c.subject}</span>
+                <span className="muted">{label(c.status)}</span>
+              </div>
+            ))}
+          </div>
+        </PanelSection>
       ) : null}
     </Drawer>
   );
@@ -164,36 +210,59 @@ function PassengerPanel({ id, onClose, sub }: { id: string; onClose: () => void;
   const wallet = balanceOf(d.ledger, { kind: 'passenger_wallet', ownerId: p.id });
   const cases = d.cases.filter((c) => c.links.passengerId === p.id && c.team === 'care');
   return (
-    <Drawer title={p.name} sub={sub ?? `Passenger · ${city(p.city)} · joined ${date(p.joinedAt)}`} onClose={onClose}>
-      <div className="row wrap">
-        <Pill tone={p.status === 'active' ? 'success' : 'danger'}>{label(p.status)}</Pill>
+    <Drawer title={p.name} sub={sub ?? `Passenger · ${city(p.city)} · joined ${date(p.joinedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
+      <div className="panel-pills">
+        <Pill tone={p.status === 'active' ? 'success' : p.status === 'restricted' ? 'danger' : 'neutral'} icon={p.status === 'restricted' ? 'userForbid' : undefined}>{label(p.status)}</Pill>
         <Pill tone="neutral" icon="star">{p.rating.toFixed(1)}</Pill>
+        <Pill tone="neutral" icon="route">{p.trips} trips</Pill>
       </div>
-      {p.restriction ? <Card muted><div className="small"><span className="strong">Restricted:</span> {p.restriction.reason} (by {p.restriction.by})</div></Card> : null}
-      <KV
-        items={[
-          ['Phone', <Masked allowed={can('passengers.contact_details')} value={p.phone} />],
-          ['Email', <Masked allowed={can('passengers.contact_details')} value={p.email} />],
-          ['Trips', String(p.trips)],
-          ['Last trip', when(p.lastTripAt)],
-          ['Wallet balance', can('finance.view') || can('ledger.view') ? money(wallet) : <Masked allowed={false} value="x" />],
-          ['Support cases', String(cases.length)],
-        ]}
-      />
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Recent trips</h3>
-        <div className="stack tight">
-          {trips.slice(0, 8).map((t) => (
-            <button key={t.id} className="btn ghost" style={{ justifyContent: 'flex-start', height: 'auto', padding: '8px 6px' }} onClick={() => open({ type: 'trip', id: t.id })}>
-              <span style={{ flex: 1, textAlign: 'left' }}>
-                <span className="strong">{t.ref}</span> <span className="muted">{t.pickup} to {t.destination}</span>
-              </span>
-              <Pill tone={TRIP_STATUS[t.status].tone}>{TRIP_STATUS[t.status].text}</Pill>
-            </button>
-          ))}
-          {!trips.length ? <span className="muted">No trips yet</span> : null}
-        </div>
-      </div>
+      {p.restriction ? (
+        <Notice tone="danger" icon="userForbid">
+          <div className="strong">Restricted: can’t book trips</div>
+          <div className="restrict-note">
+            {p.restriction.reason} · by {p.restriction.by}
+            {p.restriction.until ? ` · until ${date(p.restriction.until)}` : ' · no end date'}
+          </div>
+        </Notice>
+      ) : null}
+      <PanelSection title="Account" icon="user">
+        <KV
+          items={[
+            ['Passenger ID', p.id],
+            ['City', city(p.city)],
+            ['Joined', date(p.joinedAt)],
+            ['Phone', <Masked allowed={can('passengers.contact_details')} value={p.phone} />],
+            ['Email', <Masked allowed={can('passengers.contact_details')} value={p.email} />],
+          ]}
+        />
+      </PanelSection>
+      <PanelSection title="Activity and money" icon="wallet">
+        <KV
+          items={[
+            ['Trips', String(p.trips)],
+            ['Last trip', when(p.lastTripAt)],
+            ['Wallet balance', can('finance.view') || can('ledger.view') ? <span className="num">{money(wallet)}</span> : <Masked allowed={false} value="x" />],
+            ['Support cases', String(cases.length)],
+          ]}
+        />
+      </PanelSection>
+      <PanelSection title="Recent trips" icon="route" aside={trips.length > 8 ? `8 of ${trips.length}` : undefined}>
+        {trips.length ? (
+          <div className="panel-list">
+            {trips.slice(0, 8).map((t) => (
+              <button key={t.id} className="panel-list-row" onClick={() => open({ type: 'trip', id: t.id })}>
+                <span className="grow">
+                  <span className="strong" style={{ display: 'block' }}>{t.ref}</span>
+                  <span className="cell-sub" style={{ display: 'block' }}>{t.pickup} to {t.destination}</span>
+                </span>
+                <Pill tone={TRIP_STATUS[t.status].tone}>{TRIP_STATUS[t.status].text}</Pill>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span className="muted">No trips yet</span>
+        )}
+      </PanelSection>
     </Drawer>
   );
 }
@@ -209,37 +278,53 @@ function DriverPanel({ id, onClose, sub }: { id: string; onClose: () => void; su
   const expiring = dr.documents.filter((x) => x.expiresAt && x.expiresAt - t < 30 * 86_400_000);
   return (
     <Drawer title={dr.name} sub={sub ?? `Driver · ${city(dr.city)} · applied ${date(dr.appliedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
-      <div className="row wrap">
+      <div className="panel-pills">
         <Pill tone={dr.verification === 'approved' ? 'success' : dr.verification === 'rejected' || dr.verification === 'suspended' ? 'danger' : 'warning'}>{label(dr.verification)}</Pill>
         <Pill tone={accessActive ? 'success' : 'neutral'} icon="ticket">{accessActive ? `${label(dr.access!.packageId)} access` : 'No active access'}</Pill>
         <Pill tone={dr.online ? 'success' : 'neutral'} icon="radar">{dr.online ? 'Online' : 'Offline'}</Pill>
       </div>
-      <KV
-        items={[
-          ['Phone', <Masked allowed={can('drivers.contact_details')} value={dr.phone} />],
-          ['Vehicle', `${dr.vehicle.colour} ${dr.vehicle.make} ${dr.vehicle.model} (${dr.vehicle.year})`],
-          ['Plate', dr.vehicle.plate],
-          ['Rating', dr.rating.toFixed(2)],
-          ['Trips', String(dr.trips)],
-          ['Acceptance', `${Math.round(dr.acceptanceRate * 100)}%`],
-          ['Access until', dr.access ? when(dr.access.expiresAt) : 'No package'],
-          ['Withdrawable', can('finance.view') ? money(withdrawable(d.ledger, dr.id)) : <Masked allowed={false} value="x" />],
-          ['Payout account', dr.bankAccount ? (can('finance.view') || can('drivers.verify') ? `${dr.bankAccount.bankName} ${dr.bankAccount.accountNumberMasked}${dr.bankAccount.verified ? '' : ' (not verified)'}` : <Masked allowed={false} value="x" />) : 'Not added'],
-        ]}
-      />
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Documents</h3>
-        <div className="stack tight">
+      <PanelSection title="Driver" icon="steering">
+        <KV
+          items={[
+            ['Driver ID', dr.id],
+            ['City', city(dr.city)],
+            ['Phone', <Masked allowed={can('drivers.contact_details')} value={dr.phone} />],
+            ['Rating', dr.rating.toFixed(2)],
+            ['Trips', String(dr.trips)],
+            ['Acceptance', `${Math.round(dr.acceptanceRate * 100)}%`],
+          ]}
+        />
+      </PanelSection>
+      <PanelSection title="Vehicle" icon="car">
+        <KV
+          items={[
+            ['Vehicle', `${dr.vehicle.colour} ${dr.vehicle.make} ${dr.vehicle.model} (${dr.vehicle.year})`],
+            ['Plate', dr.vehicle.plate],
+          ]}
+        />
+      </PanelSection>
+      <PanelSection title="Access and payouts" icon="ticket">
+        <KV
+          items={[
+            ['Access until', dr.access ? when(dr.access.expiresAt) : 'No package'],
+            ['Withdrawable', can('finance.view') ? <span className="num">{money(withdrawable(d.ledger, dr.id))}</span> : <Masked allowed={false} value="x" />],
+            ['Payout account', dr.bankAccount ? (can('finance.view') || can('drivers.verify') ? `${dr.bankAccount.bankName} ${dr.bankAccount.accountNumberMasked}${dr.bankAccount.verified ? '' : ' (not verified)'}` : <Masked allowed={false} value="x" />) : 'Not added'],
+          ]}
+        />
+      </PanelSection>
+      <PanelSection title="Documents" icon="document" aside={expiring.length ? `${expiring.length} expired or expiring within 30 days` : undefined}>
+        <div className="panel-list">
           {dr.documents.map((doc) => (
-            <div key={doc.kind} className="row small">
-              <span style={{ flex: 1 }}>{label(doc.kind)}</span>
-              {doc.expiresAt ? <span className="muted">{doc.expiresAt < t ? 'Expired' : 'Expires'} {date(doc.expiresAt)}</span> : null}
-              <Pill tone={doc.status === 'accepted' ? 'success' : doc.status === 'submitted' ? 'warning' : doc.status === 'missing' ? 'neutral' : 'danger'}>{label(doc.status)}</Pill>
+            <div key={doc.kind} className="panel-list-row">
+              <span className="grow">
+                <span style={{ display: 'block' }}>{label(doc.kind)}</span>
+                <span className="cell-sub">{doc.expiresAt ? `${doc.expiresAt < t ? 'Expired' : 'Expires'} ${date(doc.expiresAt)}` : 'No expiry'}</span>
+              </span>
+              <Pill tone={DOC_TONE[doc.status] ?? 'neutral'}>{label(doc.status)}</Pill>
             </div>
           ))}
         </div>
-        {expiring.length ? <div className="small muted" style={{ marginTop: 8 }}>{expiring.length} document{expiring.length > 1 ? 's' : ''} expired or expiring within 30 days.</div> : null}
-      </div>
+      </PanelSection>
     </Drawer>
   );
 }

@@ -16,7 +16,7 @@ import { count, label as fmtLabel, pct, when } from '@/data/format';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import type { IconName } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Meter, Notice, PageHead, Pill, Section, Segmented, Stat, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Meter, Notice, PageHead, Pill, Section, Segmented, SearchInput, FilterBar, Stat, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
 import { Check, Steps, TextField } from '@/workspaces/config/fields';
 import { fromLocalInput, toLocalInput } from '@/workspaces/config/logic';
 import {
@@ -90,6 +90,7 @@ export default function Announcements() {
   const t = now();
 
   const [tab, setTab] = useState<Tab>('all');
+  const [q, setQ] = useState('');
   const [composer, setComposer] = useState<Draft | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<null | { kind: 'cancel' | 'reject' | 'edit_back'; a: Announcement }>(null);
@@ -332,18 +333,20 @@ export default function Announcements() {
   };
 
   /* ---------- Table ---------- */
+  const needle = q.trim().toLowerCase();
+  const shownRows = tab === 'retry' ? [] : groups[tab].filter((a) => !needle || `${a.title} ${describeAudience(a.audience, eventName(a.audience.eventId))}`.toLowerCase().includes(needle));
   const cols: Column<Announcement>[] = [
-    { key: 't', label: 'Announcement', render: (a) => <div><div className="cell-title">{a.title}</div><div className="cell-sub">{describeAudience(a.audience, eventName(a.audience.eventId))}</div></div> },
+    { key: 't', label: 'Announcement', sortValue: (a) => a.title, render: (a) => <div><div className="cell-title">{a.title}</div><div className="cell-sub">{describeAudience(a.audience, eventName(a.audience.eventId))}</div></div> },
     { key: 's', label: 'Status', render: (a) => <StatusPill a={a} approval={approvalOf(d, a.id)} /> },
     { key: 'c', label: 'Channels', render: (a) => <span className="small">{a.channels.map((c) => CHANNEL_LABEL[c]).join(', ')}</span> },
-    { key: 'n', label: 'Audience', render: (a) => <span className="num">{count(a.audienceSize)}</span>, align: 'right' },
+    { key: 'n', label: 'Audience', sortValue: (a) => a.audienceSize, render: (a) => <span className="num">{count(a.audienceSize)}</span>, align: 'right' },
     { key: 'b', label: 'Created by', render: (a) => <span className="small">{a.createdBy.name}</span> },
     { key: 'w', label: 'Sent or scheduled', render: (a) => <span className="small muted">{a.sentVersion ? `Sent ${when(a.sentVersion.at, t).toLowerCase()}` : a.scheduledFor ? `For ${when(a.scheduledFor, t).toLowerCase()}` : 'Not yet'}</span> },
   ];
   const retryCols: Column<RetryItem>[] = [
     { key: 't', label: 'Announcement', render: (r) => <div><div className="cell-title">{r.announcement.title}</div><div className="cell-sub">Sent {when(r.announcement.sentVersion?.at, t).toLowerCase()}</div></div> },
     { key: 'c', label: 'Channel', render: (r) => CHANNEL_LABEL[r.channel] },
-    { key: 'f', label: 'Failed', render: (r) => <span className="num strong">{count(r.failed)}</span>, align: 'right' },
+    { key: 'f', label: 'Failed', sortValue: (r) => r.failed, render: (r) => <span className="num strong">{count(r.failed)}</span>, align: 'right' },
     { key: 'p', label: 'Provider', render: (r) => channelPill(r.channel) },
     {
       key: 'a',
@@ -385,10 +388,10 @@ export default function Announcements() {
         }
       />
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
-        <Stat label="Drafts" value={count(groups.drafts.length)} onClick={() => setTab('drafts')} />
-        <Stat label="Waiting" value={count(groups.waiting.length)} sub="Approval or schedule" onClick={() => setTab('waiting')} />
-        <Stat label="Delivered" value={attempted ? pct(delivered / attempted) : 'None yet'} sub={`${count(delivered)} of ${count(attempted)} attempts, all channels`} onClick={() => setTab('sent')} />
-        <Stat label="Retry queue" value={count(queue.reduce((s, q) => s + q.failed, 0))} sub="Failed email and SMS" tone={queue.length ? 'danger' : undefined} onClick={() => setTab('retry')} />
+        <Stat icon="edit" label="Drafts" value={count(groups.drafts.length)} onClick={() => setTab('drafts')} />
+        <Stat icon="time" label="Waiting" value={count(groups.waiting.length)} sub="Approval or schedule" onClick={() => setTab('waiting')} />
+        <Stat icon="checkCircle" label="Delivered" value={attempted ? pct(delivered / attempted) : 'None yet'} sub={`${count(delivered)} of ${count(attempted)} attempts, all channels`} onClick={() => setTab('sent')} />
+        <Stat icon="refresh" label="Retry queue" value={count(queue.reduce((s, q) => s + q.failed, 0))} sub="Failed email and SMS" tone={queue.length ? 'danger' : undefined} onClick={() => setTab('retry')} />
       </div>
       <Card muted>
         <div className="row wrap" style={{ gap: 14 }}>
@@ -414,13 +417,19 @@ export default function Announcements() {
             { value: 'retry', label: 'Retry queue', count: queue.length },
           ]}
         />
+        {tab !== 'retry' ? (
+          <FilterBar count={`${shownRows.length} of ${groups[tab].length}`}>
+            <SearchInput value={q} onChange={setQ} placeholder="Search title or audience" />
+          </FilterBar>
+        ) : null}
         <Card flush>
           {tab === 'retry' ? (
             <Table rows={queue} columns={retryCols} rowKey={(r) => `${r.announcement.id}-${r.channel}`} onRowClick={(r) => setOpenId(r.announcement.id)} empty={<Empty title="No failed email or SMS" icon="checkCircle">Failed deliveries show here for a retry.</Empty>} />
           ) : (
             <Table
-              rows={groups[tab]}
+              rows={shownRows}
               columns={cols}
+              caption="Announcements"
               rowKey={(a) => a.id}
               onRowClick={(a) => setOpenId(a.id)}
               empty={<Empty title="No announcements here" icon="announcement" action={canDraft ? <Button icon="add" onClick={() => setComposer({ ...EMPTY })}>New announcement</Button> : undefined}>Drafts, scheduled and sent messages appear in these tabs.</Empty>}

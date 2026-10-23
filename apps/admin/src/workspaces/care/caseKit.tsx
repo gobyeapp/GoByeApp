@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Actor, CasePriority, CaseRecord, CaseStatus } from '@gobye/core';
 import { label } from '@/data/format';
 import { Icon } from '@/ui/Icon';
@@ -29,6 +30,34 @@ export function PriorityPill({ p }: { p: CasePriority }) {
 export function StatusPill({ s }: { s: CaseStatus }) {
   const x = STATUS_PILL[s];
   return <Pill tone={x.tone} icon={x.icon}>{x.text}</Pill>;
+}
+
+/**
+ * Which case drawer is open, linked to `?open=<case id>` so the command palette and other pages can
+ * deep link to a case. The link opens the case only when `visible` says the viewer may see it;
+ * otherwise `missing` is true so the page can say so. Closing removes the parameter.
+ */
+export function useDeepLinkedCase(visible: (id: string) => boolean) {
+  const [params, setParams] = useSearchParams();
+  const deep = params.get('open');
+  const [openId, setOpenId] = useState<string | null>(() => (deep && visible(deep) ? deep : null));
+  useEffect(() => {
+    if (deep && visible(deep)) setOpenId(deep);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- react to the link changing, not to data edits
+  }, [deep]);
+  const close = useCallback(() => {
+    setOpenId(null);
+    setParams(
+      (p) => {
+        if (!p.has('open')) return p;
+        const n = new URLSearchParams(p);
+        n.delete('open');
+        return n;
+      },
+      { replace: true },
+    );
+  }, [setParams]);
+  return { openId, setOpenId, close, missing: !!deep && !visible(deep) };
 }
 
 export const actorName = (a: Actor) => ('name' in a ? a.name : 'System');

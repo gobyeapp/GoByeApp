@@ -4,7 +4,7 @@ import { city, money, when } from '@/data/format';
 import { RecordLink } from '@/data/records';
 import { useSession } from '@/data/session';
 import { useData, usePlatform } from '@/data/store';
-import { Button, Drawer, Empty, KV, Notice, Pill, SearchInput, Segmented, Stat, Table, type Column } from '@/ui/kit';
+import { Button, Drawer, Empty, FilterBar, KV, Notice, Pill, SearchInput, Segmented, Stat, Table, type Column } from '@/ui/kit';
 import { CorrectionDialog } from './CorrectionDialog';
 import { pendingAdjustments, walletCorrectionLines, walletLiability, walletSummaries, type WalletSummary } from './logic';
 import { Amount, FinanceHead, LedgerLines, SubHead, useInclude } from './parts';
@@ -38,31 +38,30 @@ export default function Wallets() {
 
   const columns: Column<Row>[] = [
     { key: 'p', label: 'Passenger', render: (r) => <div><RecordLink type="passenger" id={r.passengerId}>{r.passenger.name}</RecordLink><div className="cell-sub" style={{ paddingLeft: 4 }}>{city(r.passenger.city)}</div></div> },
-    { key: 'bal', label: 'Balance', align: 'right', render: (r) => <Amount value={r.balance} plain strong /> },
-    { key: 'dep', label: 'Deposits', align: 'right', render: (r) => (r.deposits ? <Amount value={r.deposits} /> : <span className="muted">None</span>) },
-    { key: 'chg', label: 'Trip charges', align: 'right', render: (r) => (r.charges ? <Amount value={-r.charges} /> : <span className="muted">None</span>) },
+    { key: 'bal', label: 'Balance', align: 'right', sortValue: (r) => r.balance, render: (r) => <Amount value={r.balance} plain strong /> },
+    { key: 'dep', label: 'Deposits', align: 'right', sortValue: (r) => r.deposits, render: (r) => (r.deposits ? <Amount value={r.deposits} /> : <span className="muted">None</span>) },
+    { key: 'chg', label: 'Trip charges', align: 'right', sortValue: (r) => r.charges, render: (r) => (r.charges ? <Amount value={-r.charges} /> : <span className="muted">None</span>) },
     { key: 'ref', label: 'Refunds', align: 'right', render: (r) => (r.refunds ? <Amount value={r.refunds} /> : <span className="muted">None</span>) },
     { key: 'rew', label: 'Rewards', align: 'right', render: (r) => (r.rewards ? <Amount value={r.rewards} /> : <span className="muted">None</span>) },
     { key: 'cor', label: 'Corrections', align: 'right', render: (r) => (r.corrections ? <Amount value={r.corrections} /> : <span className="muted">None</span>) },
-    { key: 'last', label: 'Last movement', render: (r) => <span className="small muted">{r.lastAt ? when(r.lastAt, now()) : 'No movements'}</span> },
+    { key: 'last', label: 'Last movement', sortValue: (r) => r.lastAt ?? 0, render: (r) => <span className="small muted">{r.lastAt ? when(r.lastAt, now()) : 'No movements'}</span> },
   ];
 
   return (
     <>
       <FinanceHead title="Passenger wallets" sub="Balances come from the ledger. Wallet money belongs to passengers until they spend it, so the total is a liability, not revenue." />
       <div className="grid cols-4">
-        <Stat label="Held for passengers" value={money(held)} sub="Liability, owed to passengers" />
-        <Stat label="Wallets with money" value={String(scoped.filter((r) => r.balance > 0).length)} sub={`of ${scoped.length} passengers`} />
-        <Stat label="Deposits, all time" value={money(scoped.reduce((s, r) => s + r.deposits, 0))} sub="Verified wallet funding" />
-        <Stat label="Corrections waiting" value={String(pendingCount)} sub="Owner approval needed" tone={pendingCount ? 'warning' : undefined} />
+        <Stat icon="wallet" label="Held for passengers" value={money(held)} sub="Liability, owed to passengers" />
+        <Stat icon="user" label="Wallets with money" value={String(scoped.filter((r) => r.balance > 0).length)} sub={`of ${scoped.length} passengers`} />
+        <Stat icon="exchange" label="Deposits, all time" value={money(scoped.reduce((s, r) => s + r.deposits, 0))} sub="Verified wallet funding" />
+        <Stat icon="time" label="Corrections waiting" value={String(pendingCount)} sub="Owner approval needed" tone={pendingCount ? 'warning' : undefined} />
       </div>
 
       <div className="section">
-        <div className="toolbar">
+        <FilterBar count={`${rows.length} wallets`} end={<span className="muted small">Balances as of now. The date range does not apply.</span>}>
           <SearchInput value={q} onChange={setQ} placeholder="Search passenger" />
           <Segmented label="Show" value={show} onChange={setShow} options={[{ value: 'balance', label: 'With activity' }, { value: 'all', label: 'All passengers' }]} />
-          <span className="muted small" style={{ marginLeft: 'auto' }}>Balances as of now. The date range does not apply.</span>
-        </div>
+        </FilterBar>
         <div className="card flush">
           <Table rows={rows} columns={columns} rowKey={(r) => r.passengerId} onRowClick={(r) => setOpenId(r.passengerId)} empty={<Empty title="No wallets match" icon="wallet">Clear the search or show all passengers.</Empty>} />
         </div>

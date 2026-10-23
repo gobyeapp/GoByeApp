@@ -3,7 +3,7 @@ import type { DriverRecord } from '@gobye/core';
 import { city, count, money, when } from '@/data/format';
 import { RecordLink } from '@/data/records';
 import { useData, usePlatform } from '@/data/store';
-import { Card, Drawer, Empty, KV, Notice, SearchInput, Segmented, Stat, Table, type Column } from '@/ui/kit';
+import { Card, Drawer, Empty, FilterBar, KV, Notice, SearchInput, Segmented, Stat, Table, type Column } from '@/ui/kit';
 import { earningsSummary, type EarningsSummary } from './logic';
 import { Amount, FinanceHead, LedgerLines, StatusPill, SubHead, WITHDRAWAL_TONE, useInclude } from './parts';
 
@@ -27,21 +27,21 @@ export default function Earnings() {
 
   const columns: Column<Row>[] = [
     { key: 'd', label: 'Driver', render: (r) => <div><RecordLink type="driver" id={r.driverId}>{r.driver.name}</RecordLink><div className="cell-sub" style={{ paddingLeft: 4 }}>{city(r.driver.city)}</div></div> },
-    { key: 'trip', label: 'Trip earnings', align: 'right', render: (r) => <Amount value={r.tripEarnings} plain /> },
-    { key: 'res', label: 'Reserved', align: 'right', render: (r) => (r.reserved ? <span className="num" style={{ color: 'var(--warning)' }}>{money(r.reserved)}</span> : <span className="muted">None</span>) },
-    { key: 'wd', label: 'Withdrawable', align: 'right', render: (r) => <Amount value={r.withdrawable} plain strong /> },
-    { key: 'paid', label: 'Paid out', align: 'right', render: (r) => <Amount value={r.paidOut} plain /> },
-    { key: 'dir', label: 'Direct to driver', align: 'right', render: (r) => (r.directCount ? <div><div className="num">{money(r.directValue)}</div><div className="cell-sub">{r.directCount} trip{r.directCount > 1 ? 's' : ''}, recorded only</div></div> : <span className="muted">None</span>) },
+    { key: 'trip', label: 'Trip earnings', align: 'right', sortValue: (r) => r.tripEarnings, render: (r) => <Amount value={r.tripEarnings} plain /> },
+    { key: 'res', label: 'Reserved', align: 'right', sortValue: (r) => r.reserved, render: (r) => (r.reserved ? <span className="num" style={{ color: 'var(--warning)' }}>{money(r.reserved)}</span> : <span className="muted">None</span>) },
+    { key: 'wd', label: 'Withdrawable', align: 'right', sortValue: (r) => r.withdrawable, render: (r) => <Amount value={r.withdrawable} plain strong /> },
+    { key: 'paid', label: 'Paid out', align: 'right', sortValue: (r) => r.paidOut, render: (r) => <Amount value={r.paidOut} plain /> },
+    { key: 'dir', label: 'Direct to driver', align: 'right', sortValue: (r) => r.directValue, render: (r) => (r.directCount ? <div><div className="num">{money(r.directValue)}</div><div className="cell-sub">{r.directCount} trip{r.directCount > 1 ? 's' : ''}, recorded only</div></div> : <span className="muted">None</span>) },
   ];
 
   return (
     <>
       <FinanceHead title="Driver earnings" sub="Trip earnings credited through GoBye, what is reserved for withdrawals, what drivers can withdraw, and what was paid out." />
       <div className="grid cols-4">
-        <Stat label="Withdrawable, owed to drivers" value={money(tot('withdrawable'))} sub="Available to withdraw now" />
-        <Stat label="Reserved for withdrawals" value={money(tot('reserved'))} sub="Requested, not yet paid" tone={tot('reserved') ? 'warning' : undefined} />
-        <Stat label="Paid out" value={money(tot('paidOut'))} sub="Confirmed by the provider, after reversals" />
-        <Stat label="Paid directly to drivers" value={money(tot('directValue'))} sub={`${count(tot('directCount'))} trips, recorded only, never credited`} />
+        <Stat icon="wallet" label="Withdrawable, owed to drivers" value={money(tot('withdrawable'))} sub="Available to withdraw now" />
+        <Stat icon="time" label="Reserved for withdrawals" value={money(tot('reserved'))} sub="Requested, not yet paid" tone={tot('reserved') ? 'warning' : undefined} />
+        <Stat icon="bank" label="Paid out" value={money(tot('paidOut'))} sub="Confirmed by the provider, after reversals" />
+        <Stat icon="steering" label="Paid directly to drivers" value={money(tot('directValue'))} sub={`${count(tot('directCount'))} trips, recorded only, never credited`} />
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
@@ -50,10 +50,10 @@ export default function Earnings() {
       </div>
 
       <div className="section">
-        <div className="toolbar">
+        <FilterBar count={`${rows.length} drivers`}>
           <SearchInput value={q} onChange={setQ} placeholder="Search driver" />
           <Segmented label="Show" value={show} onChange={setShow} options={[{ value: 'active', label: 'With earnings' }, { value: 'all', label: 'All drivers' }]} />
-        </div>
+        </FilterBar>
         <div className="card flush">
           <Table rows={rows} columns={columns} rowKey={(r) => r.driverId} onRowClick={(r) => setOpenId(r.driverId)} empty={<Empty title="No drivers match" icon="steering">Clear the search or show all drivers.</Empty>} />
         </div>

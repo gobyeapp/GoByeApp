@@ -4,8 +4,9 @@ import { count, when } from '@/data/format';
 import { TRIP_STATUS, useOpenRecord } from '@/data/records';
 import { useFilters, useScopedFilter, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
-import { Icon } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Empty, Field, Meter, Notice, PageHead, Pill, Section, Table, type Column } from '@/ui/kit';
+import { Icon, type IconName } from '@/ui/Icon';
+import { Button, Card, ConfirmDialog, Empty, Field, Meter, Notice, PageHead, Pill, Section, Stat, Table, type Column } from '@/ui/kit';
+import './operations.css';
 import { ACTIVE_STATUSES, CANCELLABLE, PROBLEM_LABELS, cancelForPassenger, detectProblems, dismissedFromAudit, driverAvailability, elapsedLabel, type Keep, type Problem } from './logic';
 
 type Contact = { trip: TripRecord; who: 'driver' | 'passenger' };
@@ -85,18 +86,34 @@ export default function Live() {
   );
 
   const columns: Column<TripRecord>[] = [
-    { key: 'ref', label: 'Trip', render: (x) => (<><div className="cell-title">{x.ref}</div><div className="cell-sub">{CITY_LABELS[x.city]}</div></>) },
-    { key: 'status', label: 'Status', render: (x) => <Pill tone={TRIP_STATUS[x.status].tone}>{TRIP_STATUS[x.status].text}</Pill> },
+    { key: 'ref', label: 'Trip', sortValue: (x) => x.ref, render: (x) => (<><div className="cell-title">{x.ref}</div><div className="cell-sub">{CITY_LABELS[x.city]} · {x.mode === 'negotiate' ? 'Negotiated' : 'Quick Match'}</div></>) },
+    { key: 'status', label: 'Status', sortValue: (x) => TRIP_STATUS[x.status].text, render: (x) => <Pill tone={TRIP_STATUS[x.status].tone}>{TRIP_STATUS[x.status].text}</Pill> },
     { key: 'pas', label: 'Passenger', render: (x) => d.passengers.find((p) => p.id === x.passengerId)?.name ?? 'Unknown' },
     { key: 'drv', label: 'Driver', render: (x) => (x.driverId ? d.drivers.find((r) => r.id === x.driverId)?.name : <span className="muted">Not assigned</span>) },
     { key: 'route', label: 'Route', render: (x) => <span className="small">{x.pickup} to {x.destination}</span> },
-    { key: 'elapsed', label: 'Elapsed', align: 'right', render: (x) => <span className="num">{elapsedLabel(x.requestedAt, t)}</span> },
+    { key: 'elapsed', label: 'Elapsed', align: 'right', sortValue: (x) => -x.requestedAt, render: (x) => <span className="num">{elapsedLabel(x.requestedAt, t)}</span> },
   ];
 
   return (
     <>
-      <PageHead title="Live operations" sub="Problems that need action come first. Driver locations and timings are simulated." />
-      {!canAct ? <div style={{ marginBottom: 16 }}><Notice icon="lock">View only. Contacting people and cancelling trips needs dispatch access.</Notice></div> : null}
+      <PageHead
+        title="Live operations"
+        sub="Problems that need action come first. Driver locations and timings are simulated."
+        meta={
+          <>
+            <Pill tone="warning" icon="radar">Simulated locations and timings</Pill>
+            {!canAct ? <Pill tone="neutral" icon="lock">View only</Pill> : null}
+          </>
+        }
+      />
+      {!canAct ? <Notice icon="lock">View only. Contacting people and cancelling trips needs dispatch access.</Notice> : null}
+
+      <div className="grid cols-4" style={{ marginTop: canAct ? 0 : 16 }}>
+        <Stat label="Needs action now" value={count(live.length)} icon="alert" tone={live.length ? 'danger' : undefined} sub={live.length ? 'Delayed pickups, long searches, stuck payments' : 'Nothing waiting'} />
+        <Stat label="Active journeys" value={count(active.length)} icon="route" sub="Searching, on the way or on trip" />
+        <Stat label="Drivers available" value={count(availability.reduce((s, a) => s + a.available, 0))} icon="steering" sub={`${count(availability.reduce((s, a) => s + a.busy, 0))} on a trip`} />
+        <Stat label="Failures and cancellations" value={count(past.length)} icon="close" tone={past.length ? 'warning' : undefined} sub="In the selected dates" />
+      </div>
 
       <Section title={`Needs action now${live.length ? ` (${live.length})` : ''}`}>
         {live.length ? (
@@ -130,13 +147,13 @@ export default function Live() {
           <div className="grid cols-2">
             {availability.map((a) => (
               <Card key={a.city} title={CITY_LABELS[a.city]}>
-                <div className="grid cols-4" style={{ gridTemplateColumns: 'repeat(4, minmax(0, 1fr))' }}>
+                <div className="avail">
                   <Metric label="Available" value={a.available} />
                   <Metric label="On a trip" value={a.busy} />
                   <Metric label="With access" value={a.withAccess} />
                   <Metric label="Approved" value={a.approved} />
                 </div>
-                <div style={{ marginTop: 12 }}>
+                <div style={{ marginTop: 14 }}>
                   <Meter value={a.withAccess ? (a.available + a.busy) / a.withAccess : 0} label={`${CITY_LABELS[a.city]}: drivers online out of those with access`} />
                   <div className="small muted" style={{ marginTop: 6 }}>Online out of drivers with active access. Going online needs approval and an active access package.</div>
                 </div>
@@ -148,14 +165,18 @@ export default function Live() {
         )}
       </Section>
 
-      <Section title={`Active journeys (${active.length})`}>
+      <Section title={`Active journeys (${active.length})`} desc="Oldest request first. Click a heading to sort.">
+        <Card flush>
         <Table
           rows={active}
           columns={columns}
           rowKey={(x) => x.id}
+          pageSize={25}
+          caption="Active journeys"
           onRowClick={(x) => openRecord({ type: 'trip', id: x.id })}
-          empty={<Card><Empty title="No active journeys" icon="route">Trips being searched, on the way or in progress appear here.</Empty></Card>}
+          empty={<Empty title="No active journeys" icon="route">Trips being searched, on the way or in progress appear here.</Empty>}
         />
+        </Card>
       </Section>
 
       {contact ? <ContactDialog c={contact} onClose={() => setContact(null)} /> : null}
@@ -183,19 +204,23 @@ function Metric({ label, value }: { label: string; value: number }) {
   );
 }
 
+const PROBLEM_ICON: Record<Problem['kind'], IconName> = { delayed_pickup: 'time', searching_long: 'radar', payment_stuck: 'wallet', no_driver: 'alert', cancelled: 'close' };
+
 function ProblemCard({ p, now, children }: { p: Problem; now: number; children: ReactNode }) {
   return (
     <Card>
-      <div className="row wrap" style={{ alignItems: 'flex-start' }}>
-        <Pill tone={p.severity} icon={p.kind === 'delayed_pickup' ? 'time' : p.kind === 'searching_long' ? 'radar' : p.kind === 'payment_stuck' ? 'wallet' : p.kind === 'no_driver' ? 'alert' : 'close'}>
-          {PROBLEM_LABELS[p.kind]}
-        </Pill>
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <div className="strong">Trip {p.ref} <span className="muted small">· {CITY_LABELS[p.city]} · {when(p.at, now)}</span></div>
-          <div className="small muted">{p.detail}</div>
+      <div className="problem">
+        <span className={`ico ${p.severity}`}><Icon name={PROBLEM_ICON[p.kind]} size={18} /></span>
+        <div className="body">
+          <div className="row wrap" style={{ gap: 8 }}>
+            <span className="strong">Trip {p.ref}</span>
+            <Pill tone={p.severity} icon={null}>{PROBLEM_LABELS[p.kind]}</Pill>
+          </div>
+          <div className="small muted" style={{ marginTop: 2 }}>{CITY_LABELS[p.city]} · {when(p.at, now)}</div>
+          <div className="small" style={{ marginTop: 6 }}>{p.detail}</div>
         </div>
+        <div className="acts">{children}</div>
       </div>
-      <div style={{ marginTop: 10 }}>{children}</div>
     </Card>
   );
 }

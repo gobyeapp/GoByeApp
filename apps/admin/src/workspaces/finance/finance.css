@@ -1,0 +1,21 @@
+/* Finance and payments pages: flow steps and small layout helpers (tokens from styles.css only). */
+.flow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 6px; align-items: center; }
+.flow li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-2); }
+.flow .n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--neutral-bg); color: var(--text-2); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.flow li.done .n { background: var(--success-bg); color: var(--success); }
+.flow li.current { color: var(--text); font-weight: 600; }
+.flow li.current .n { background: var(--primary); color: var(--on-primary); }
+.flow .sep { color: var(--text-3); }
+.flow-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; }
+.flow-card .flow-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-2); margin-bottom: 10px; display: flex; gap: 8px; align-items: center; }
+.flow-card .flow-note { font-size: 12.5px; color: var(--text-2); margin-top: 10px; }
+.flow.vertical { flex-direction: column; align-items: stretch; gap: 0; }
+.flow.vertical li { padding: 6px 0; }
+.flow.vertical .sep { display: none; }
+.fin-kpis { margin-bottom: 4px; }
+.fin-rule { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; padding: 10px 12px; border-radius: var(--r-md); background: var(--primary-soft); color: var(--primary-ink); }
+.fin-rule svg { flex-shrink: 0; margin-top: 2px; }
+.ready-meter { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font-size: 12.5px; color: var(--text-2); }
+.ready-meter .meter { flex: 1; }
+/* Anchor visually hidden text (.sr, absolutely positioned) inside scrolling tables so it can't widen the page. Belongs in styles.css. */
+.table-wrap { position: relative; }

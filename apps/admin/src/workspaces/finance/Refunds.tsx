@@ -4,13 +4,16 @@ import { money, when } from '@/data/format';
 import { RecordLink } from '@/data/records';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
-import { Card, Drawer, Empty, KV, Notice, Pill, Segmented, Stat, Table, Timeline, type Column } from '@/ui/kit';
+import { Card, Drawer, Empty, FilterBar, KV, Notice, Pill, SearchInput, Segmented, Stat, Table, Timeline, type Column } from '@/ui/kit';
 import { applyRefundAction, refundActions, refundApproval, type RefundAction } from './logic';
-import { ActionButtons, FinanceHead, LedgerLines, REFUND_TONE, SimTag, StatusPill, SubHead, useInclude } from './parts';
+import { ActionButtons, FinanceHead, FlowSteps, LedgerLines, REFUND_TONE, Rule, SimTag, StatusPill, SubHead, useInclude } from './parts';
 
 type Group = 'decide' | 'progress' | 'done' | 'all';
 const GROUP: Record<Exclude<Group, 'all'>, RefundRecord['status'][]> = { decide: ['requested'], progress: ['approved', 'processing', 'failed'], done: ['completed', 'rejected'] };
 const DEST: Record<RefundRecord['destination'], string> = { wallet: 'GoBye wallet', original_method: 'Original payment method' };
+
+const STEPS = ['Care requests the refund', 'Someone else approves it', 'Finance processes it', 'Wallet credited or provider confirms'];
+const STEP_AT: Partial<Record<RefundRecord['status'], number>> = { requested: 1, approved: 2, failed: 2, processing: 3, completed: 4 };
 
 const DESCRIBE: Record<RefundAction, { title: string; body: (r: RefundRecord) => string }> = {
   approve: { title: 'Approve refund', body: (r) => `Approves ${money(r.amount)} to the ${DEST[r.destination].toLowerCase()}. The linked approval request is marked approved. Money moves only when you process it.` },
@@ -25,9 +28,13 @@ export default function Refunds() {
   const include = useInclude();
   const [group, setGroup] = useState<Group>('all');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [q, setQ] = useState('');
   const passengers = useMemo(() => new Map(d.passengers.map((p) => [p.id, p])), [d.passengers]);
   const scoped = useMemo(() => d.refunds.filter((r) => include(passengers.get(r.passengerId)?.city, r.requestedAt)), [d.refunds, passengers, include]);
-  const rows = scoped.filter((r) => group === 'all' || GROUP[group].includes(r.status)).sort((a, b) => b.requestedAt - a.requestedAt);
+  const t = q.trim().toLowerCase();
+  const rows = scoped
+    .filter((r) => (group === 'all' || GROUP[group].includes(r.status)) && (!t || r.id.toLowerCase().includes(t) || r.reason.toLowerCase().includes(t) || (passengers.get(r.passengerId)?.name ?? '').toLowerCase().includes(t)))
+    .sort((a, b) => b.requestedAt - a.requestedAt);
   const open = openId ? d.refunds.find((r) => r.id === openId) : undefined;
   const sumOf = (sts: RefundRecord['status'][]) => scoped.filter((r) => sts.includes(r.status)).reduce((s, r) => s + r.amount, 0);
 
@@ -42,7 +49,7 @@ export default function Refunds() {
         return (
           <div className="stack tight small">
             <RecordLink type="passenger" id={r.passengerId}>{passengers.get(r.passengerId)?.name ?? r.passengerId}</RecordLink>
-            <span className="row" style={{ gap: 4 }}>
+            <span className="row wrap" style={{ gap: 4, whiteSpace: 'nowrap' }}>
               {trip ? <RecordLink type="trip" id={trip.id}>Trip {trip.ref}</RecordLink> : <span className="muted">No trip</span>}
               {kase ? <span className="muted">· Case {kase.ref}</span> : null}
             </span>
@@ -50,7 +57,7 @@ export default function Refunds() {
         );
       },
     },
-    { key: 'amt', label: 'Amount', align: 'right', render: (r) => <span className="num strong">{money(r.amount)}</span> },
+    { key: 'amt', label: 'Amount', align: 'right', sortValue: (r) => r.amount, render: (r) => <span className="num strong">{money(r.amount)}</span> },
     { key: 'dest', label: 'Destination', render: (r) => <span className="small">{DEST[r.destination]}</span> },
     { key: 'st', label: 'Status', render: (r) => <StatusPill tone={REFUND_TONE[r.status]} status={r.status} /> },
     { key: 'who', label: 'Requested / approved', render: (r) => <div className="small"><div>{r.requestedBy.name}</div><div className="muted">{r.approvedBy ? `Approved by ${r.approvedBy.name}` : 'Not approved'}</div></div> },
@@ -61,16 +68,19 @@ export default function Refunds() {
     <>
       <FinanceHead title="Refunds and disputes" sub="Every refund needs approval from someone other than the requester, then finance processes it." />
       <div className="grid cols-4">
-        <Stat label="Waiting for a decision" value={money(sumOf(['requested']))} sub={`${scoped.filter((r) => r.status === 'requested').length} requests`} tone={sumOf(['requested']) ? 'warning' : undefined} onClick={() => setGroup('decide')} />
-        <Stat label="Approved or processing" value={money(sumOf(['approved', 'processing']))} sub="Not paid yet" onClick={() => setGroup('progress')} />
-        <Stat label="Failed" value={money(sumOf(['failed']))} sub="Can be processed again" tone={sumOf(['failed']) ? 'danger' : undefined} onClick={() => setGroup('progress')} />
-        <Stat label="Completed" value={money(sumOf(['completed']))} sub="Booked as goodwill expense" tone="success" onClick={() => setGroup('done')} />
+        <Stat icon="time" label="Waiting for a decision" value={money(sumOf(['requested']))} sub={(() => { const n = scoped.filter((r) => r.status === 'requested').length; return `${n} ${n === 1 ? 'request' : 'requests'}`; })()} tone={sumOf(['requested']) ? 'warning' : undefined} onClick={() => setGroup('decide')} />
+        <Stat icon="refresh" label="Approved or processing" value={money(sumOf(['approved', 'processing']))} sub="Not paid yet" onClick={() => setGroup('progress')} />
+        <Stat icon="alert" label="Failed" value={money(sumOf(['failed']))} sub="Can be processed again" tone={sumOf(['failed']) ? 'danger' : undefined} onClick={() => setGroup('progress')} />
+        <Stat icon="checkCircle" label="Completed" value={money(sumOf(['completed']))} sub="Booked as goodwill expense" onClick={() => setGroup('done')} />
       </div>
       <div className="section">
-        <div className="toolbar">
+        <FlowSteps label="Refund flow" title="How a refund moves" steps={STEPS} note="Nobody approves their own request. Money moves only after approval, and a refund to the original method is not complete until the provider confirms." />
+      </div>
+      <div className="section">
+        <FilterBar count={`${rows.length} of ${scoped.length} in the selected city and dates`}>
+          <SearchInput value={q} onChange={setQ} placeholder="Search passenger, reason or ID" />
           <Segmented<Group> label="Show" value={group} onChange={setGroup} options={[{ value: 'all', label: 'All' }, { value: 'decide', label: 'Needs decision' }, { value: 'progress', label: 'In progress' }, { value: 'done', label: 'Done' }]} />
-          <span className="muted small" style={{ marginLeft: 'auto' }}>{rows.length} of {scoped.length} in the selected city and dates</span>
-        </div>
+        </FilterBar>
         <div className="card flush">
           <Table rows={rows} columns={columns} rowKey={(r) => r.id} onRowClick={(r) => setOpenId(r.id)} empty={<Empty title="No refunds here" icon="refresh">Care requests refunds from a case. Try another group or a wider date range.</Empty>} />
         </div>
@@ -117,6 +127,8 @@ function RefundDrawer({ r, onClose }: { r: RefundRecord; onClose: () => void }) 
         <StatusPill tone={REFUND_TONE[r.status]} status={r.status} />
         {approval ? <Pill tone={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'neutral' : 'warning'} icon="checkCircle">Approval {approval.status}</Pill> : null}
       </div>
+      {STEP_AT[r.status] !== undefined ? <FlowSteps label="Where this refund is" steps={STEPS} current={STEP_AT[r.status]} vertical /> : null}
+      <Rule>Two person rule: {r.requestedBy.name} asked for this refund, so someone else must approve it{r.approvedBy ? `. Approved by ${r.approvedBy.name}` : ''}.</Rule>
       {r.status === 'processing' && r.destination === 'original_method' ? <Notice tone="warning" icon="time">Sent to the provider. Not refunded until the provider confirms.</Notice> : null}
       {r.status === 'failed' ? <Notice tone="danger">The provider could not complete this refund. Nothing was posted. You can process it again.</Notice> : null}
       <KV

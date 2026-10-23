@@ -1,0 +1,25 @@
+/* Operations pages (Live operations, Trips): page-scoped styles on the shared tokens. */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: var(--r-pill); border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-weight: 600; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.chip:hover { border-color: var(--border-strong); color: var(--text); }
+.chip[aria-pressed='true'] { background: var(--primary-soft); color: var(--primary-ink); border-color: transparent; }
+.chip .n { font-variant-numeric: tabular-nums; font-weight: 700; }
+.mode-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.mode-tag.negotiate { color: var(--warning); }
+.problem { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
+.problem .ico { width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; }
+.problem .ico.danger { background: var(--danger-bg); color: var(--danger); }
+.problem .ico.warning { background: var(--warning-bg); color: var(--warning); }
+.problem .ico.info, .problem .ico.neutral { background: var(--info-bg); color: var(--info); }
+.problem .ico.success { background: var(--success-bg); color: var(--success); }
+.problem .body { flex: 1; min-width: 220px; }
+.problem .acts { width: 100%; padding-left: 50px; }
+@media (max-width: 640px) { .problem .acts { padding-left: 0; } }
+.avail { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 480px) { .avail { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.avail .value { font-size: 22px; line-height: 28px; }
+@media (min-width: 900px) {
+  .problem { flex-wrap: nowrap; align-items: center; }
+  .problem .acts { width: auto; padding-left: 0; margin-left: auto; flex-shrink: 0; }
+  .problem .acts .row { justify-content: flex-end; }
+}

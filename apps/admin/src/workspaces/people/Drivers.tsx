@@ -1,11 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { CITY_LABELS, type DocumentKind, type DriverRecord, type DriverVerification } from '@gobye/core';
 import { count, date, label, when } from '@/data/format';
-import { RecordLink } from '@/data/records';
+import { PanelSection, RecordLink } from '@/data/records';
 import { useScopedFilter, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Drawer, Empty, KV, Notice, PageHead, Pill, SearchInput, Select, Table, Tabs, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, FilterBar, KV, Meter, Notice, PageHead, Pill, SearchInput, Select, Stat, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
+import './people.css';
 import {
   DOC_LABELS,
   REQUIRED_DOCS,
@@ -24,6 +25,8 @@ import {
 type Tab = 'review' | 'all' | 'expiry' | 'rejected';
 const VER_TONE: Record<DriverVerification, Tone> = { applied: 'info', documents_pending: 'warning', in_review: 'warning', approved: 'success', rejected: 'danger', suspended: 'danger' };
 const DOC_TONE = { accepted: 'success', submitted: 'warning', missing: 'neutral', rejected: 'danger', expired: 'danger' } as const;
+const DOC_ROW = { accepted: 'ok', submitted: 'wait', missing: '', rejected: 'bad', expired: 'bad' } as const;
+const DOC_ICON = { accepted: 'checkCircle', submitted: 'time', missing: 'document', rejected: 'alert', expired: 'alert' } as const;
 const ACTION_UI: Record<VerificationAction, { text: string; done: string; audit: string; variant: 'primary' | 'secondary' | 'danger-soft'; reason?: string; body: string }> = {
   start_review: { text: 'Start review', done: 'Moved to review', audit: 'driver.review_started', variant: 'secondary', body: 'The application moves to In review.' },
   request_documents: { text: 'Request documents', done: 'Documents requested. The driver app shows what to upload.', audit: 'driver.documents_requested', variant: 'secondary', reason: 'What the driver needs to upload', body: 'The driver is asked to upload or replace documents. Your note is shown to them.' },
@@ -53,24 +56,30 @@ export default function Drivers() {
   const byId = new Map(d.drivers.map((x) => [x.id, x]));
   const selected = openId ? d.drivers.find((x) => x.id === openId) : undefined;
 
+  const acceptedDocs = (x: DriverRecord) => REQUIRED_DOCS.filter((k) => { const doc = x.documents.find((y) => y.kind === k); return doc && docStatus(doc, t) === 'accepted'; }).length;
   const docSummary = (x: DriverRecord) => {
-    const ok = REQUIRED_DOCS.filter((k) => { const doc = x.documents.find((y) => y.kind === k); return doc && docStatus(doc, t) === 'accepted'; }).length;
-    return <span className="small">{ok} of {REQUIRED_DOCS.length} accepted</span>;
+    const ok = acceptedDocs(x);
+    return (
+      <div className="doc-progress">
+        <span className="small">{ok} of {REQUIRED_DOCS.length} accepted</span>
+        <Meter value={ok / REQUIRED_DOCS.length} label={`${x.name}: ${ok} of ${REQUIRED_DOCS.length} required documents accepted`} />
+      </div>
+    );
   };
   const columns: Column<DriverRecord>[] = [
-    { key: 'name', label: 'Driver', render: (x) => (<><div className="cell-title">{x.name}</div><div className="cell-sub">{x.vehicle.colour} {x.vehicle.make} {x.vehicle.model} · {x.vehicle.plate}</div></>) },
-    { key: 'city', label: 'City', render: (x) => CITY_LABELS[x.city] },
-    { key: 'ver', label: 'Verification', render: (x) => <Pill tone={VER_TONE[x.verification]}>{label(x.verification)}</Pill> },
-    { key: 'docs', label: 'Documents', render: docSummary },
+    { key: 'name', label: 'Driver', sortValue: (x) => x.name, render: (x) => (<><div className="cell-title">{x.name}</div><div className="cell-sub">{x.vehicle.colour} {x.vehicle.make} {x.vehicle.model} · {x.vehicle.plate}</div></>) },
+    { key: 'city', label: 'City', sortValue: (x) => CITY_LABELS[x.city], render: (x) => CITY_LABELS[x.city] },
+    { key: 'ver', label: 'Verification', sortValue: (x) => label(x.verification), render: (x) => <Pill tone={VER_TONE[x.verification]}>{label(x.verification)}</Pill> },
+    { key: 'docs', label: 'Documents', sortValue: acceptedDocs, render: docSummary },
     { key: 'access', label: 'Access package', render: (x) => { const a = accessStatus(x, t); return <Pill tone={a.active ? 'success' : 'neutral'} icon="ticket">{a.label}</Pill>; } },
     tab === 'rejected'
       ? { key: 'reason', label: 'Reason', render: (x) => <span className="small">{x.rejectionReason ?? 'Not recorded'}</span> }
-      : { key: 'applied', label: 'Applied', render: (x) => <span className="small">{when(x.appliedAt, t)}</span> },
+      : { key: 'applied', label: 'Applied', sortValue: (x) => x.appliedAt, render: (x) => <span className="small">{when(x.appliedAt, t)}</span> },
   ];
   const expiryColumns: Column<ExpiryRow>[] = [
-    { key: 'name', label: 'Driver', render: (r) => <span className="cell-title">{byId.get(r.driverId)?.name}</span> },
+    { key: 'name', label: 'Driver', sortValue: (r) => byId.get(r.driverId)?.name ?? '', render: (r) => <span className="cell-title">{byId.get(r.driverId)?.name}</span> },
     { key: 'doc', label: 'Document', render: (r) => DOC_LABELS[r.kind] },
-    { key: 'date', label: 'Expiry', render: (r) => date(r.expiresAt) },
+    { key: 'date', label: 'Expiry', sortValue: (r) => r.expiresAt, render: (r) => date(r.expiresAt) },
     { key: 'left', label: 'Status', render: (r) => (r.expired ? <Pill tone="danger">Expired</Pill> : <Pill tone="warning">{r.daysLeft} {r.daysLeft === 1 ? 'day' : 'days'} left</Pill>) },
     { key: 'ver', label: 'Verification', render: (r) => { const v = byId.get(r.driverId)!.verification; return <Pill tone={VER_TONE[v]}>{label(v)}</Pill>; } },
   ];
@@ -85,9 +94,19 @@ export default function Drivers() {
     rejected: <Empty title="No rejected applications" icon="checkCircle" />,
   };
 
+  const docsPending = scoped.filter((x) => x.verification === 'documents_pending').length;
+  const expired = expiry.filter((r) => r.expired).length;
+  const go = (next: Tab) => () => setTab(next);
+
   return (
     <>
-      <PageHead title="Drivers" sub="Review applications and documents, approve or suspend drivers, and track document expiry. Document checks are simulated." />
+      <PageHead eyebrow="People" title="Drivers" sub="Review applications and documents, approve or suspend drivers, and track document expiry. Document checks are simulated." />
+      <div className="grid cols-4" style={{ marginBottom: 24 }}>
+        <Stat icon="fileCheck" label="Review queue" value={count(review.length)} sub="Applied, documents pending or in review" tone={review.length ? 'warning' : undefined} onClick={go('review')} />
+        <Stat icon="document" label="Documents pending" value={count(docsPending)} sub="Waiting on the driver to upload" onClick={() => { setTab('all'); setVer('documents_pending'); }} />
+        <Stat icon="time" label="Expiring documents" value={count(expiry.length)} sub={expired ? `${count(expired)} already expired` : 'Within 30 days'} tone={expired ? 'danger' : undefined} onClick={go('expiry')} />
+        <Stat icon="userForbid" label="Rejected" value={count(rejected.length)} sub="Can apply again later" onClick={go('rejected')} />
+      </div>
       <Tabs
         value={tab}
         onChange={setTab}
@@ -98,7 +117,7 @@ export default function Drivers() {
           { value: 'rejected', label: 'Rejected', count: rejected.length },
         ]}
       />
-      <div className="toolbar" style={{ marginTop: 14 }}>
+      <FilterBar count={`${count(tab === 'expiry' ? expiryRows.length : rows.length)} shown · city filter applies, date range doesn’t`}>
         <SearchInput value={q} onChange={setQ} placeholder="Search name, ID or plate" />
         {tab === 'all' ? (
           <Select<DriverVerification | 'all'>
@@ -108,13 +127,14 @@ export default function Drivers() {
             options={[{ value: 'all', label: 'Any verification' }, ...(Object.keys(VER_TONE) as DriverVerification[]).map((v) => ({ value: v, label: label(v) }))]}
           />
         ) : null}
-        <span className="muted small">{count(tab === 'expiry' ? expiryRows.length : rows.length)} shown · city filter applies, date range doesn’t</span>
-      </div>
-      {tab === 'expiry' ? (
-        <Table rows={expiryRows} columns={expiryColumns} rowKey={(r) => `${r.driverId}-${r.kind}`} onRowClick={(r) => setOpenId(r.driverId)} empty={<Card>{emptyFor.expiry}</Card>} />
-      ) : (
-        <Table rows={rows} columns={columns} rowKey={(x) => x.id} onRowClick={(x) => setOpenId(x.id)} empty={<Card>{emptyFor[tab]}</Card>} />
-      )}
+      </FilterBar>
+      <Card flush>
+        {tab === 'expiry' ? (
+          <Table caption="Documents expired or expiring" rows={expiryRows} columns={expiryColumns} rowKey={(r) => `${r.driverId}-${r.kind}`} onRowClick={(r) => setOpenId(r.driverId)} pageSize={25} empty={emptyFor.expiry} />
+        ) : (
+          <Table caption="Drivers" rows={rows} columns={columns} rowKey={(x) => x.id} onRowClick={(x) => setOpenId(x.id)} pageSize={tab === 'all' ? 25 : undefined} empty={emptyFor[tab]} />
+        )}
+      </Card>
       {selected ? <ReviewDrawer key={selected.id} driver={selected} onClose={() => setOpenId(null)} /> : null}
     </>
   );
@@ -134,6 +154,9 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
   const actions = verificationActions(x.verification);
   const allowed = (a: VerificationAction) => (a === 'suspend' ? canRestrict : canVerify);
   const target = { type: 'driver' as const, id: x.id, label: x.name };
+  const d = useData();
+  const history = d.audit.filter((e) => e.target.type === 'driver' && e.target.id === x.id).sort((a, b) => b.at - a.at);
+  const docsOk = REQUIRED_DOCS.filter((k) => { const doc = x.documents.find((y) => y.kind === k); return doc && docStatus(doc, t) === 'accepted'; }).length;
 
   const runAction = async (a: VerificationAction, reason: string) => {
     const ui = ACTION_UI[a];
@@ -199,7 +222,7 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
         )
       }
     >
-      <div className="row wrap">
+      <div className="panel-pills">
         <Pill tone={VER_TONE[x.verification]}>{label(x.verification)}</Pill>
         <Pill tone={access.active ? 'success' : 'neutral'} icon="ticket">{access.label}</Pill>
         <Pill tone={x.online ? 'brand' : 'neutral'} icon="radar">{x.online ? 'Online' : 'Offline'}</Pill>
@@ -220,15 +243,14 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
         <Notice tone="danger">Rejected: {x.rejectionReason ?? 'No reason recorded'}</Notice>
       )}
 
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Documents</h3>
-        <div className="stack">
+      <PanelSection title="Documents" icon="fileCheck" aside={`${docsOk} of ${REQUIRED_DOCS.length} required accepted · checks simulated`}>
+        <div className="doc-list">
           {x.documents.map((doc) => {
             const st = docStatus(doc, t);
             return (
-              <div key={doc.kind} className="row wrap" style={{ alignItems: 'flex-start', paddingBottom: 8, borderBottom: '1px solid var(--border)' }}>
-                <Icon name="document" size={18} />
-                <div style={{ flex: 1, minWidth: 160 }}>
+              <div key={doc.kind} className={`doc-row ${DOC_ROW[st]}`}>
+                <span className="doc-ico"><Icon name={DOC_ICON[st]} size={16} /></span>
+                <div className="doc-body">
                   <div className="strong small">{DOC_LABELS[doc.kind]}{REQUIRED_DOCS.includes(doc.kind) ? '' : ' (optional for approval)'}</div>
                   <div className="small muted">
                     {doc.expiresAt ? `${doc.expiresAt <= t ? 'Expired' : 'Expires'} ${date(doc.expiresAt)}` : 'No expiry'}
@@ -237,8 +259,8 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
                 </div>
                 <Pill tone={DOC_TONE[st]}>{label(st)}</Pill>
                 {canVerify && st !== 'missing' ? (
-                  <span className="row" style={{ gap: 4 }}>
-                    {st === 'submitted' || st === 'rejected' ? <Button size="sm" variant="ghost" icon="check" onClick={() => decideDoc(doc.kind, 'accepted')}>Accept</Button> : null}
+                  <span className="doc-actions">
+                    {st === 'submitted' || st === 'rejected' ? <Button size="sm" variant="secondary" icon="check" onClick={() => decideDoc(doc.kind, 'accepted')}>Accept</Button> : null}
                     {st === 'submitted' || st === 'accepted' ? <Button size="sm" variant="ghost" icon="close" onClick={() => setRejectDoc(doc.kind)}>Reject</Button> : null}
                   </span>
                 ) : null}
@@ -246,11 +268,21 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
             );
           })}
         </div>
-        <div className="small muted" style={{ marginTop: 8 }}>Files are not shown in this prototype; secure document storage comes with the backend.</div>
-      </div>
+        <div className="small muted">Files are not shown in this prototype; secure document storage comes with the backend.</div>
+      </PanelSection>
 
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Vehicle</h3>
+      <PanelSection title="Identity and contact" icon="user">
+        <KV
+          items={[
+            ['Driver ID', x.id],
+            ['City', CITY_LABELS[x.city]],
+            ['Applied', date(x.appliedAt)],
+            ['Phone', can('drivers.contact_details') ? x.phone : 'Hidden for your role'],
+          ]}
+        />
+      </PanelSection>
+
+      <PanelSection title="Vehicle" icon="car">
         <KV
           items={[
             ['Vehicle', `${x.vehicle.colour} ${x.vehicle.make} ${x.vehicle.model}`],
@@ -259,19 +291,26 @@ function ReviewDrawer({ driver: x, onClose }: { driver: DriverRecord; onClose: (
             ['Category', x.vehicle.category === 'go' ? 'GoBye Car' : label(x.vehicle.category)],
           ]}
         />
-      </div>
-      <div>
-        <h3 className="strong" style={{ marginBottom: 10 }}>Access and activity</h3>
+      </PanelSection>
+
+      <PanelSection title="Access and activity" icon="ticket">
         <KV
           items={[
             ['Access package', access.label],
             ['Access until', x.access ? when(x.access.expiresAt, t) : 'None bought'],
-            ['Phone', can('drivers.contact_details') ? x.phone : 'Hidden for your role'],
             ['Trips', count(x.trips)],
             ['Rating', x.verification === 'approved' || x.trips ? x.rating.toFixed(2) : 'No trips yet'],
           ]}
         />
-      </div>
+      </PanelSection>
+
+      <PanelSection title="History" icon="history" aside={history.length ? `${history.length} recorded` : undefined}>
+        {history.length ? (
+          <Timeline items={history.slice(0, 8).map((e) => ({ at: e.at, title: e.summary, sub: e.reason ? `${e.actor.name} · “${e.reason}”` : e.actor.name }))} />
+        ) : (
+          <span className="small muted">No staff actions recorded for this driver yet.</span>
+        )}
+      </PanelSection>
 
       {pending ? (
         <ConfirmDialog

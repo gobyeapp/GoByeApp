@@ -23,10 +23,10 @@ export default function Settlements() {
 
   const columns: Column<SettlementRecord>[] = [
     { key: 'p', label: 'Provider and period', render: (s) => <div><div className="cell-title">{s.provider}</div><div className="cell-sub">{date(s.periodStart)} to {date(s.periodEnd)}</div></div> },
-    { key: 'c', label: 'Collected', align: 'right', render: (s) => <span className="num">{money(s.collected)}</span> },
-    { key: 'f', label: 'Fees', align: 'right', render: (s) => <span className="num" style={{ color: 'var(--danger)' }}>−{money(s.fees)}</span> },
-    { key: 's', label: 'Settled', align: 'right', render: (s) => (s.settledAt ? <span className="num strong">{money(s.settled)}</span> : <span className="num muted">{money(s.settled)} expected</span>) },
-    { key: 'd', label: 'Settled date', render: (s) => (s.settledAt ? <span className="small">{date(s.settledAt)}</span> : <Pill tone="warning">Pending settlement</Pill>) },
+    { key: 'c', label: 'Collected', align: 'right', sortValue: (s) => s.collected, render: (s) => <span className="num">{money(s.collected)}</span> },
+    { key: 'f', label: 'Fees', align: 'right', sortValue: (s) => s.fees, render: (s) => <span className="num muted"><span className="sr">Deducted </span>−{money(s.fees)}</span> },
+    { key: 's', label: 'Settled', align: 'right', sortValue: (s) => s.settled, render: (s) => (s.settledAt ? <span className="num strong">{money(s.settled)}</span> : <span className="num muted">{money(s.settled)} expected</span>) },
+    { key: 'd', label: 'Settled date', sortValue: (s) => s.settledAt ?? Number.MAX_SAFE_INTEGER, render: (s) => (s.settledAt ? <span className="small">{date(s.settledAt)}</span> : <Pill tone="warning">Pending settlement</Pill>) },
     { key: 'r', label: 'Bank reference', render: (s) => <span className="num small">{s.bankReference ?? 'Not yet'}</span> },
   ];
 
@@ -34,10 +34,10 @@ export default function Settlements() {
     <>
       <FinanceHead title="Settlements" sub="What the provider collected, what it deducted in fees, and what reached the company bank account." />
       <div className="grid cols-4">
-        <Stat label="Collected by provider" value={money(total('collected'))} sub={`${rows.length} periods`} />
-        <Stat label="Provider fees" value={money(total('fees'))} sub="Processing cost" />
-        <Stat label="Settled to bank" value={money(rows.filter((s) => s.settledAt).reduce((t, s) => t + s.settled, 0))} sub="Bank reference received" tone="success" />
-        <Stat label="Pending settlement" value={money(pending.reduce((t, s) => t + s.settled, 0))} sub={`${pending.length} period${pending.length === 1 ? '' : 's'} not settled yet`} tone={pending.length ? 'warning' : undefined} />
+        <Stat icon="exchange" label="Collected by provider" value={money(total('collected'))} sub={`${rows.length} periods`} />
+        <Stat icon="bill" label="Provider fees" value={money(total('fees'))} sub="Processing cost" />
+        <Stat icon="bank" label="Settled to bank" value={money(rows.filter((s) => s.settledAt).reduce((t, s) => t + s.settled, 0))} sub="Bank reference received" />
+        <Stat icon="time" label="Pending settlement" value={money(pending.reduce((t, s) => t + s.settled, 0))} sub={`${pending.length} period${pending.length === 1 ? '' : 's'} not settled yet`} tone={pending.length ? 'warning' : undefined} />
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">

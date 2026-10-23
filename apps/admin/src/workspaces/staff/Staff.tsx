@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { APPROVAL_RULES, CITY_LABELS, ROLE_LABELS, isReadOnly, permissionsOf, type ApprovalRequest, type CityId, type PlatformDataset, type StaffMember, type StaffRole } from '@gobye/core';
-import { label } from '@/data/format';
+import { APPROVAL_RULES, CITY_LABELS, PERMISSIONS, ROLE_LABELS, ROLE_PERMISSIONS, isReadOnly, permissionsOf, type ApprovalRequest, type CityId, type Permission, type PlatformDataset, type StaffMember, type StaffRole } from '@gobye/core';
+import { initials, label } from '@/data/format';
 import { useSession } from '@/data/session';
 import { useAction, useData } from '@/data/store';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, Notice, PageHead, Pill, SearchInput, Table, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, Field, FilterBar, Notice, PageHead, Pill, SearchInput, Select, Stat, Table, Tabs, type Column, type Tone } from '@/ui/kit';
 import { roleRequestNote } from '../approvals/logic';
 import { AREA_LABELS, SENSITIVE_ROLES, groupPermissions, planRoleChange, validateInvite, wouldRemoveLastOwner } from './logic';
 
@@ -20,19 +20,51 @@ export default function Staff() {
   const d = useData();
   const { can } = useSession();
   const [q, setQ] = useState('');
+  const [role, setRole] = useState<StaffRole | 'all'>('all');
+  const [status, setStatus] = useState<StaffMember['status'] | 'all'>('all');
+  const [tab, setTab] = useState<'people' | 'roles'>('people');
   const [openId, setOpenId] = useState<string | null>(null);
   const [inviting, setInviting] = useState(false);
   const manage = can('staff.manage');
   const s = q.trim().toLowerCase();
-  const rows = d.staff.filter((x) => !s || x.name.toLowerCase().includes(s) || x.email.toLowerCase().includes(s) || x.roles.some((r) => ROLE_LABELS[r].toLowerCase().includes(s)));
+  const rows = d.staff.filter(
+    (x) =>
+      (!s || x.name.toLowerCase().includes(s) || x.email.toLowerCase().includes(s) || x.roles.some((r) => ROLE_LABELS[r].toLowerCase().includes(s))) &&
+      (role === 'all' || x.roles.includes(role)) &&
+      (status === 'all' || x.status === status),
+  );
   const selected = openId ? d.staff.find((x) => x.id === openId) : undefined;
   const pendingFor = (id: string) => d.approvals.filter((a) => a.kind === 'staff_role' && a.status === 'pending' && a.target.id === id);
+  const roleRequests = d.approvals.filter((a) => a.kind === 'staff_role' && a.status === 'pending').length;
+  const n = (st: StaffMember['status']) => d.staff.filter((x) => x.status === st).length;
 
   const columns: Column<StaffMember>[] = [
-    { key: 'name', label: 'Name', render: (x) => (<><div className="cell-title">{x.name}</div><div className="cell-sub">{x.email}</div></>) },
-    { key: 'roles', label: 'Roles', render: (x) => <span className="small">{x.roles.map((r) => ROLE_LABELS[r]).join(' + ') || 'No roles'}{pendingFor(x.id).length ? <span className="muted"> · role request pending</span> : null}</span> },
-    { key: 'city', label: 'City scope', render: (x) => <span className="small">{scopeText(x.cities)}</span> },
-    { key: 'status', label: 'Status', render: (x) => <Pill tone={STATUS[x.status].tone}>{STATUS[x.status].text}</Pill> },
+    {
+      key: 'name',
+      label: 'Name',
+      sortValue: (x) => x.name,
+      render: (x) => (
+        <div className="row" style={{ gap: 12 }}>
+          <span className="avatar" aria-hidden>{initials(x.name)}</span>
+          <span style={{ minWidth: 0 }}>
+            <div className="cell-title">{x.name}</div>
+            <div className="cell-sub">{x.email}</div>
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'roles',
+      label: 'Roles',
+      render: (x) => (
+        <span className="row wrap" style={{ gap: 6 }}>
+          {x.roles.length ? x.roles.map((r) => <Pill key={r} tone={SENSITIVE_ROLES.includes(r) ? 'brand' : 'neutral'} icon={null}>{ROLE_LABELS[r]}</Pill>) : <span className="muted small">No roles</span>}
+          {pendingFor(x.id).length ? <Pill tone="warning" icon="time">Role request pending</Pill> : null}
+        </span>
+      ),
+    },
+    { key: 'city', label: 'City scope', sortValue: (x) => scopeText(x.cities), render: (x) => <span className="small">{scopeText(x.cities)}</span> },
+    { key: 'status', label: 'Status', sortValue: (x) => x.status, render: (x) => <Pill tone={STATUS[x.status].tone}>{STATUS[x.status].text}</Pill> },
   ];
 
   return (
@@ -42,23 +74,52 @@ export default function Staff() {
         sub="Who can sign in, what each person can see and change, and in which cities."
         actions={manage ? <Button variant="primary" icon="userAdd" onClick={() => setInviting(true)}>Invite staff</Button> : null}
       />
+      <div className="grid cols-4" style={{ marginBottom: 20 }}>
+        <Stat icon="group" label="Active staff" value={n('active')} sub={`${d.staff.length} accounts in total`} />
+        <Stat icon="mail" tone={n('invited') ? 'warning' : undefined} label="Invites not accepted" value={n('invited')} sub="Recorded only, no email sent" />
+        <Stat icon="userForbid" tone={n('suspended') ? 'danger' : undefined} label="Suspended" value={n('suspended')} sub="Can’t sign in" />
+        <Stat icon="time" tone={roleRequests ? 'warning' : undefined} label="Role requests" value={roleRequests} sub="Waiting for owner approval" />
+      </div>
       <div className="stack" style={{ gap: 12, marginBottom: 16 }}>
         <Notice icon="info">
           Sign in is simulated in this prototype. Changes here update the staff records; real invites, sign in and sessions come with the backend.
         </Notice>
         {!manage ? <Notice icon="lock">Read only. Only the company owner can invite staff or change access.</Notice> : null}
       </div>
-      <div className="toolbar">
-        <SearchInput value={q} onChange={setQ} placeholder="Search name, email or role" />
-        <span className="muted small">{rows.length} of {d.staff.length}</span>
-      </div>
-      <Table
-        rows={rows}
-        columns={columns}
-        rowKey={(x) => x.id}
-        onRowClick={(x) => setOpenId(x.id)}
-        empty={<Card><Empty title="No staff match" icon="group">Clear the search to see everyone.</Empty></Card>}
+      <Tabs
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { value: 'people', label: 'People', count: d.staff.length },
+          { value: 'roles', label: 'Roles and permissions', count: ROLES.length },
+        ]}
       />
+      {tab === 'people' ? (
+        <>
+          <FilterBar count={`${rows.length} of ${d.staff.length}`}>
+            <SearchInput value={q} onChange={setQ} placeholder="Search name, email or role" />
+            <Select label="Role" value={role} onChange={setRole} options={[{ value: 'all', label: 'All roles' }, ...ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))]} />
+            <Select
+              label="Status"
+              value={status}
+              onChange={setStatus}
+              options={[{ value: 'all', label: 'Any status' }, { value: 'active', label: 'Active' }, { value: 'invited', label: 'Invite sent' }, { value: 'suspended', label: 'Suspended' }]}
+            />
+          </FilterBar>
+          <Card flush>
+            <Table
+              rows={rows}
+              columns={columns}
+              caption="Staff accounts"
+              rowKey={(x) => x.id}
+              onRowClick={(x) => setOpenId(x.id)}
+              empty={<Empty title="No staff match" icon="group">Clear the search or filters to see everyone.</Empty>}
+            />
+          </Card>
+        </>
+      ) : (
+        <RoleMatrix staff={d.staff} />
+      )}
       <Card muted className="section">
         <div className="small">
           <span className="strong">Roles are permission groups.</span> A person can hold several roles. They get each role’s permissions side by side; roles are never merged into a wider role. Granting owner, finance or developer access needs the company owner.
@@ -67,6 +128,56 @@ export default function Staff() {
       {selected ? <MemberDrawer key={selected.id} member={selected} pending={pendingFor(selected.id)} onClose={() => setOpenId(null)} /> : null}
       {inviting ? <InviteDrawer onClose={() => setInviting(false)} /> : null}
     </>
+  );
+}
+
+/** Read only matrix: every permission area down the side, every role across the top. */
+function RoleMatrix({ staff }: { staff: StaffMember[] }) {
+  const areas = groupPermissions(PERMISSIONS);
+  const has = (r: StaffRole, area: string, action: string) => ROLE_PERMISSIONS[r].includes(`${area}.${action}` as Permission);
+  return (
+    <Card flush>
+      <div className="table-wrap">
+        <table className="table">
+          <caption className="sr">What each role can do. View means read only; other actions change records.</caption>
+          <thead>
+            <tr>
+              <th scope="col">Area</th>
+              {ROLES.map((r) => (
+                <th key={r} scope="col" style={{ whiteSpace: 'normal', minWidth: 96, verticalAlign: 'bottom' }}>
+                  {ROLE_LABELS[r]}
+                  <div className="cell-sub" style={{ fontWeight: 500 }}>{staff.filter((x) => x.roles.includes(r) && x.status !== 'suspended').length} people</div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {areas.map(([area, actions]) => (
+              <tr key={area}>
+                <th scope="row" style={{ position: 'static', background: 'var(--surface)', color: 'var(--text)', fontSize: 13 }}>{AREA_LABELS[area] ?? label(area)}</th>
+                {ROLES.map((r) => {
+                  const got = actions.filter((a) => has(r, area, a));
+                  return (
+                    <td key={r} className="small">
+                      {got.length === 0 ? (
+                        <span className="muted" aria-label="No access">—</span>
+                      ) : (
+                        <span className="row wrap" style={{ gap: 4 }}>
+                          {got.map((a) => (
+                            <Pill key={a} tone={a === 'view' ? 'neutral' : 'info'} icon={a === 'view' ? 'eye' : 'edit'}>{label(a)}</Pill>
+                          ))}
+                        </span>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="table-foot">View is read only. Every other action changes records and is written to the audit trail. The backend must enforce the same permissions.</div>
+    </Card>
   );
 }
 

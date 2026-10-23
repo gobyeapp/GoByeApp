@@ -125,12 +125,12 @@ export default function Events() {
   };
 
   const cols: Column<EventPartnership>[] = [
-    { key: 'n', label: 'Event', render: (e) => <div><div className="cell-title">{e.name}</div><div className="cell-sub">{e.partner}</div></div> },
+    { key: 'n', label: 'Event', sortValue: (e) => e.name, render: (e) => <div><div className="cell-title">{e.name}</div><div className="cell-sub">{e.partner}</div></div> },
     { key: 'v', label: 'Venue', render: (e) => <div><div className="small">{e.venue}</div><div className="cell-sub">{cityLabel(e.city)}</div></div> },
-    { key: 'd', label: 'Dates', render: (e) => <span className="small num">{when(e.startsAt, t)}</span> },
+    { key: 'd', label: 'Dates', sortValue: (e) => e.startsAt, render: (e) => <span className="small num">{when(e.startsAt, t)}</span> },
     { key: 's', label: 'Status', render: (e) => <Pill tone={STATUS[e.status].tone} icon={STATUS[e.status].icon}>{STATUS[e.status].text}</Pill> },
     { key: 'z', label: 'Pickup zones', render: (e) => <span className="small">{e.pickupZones.join(', ')}</span> },
-    { key: 'b', label: 'Bookings', align: 'right', render: (e) => <span className="num">{count(e.bookings)}</span> },
+    { key: 'b', label: 'Bookings', align: 'right', sortValue: (e) => e.bookings, render: (e) => <span className="num">{count(e.bookings)}</span> },
     ...(showMoney ? [{ key: 'm', label: 'Sponsorship', align: 'right' as const, render: (e: EventPartnership) => <span className="num small">{e.sponsorship !== undefined ? money(e.sponsorship) : 'None'}</span> }] : []),
   ];
 
@@ -145,10 +145,10 @@ export default function Events() {
         actions={canManage ? <Button variant="primary" icon="add" onClick={startNew}>New event</Button> : <Button icon="add" disabledReason="Needs events access">New event</Button>}
       />
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
-        <Stat label="Planned" value={count(events.filter((e) => e.status === 'planned').length)} onClick={() => setTab('planned')} />
-        <Stat label="Live now" value={count(events.filter((e) => e.status === 'live').length)} onClick={() => setTab('live')} />
-        <Stat label="Bookings from events" value={count(events.reduce((s, e) => s + e.bookings, 0))} />
-        {showMoney ? <Stat label="Sponsorship agreed" value={money(events.reduce((s, e) => s + (e.sponsorship ?? 0), 0))} sub="Not yet reconciled with finance" /> : <Stat label="Ended" value={count(events.filter((e) => e.status === 'ended').length)} />}
+        <Stat icon="calendar" label="Planned" sub="Not started yet" value={count(events.filter((e) => e.status === 'planned').length)} onClick={() => setTab('planned')} />
+        <Stat icon="radar" label="Live now" sub="Pickup zones active" value={count(events.filter((e) => e.status === 'live').length)} onClick={() => setTab('live')} />
+        <Stat icon="route" label="Bookings from events" sub="All events, test data" value={count(events.reduce((s, e) => s + e.bookings, 0))} />
+        {showMoney ? <Stat icon="bill" label="Sponsorship agreed" value={money(events.reduce((s, e) => s + (e.sponsorship ?? 0), 0))} sub="Not yet reconciled with finance" /> : <Stat label="Ended" value={count(events.filter((e) => e.status === 'ended').length)} />}
       </div>
       <Tabs
         value={tab}
@@ -161,7 +161,7 @@ export default function Events() {
         ]}
       />
       <Card flush>
-        <Table rows={rows} columns={cols} rowKey={(e) => e.id} onRowClick={(e) => setOpenId(e.id)} empty={<Empty title="No events here" icon="calendar" action={canManage ? <Button icon="add" onClick={startNew}>New event</Button> : undefined}>Events in the selected city and status show here.</Empty>} />
+        <Table rows={rows} columns={cols} caption="Events and partnerships" rowKey={(e) => e.id} onRowClick={(e) => setOpenId(e.id)} empty={<Empty title="No events here" icon="calendar" action={canManage ? <Button icon="add" onClick={startNew}>New event</Button> : undefined}>Events in the selected city and status show here.</Empty>} />
       </Card>
 
       {open ? (

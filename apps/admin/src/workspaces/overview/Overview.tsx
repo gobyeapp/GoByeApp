@@ -5,11 +5,19 @@ import { count, date, money, pct, when } from '@/data/format';
 import { RANGE_MS, useFilters, useScopedFilter, useSession } from '@/data/session';
 import { useData, usePlatform } from '@/data/store';
 import { ALL_ITEMS } from '@/nav';
-import { Icon } from '@/ui/Icon';
-import { Bars, Button, Card, Empty, Notice, PageHead, Pill, Section, Stat, Table, type Column } from '@/ui/kit';
+import { Icon, type IconName } from '@/ui/Icon';
+import { Bars, Button, Card, Empty, LAGOS, Notice, PageHead, Pill, Section, Stat, Table, type Column } from '@/ui/kit';
+import './overview.css';
 import { dailyCompleted, integrationAlerts, needsAttention, overviewMetrics, type Keep, type OverviewMetrics } from './logic';
 
 const RANGE_TEXT = { today: 'Today', '7d': 'Last 7 days', '30d': 'Last 30 days', all: 'All time' } as const;
+const ATTN_ICON: Record<string, IconName> = { safety: 'safeAlert', approvals: 'checkCircle', cases: 'headphone', withdrawals: 'bank', drivers: 'steering' };
+
+/** "Good morning" by the hour in Lagos. */
+function greeting(now: number) {
+  const h = Number(new Date(now).toLocaleString('en-GB', { hour: 'numeric', hour12: false, timeZone: LAGOS }));
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
 
 /** Navigate to a workspace only when the viewer's role can open it. */
 function useOpener() {
@@ -46,19 +54,33 @@ export default function Overview() {
 
   return (
     <>
-      <PageHead title="Business overview" sub={`${scopeText}. How the business is doing, what needs attention and what is waiting for a decision.`} />
+      <PageHead
+        eyebrow={new Date(t).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: LAGOS })}
+        title={`${greeting(t)}, ${staff?.name.split(' ')[0] ?? 'there'}`}
+        sub="Business overview: how the business is doing, what needs attention and what is waiting for a decision."
+        meta={
+          <>
+            <Pill tone="brand" icon="mapPin">{scopeText}</Pill>
+            <Pill tone="neutral" icon="info">Test data</Pill>
+          </>
+        }
+      />
 
-      <Section title="Needs attention">
+      <Section title="Needs attention" desc="Oldest risk first. Open goes to the page where it is handled.">
         {attention.length ? (
           <Card flush>
-            <div className="stack" style={{ gap: 0 }}>
-              {attention.map((a, i) => {
+            <div className="attn">
+              {attention.map((a) => {
                 const go = open(a.path);
                 return (
-                  <div key={a.key} className="row" style={{ padding: '12px 16px', borderTop: i ? '1px solid var(--border)' : undefined }}>
-                    <Pill tone={a.tone} icon={a.tone === 'danger' ? 'alert' : a.tone === 'warning' ? 'time' : 'info'}>{count(a.count)}</Pill>
-                    <span style={{ flex: 1 }}>{a.label}</span>
-                    <Button size="sm" variant="ghost" icon="arrowRight" onClick={go} disabledReason={go ? undefined : 'Your role can’t open this page'}>
+                  <div key={a.key} className="attn-row">
+                    <span className={`attn-ico ${a.tone}`}><Icon name={ATTN_ICON[a.key] ?? (a.tone === 'danger' ? 'alert' : 'time')} size={18} /></span>
+                    <span className="attn-count">{count(a.count)}</span>
+                    <span className="attn-label">
+                      {a.label}
+                      {a.tone === 'danger' ? <span className="sr"> (urgent)</span> : null}
+                    </span>
+                    <Button size="sm" variant="secondary" icon="arrowRight" onClick={go} disabledReason={go ? undefined : 'Your role can’t open this page'}>
                       Open
                     </Button>
                   </div>
@@ -75,10 +97,10 @@ export default function Overview() {
 
       <Section title="Growth and usage">
         <div className="grid cols-4">
-          <Stat label="Completed trips" value={count(m.completedTrips)} sub={`${count(m.requestedTrips)} requested`} onClick={open('/trips')} />
-          <Stat label="Active drivers" value={count(m.activeDrivers)} sub="Approved with active access now" onClick={open('/drivers')} />
-          <Stat label="Active passengers" value={count(m.activePassengers)} sub="Took a trip in this period" onClick={open('/passengers')} />
-          <Stat label="Repeat usage" value={pct(m.repeatShare)} sub={`${count(m.repeatPassengers)} passengers with 2 or more trips`} onClick={open('/passengers')} />
+          <Stat label="Completed trips" icon="route" value={count(m.completedTrips)} sub={`${count(m.requestedTrips)} requested`} onClick={open('/trips')} />
+          <Stat label="Active drivers" icon="steering" value={count(m.activeDrivers)} sub="Approved with active access now" onClick={open('/drivers')} />
+          <Stat label="Active passengers" icon="user" value={count(m.activePassengers)} sub="Took a trip in this period" onClick={open('/passengers')} />
+          <Stat label="Repeat usage" icon="refresh" value={pct(m.repeatShare)} sub={`${count(m.repeatPassengers)} passengers with 2 or more trips`} onClick={open('/passengers')} />
         </div>
       </Section>
 
@@ -90,22 +112,26 @@ export default function Overview() {
 
       <Section title="Service quality">
         <div className="grid cols-4">
-          <Stat label="Cancellation rate" value={pct(m.cancellationRate)} sub={`${count(m.cancelled)} cancelled`} onClick={open('/trips')} />
-          <Stat label="Matching success" value={pct(m.matchingSuccess)} sub={`${count(m.noDriver)} found no driver`} onClick={open('/live')} />
-          <Stat label="Unresolved support cases" value={count(m.unresolvedCases)} sub="Open now, all dates" onClick={open('/cases')} />
-          <Stat label="Open safety cases" value={count(m.openSafety)} sub={m.urgentSafety ? `${count(m.urgentSafety)} urgent` : 'None urgent'} tone={m.urgentSafety ? 'danger' : undefined} onClick={open('/safety')} />
+          <Stat label="Cancellation rate" icon="close" value={pct(m.cancellationRate)} sub={`${count(m.cancelled)} cancelled`} onClick={open('/trips')} />
+          <Stat label="Matching success" icon="radar" value={pct(m.matchingSuccess)} sub={`${count(m.noDriver)} found no driver`} onClick={open('/live')} />
+          <Stat label="Unresolved support cases" icon="headphone" value={count(m.unresolvedCases)} sub="Open now, all dates" onClick={open('/cases')} />
+          <Stat label="Open safety cases" icon="safeAlert" value={count(m.openSafety)} sub={m.urgentSafety ? `${count(m.urgentSafety)} urgent` : 'None urgent'} tone={m.urgentSafety ? 'danger' : undefined} onClick={open('/safety')} />
         </div>
       </Section>
 
-      <div className="split section">
-        <Card title={`Completed trips per day, last ${days} days`}>
+      <div className="ov-split section">
+        <Card title={`Completed trips per day, last ${days} days`} actions={<span className="muted small num">{count(daily.reduce((s, x) => s + x.count, 0))} completed</span>}>
           {daily.some((x) => x.count) ? (
             <>
               <Bars values={daily.map((x) => x.count)} highlight={daily.length - 1} label={`Completed trips per day: ${daily.map((x) => `${date(x.day)} ${x.count}`).join(', ')}`} />
               <div className="row small muted" style={{ justifyContent: 'space-between', marginTop: 8 }}>
                 <span>{date(daily[0]!.day)}</span>
-                <span>{count(daily.reduce((s, x) => s + x.count, 0))} completed · today highlighted</span>
                 <span>{date(daily.at(-1)!.day)}</span>
+              </div>
+              <div className="legend" style={{ marginTop: 10 }}>
+                <span><i style={{ background: 'var(--chart)' }} />Earlier days</span>
+                <span><i style={{ background: 'var(--chart-alt)' }} />Today so far: {count(daily.at(-1)!.count)}</span>
+                <span>Lagos time</span>
               </div>
             </>
           ) : (
@@ -120,7 +146,7 @@ export default function Overview() {
 
       <Section title="Decisions and alerts">
         <div className="grid cols-2">
-          <Card title={<span className="row">Pending approvals <Pill tone={pending.length ? 'warning' : 'success'}>{pending.length}</Pill></span>}>
+          <Card title="Pending approvals" actions={<Pill tone={pending.length ? 'warning' : 'success'}>{pending.length} waiting</Pill>}>
             {pending.length ? (
               <div className="stack">
                 {pending.slice(0, 5).map((a) => (
@@ -182,12 +208,12 @@ function MoneySection({ m, open }: { m: OverviewMetrics; open: (path: string) =>
           These four figures are kept apart and never added together. Wallet funding is money held for passengers to spend later, not revenue.
         </Notice>
         <div className="grid cols-4">
-          <Stat label="Trip value" value={money(m.tripValue)} sub="Fares on completed trips; drivers keep them (0% commission)" onClick={open('/trips')} />
-          <Stat label="Company revenue" value={money(m.companyRevenue)} sub={`Driver access packages · ${count(m.packagePurchases)} purchases`} onClick={open('/finance/collections')} />
-          <Stat label="Wallet deposits" value={money(m.walletDeposits)} sub="Held for passengers, not revenue" onClick={open('/finance/wallets')} />
-          <Stat label="Driver earnings" value={money(m.driverEarnings)} sub={`Credited to GoBye earnings${m.directToDriverTrips ? ` · ${count(m.directToDriverTrips)} paid directly, recorded only` : ''}`} onClick={open('/finance/earnings')} />
+          <Stat label="Trip value" icon="route" value={money(m.tripValue)} sub="Fares on completed trips; drivers keep them (0% commission)" onClick={open('/trips')} />
+          <Stat label="Company revenue" icon="ticket" value={money(m.companyRevenue)} sub={`Driver access packages · ${count(m.packagePurchases)} purchases`} onClick={open('/finance/collections')} />
+          <Stat label="Wallet deposits" icon="wallet" value={money(m.walletDeposits)} sub="Held for passengers, not revenue" onClick={open('/finance/wallets')} />
+          <Stat label="Driver earnings" icon="steering" value={money(m.driverEarnings)} sub={`Credited to GoBye earnings${m.directToDriverTrips ? ` · ${count(m.directToDriverTrips)} paid directly, recorded only` : ''}`} onClick={open('/finance/earnings')} />
         </div>
-        <div className="grid cols-4">
+        <div className="grid cols-3">
           <Stat label="Package renewals" value={count(m.packageRenewals)} sub="Drivers who bought more than once" onClick={open('/finance/collections')} />
           <Stat label="Collections" value={money(m.collections)} sub={`${count(m.collectionsCount)} successful payments received`} onClick={open('/finance/collections')} />
           <Stat label="Payouts" value={money(m.payouts)} sub="Driver withdrawals confirmed paid" onClick={open('/finance/withdrawals')} />

@@ -5,12 +5,15 @@ import { RecordLink } from '@/data/records';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
-import { Card, Drawer, Empty, KV, Notice, Pill, Table, Tabs, Timeline, type Column } from '@/ui/kit';
+import { Card, Drawer, Empty, FilterBar, KV, Notice, Pill, SearchInput, Stat, Table, Tabs, Timeline, type Column } from '@/ui/kit';
 import { applyWithdrawalAction, needsReviewNote, withdrawalActions, withdrawalApproval, type WithdrawalAction } from './logic';
-import { ActionButtons, FinanceHead, LedgerLines, SimTag, StatusPill, SubHead, WITHDRAWAL_TONE, useInclude } from './parts';
+import { ActionButtons, FinanceHead, FlowSteps, LedgerLines, Rule, SimTag, StatusPill, SubHead, WITHDRAWAL_TONE, useInclude } from './parts';
 
 const STATUSES: WithdrawalStatus[] = ['requested', 'under_review', 'processing', 'successful', 'failed', 'reversed', 'rejected'];
 const STEPS = ['Driver selects verified bank account and amount', 'Earnings are reserved', 'Checks or approval where required', 'Transfer submitted', 'Final result received'];
+
+/** Where each status sits in STEPS (undefined: the flow stopped, see the status note). */
+const STEP_AT: Partial<Record<WithdrawalStatus, number>> = { requested: 2, under_review: 2, processing: 4, successful: 5 };
 
 const STATUS_NOTE: Record<WithdrawalStatus, { tone: 'info' | 'warning' | 'success' | 'danger'; text: string }> = {
   requested: { tone: 'warning', text: 'Earnings are reserved for this request. Nothing has been sent yet.' },
@@ -37,41 +40,56 @@ export default function Withdrawals() {
   const include = useInclude();
   const [tab, setTab] = useState<WithdrawalStatus>('requested');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [q, setQ] = useState('');
   const drivers = useMemo(() => new Map(d.drivers.map((x) => [x.id, x])), [d.drivers]);
   const scoped = useMemo(() => d.withdrawals.filter((w) => include(drivers.get(w.driverId)?.city, w.requestedAt)), [d.withdrawals, drivers, include]);
-  const rows = scoped.filter((w) => w.status === tab).sort((a, b) => b.requestedAt - a.requestedAt);
+  const t = q.trim().toLowerCase();
+  const rows = scoped
+    .filter((w) => w.status === tab && (!t || w.id.toLowerCase().includes(t) || (drivers.get(w.driverId)?.name ?? '').toLowerCase().includes(t)))
+    .sort((a, b) => b.requestedAt - a.requestedAt);
+  const sum = (sts: WithdrawalStatus[]) => scoped.filter((w) => sts.includes(w.status));
+  const kpi = (sts: WithdrawalStatus[]) => ({ n: sum(sts).length, amt: sum(sts).reduce((s, w) => s + w.amount, 0) });
+  const waiting = kpi(['requested', 'under_review']);
+  const inFlight = kpi(['processing']);
+  const paid = kpi(['successful']);
+  const bounced = kpi(['failed', 'reversed']);
   const open = openId ? d.withdrawals.find((w) => w.id === openId) : undefined;
   const threshold = APPROVAL_RULES.withdrawal.thresholdKobo ?? 0;
 
   const columns: Column<WithdrawalRecord>[] = [
     { key: 'd', label: 'Driver', render: (w) => <div><RecordLink type="driver" id={w.driverId}>{drivers.get(w.driverId)?.name ?? w.driverId}</RecordLink><div className="cell-sub" style={{ paddingLeft: 4 }}>{w.id}</div></div> },
-    { key: 'amt', label: 'Amount', align: 'right', render: (w) => <div><div className="num strong">{money(w.amount)}</div>{w.amount >= threshold ? <div className="cell-sub">Review threshold</div> : null}</div> },
+    { key: 'amt', label: 'Amount', align: 'right', sortValue: (w) => w.amount, render: (w) => <div><div className="num strong">{money(w.amount)}</div>{w.amount >= threshold ? <div className="cell-sub">Review threshold</div> : null}</div> },
     { key: 'bank', label: 'Bank account', render: (w) => <div><div>{w.bankAccount.bankName} <span className="num">{w.bankAccount.accountNumberMasked}</span></div><div className="cell-sub">{w.bankAccount.accountName}</div></div> },
     { key: 'st', label: 'Status', render: (w) => <StatusPill tone={WITHDRAWAL_TONE[w.status]} status={w.status} /> },
-    { key: 'req', label: 'Requested', render: (w) => <span className="small">{when(w.requestedAt, now())}</span> },
+    { key: 'req', label: 'Requested', sortValue: (w) => w.requestedAt, render: (w) => <span className="small">{when(w.requestedAt, now())}</span> },
     { key: 'upd', label: 'Last update', render: (w) => { const h = w.history[w.history.length - 1]; return <span className="small muted">{h ? `${label(h.status)}, ${when(h.at, now())}` : 'None'}</span>; } },
   ];
 
   return (
     <>
       <FinanceHead title="Withdrawals" sub="Drivers withdrawing their earnings to a verified bank account." />
-      <Card muted>
-        <ol className="row wrap" style={{ listStyle: 'none', margin: 0, padding: 0, gap: 8 }} aria-label="Withdrawal flow">
-          {STEPS.map((s, i) => (
-            <li key={s} className="row small" style={{ gap: 6 }}>
-              <span className="pill neutral" style={{ height: 22 }}>{i + 1}</span>
-              <span>{s}</span>
-              {i < STEPS.length - 1 ? <Icon name="right" size={14} /> : null}
-            </li>
-          ))}
-        </ol>
-        <div className="small muted" style={{ marginTop: 10 }}>
-          A transfer being submitted is not a completed payout: only the provider’s final event (success, failure, later a reversal) moves it on. Amounts of {money(threshold)} or more need review first. Provider events here are simulated on test data.
-        </div>
-      </Card>
+      <div className="grid cols-4">
+        <Stat icon="time" label="Waiting for review" value={money(waiting.amt)} sub={`${waiting.n} requests, earnings reserved`} tone={waiting.n ? 'warning' : undefined} onClick={() => setTab('requested')} />
+        <Stat icon="refresh" label="Submitted, not paid yet" value={money(inFlight.amt)} sub={`${inFlight.n} waiting for the provider’s result`} tone={inFlight.n ? 'info' : undefined} onClick={() => setTab('processing')} />
+        <Stat icon="bank" label="Paid out" value={money(paid.amt)} sub={`${paid.n} confirmed by the provider`} onClick={() => setTab('successful')} />
+        <Stat icon="alert" label="Failed or reversed" value={money(bounced.amt)} sub={`${bounced.n} returned to withdrawable`} tone={bounced.n ? 'danger' : undefined} onClick={() => setTab('failed')} />
+      </div>
+
+      <div className="section">
+        <FlowSteps
+          label="Withdrawal flow"
+          title={<><Icon name="bank" size={14} /> How a withdrawal moves</>}
+          steps={STEPS}
+          current={STEP_AT[tab]}
+          note={<>A transfer being submitted is not a completed payout: only the provider’s final event (success, failure, later a reversal) moves it on. Amounts of {money(threshold)} or more need review first. Provider events here are simulated on test data.</>}
+        />
+      </div>
 
       <div className="section">
         <Tabs value={tab} onChange={setTab} tabs={STATUSES.map((s) => ({ value: s, label: label(s), count: scoped.filter((w) => w.status === s).length }))} />
+        <FilterBar count={`${rows.length} ${label(tab).toLowerCase()}`}>
+          <SearchInput value={q} onChange={setQ} placeholder="Search driver or withdrawal ID" />
+        </FilterBar>
         <div className="card flush">
           <Table rows={rows} columns={columns} rowKey={(w) => w.id} onRowClick={(w) => setOpenId(w.id)} empty={<Empty title={`No ${label(tab).toLowerCase()} withdrawals`} icon="bank">Nothing in this status for the selected city and dates.</Empty>} />
         </div>
@@ -115,10 +133,24 @@ function WithdrawalDrawer({ w, onClose }: { w: WithdrawalRecord; onClose: () => 
     <Drawer title={`Withdrawal ${money(w.amount)}`} sub={`${w.id} · ${name}`} onClose={onClose} footer={real.length ? <ActionButtons options={real} run={run} describe={describe} /> : undefined}>
       <div className="row wrap">
         <StatusPill tone={WITHDRAWAL_TONE[w.status]} status={w.status} />
-        {approval ? <Pill tone={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'neutral' : 'warning'} icon="checkCircle">Approval {approval.status}</Pill> : null}
         {needsReviewNote(w) ? <Pill tone="warning" icon="shield">{needsReviewNote(w)}</Pill> : null}
       </div>
       <Notice tone={note.tone}>{note.text}</Notice>
+      {STEP_AT[w.status] !== undefined ? <FlowSteps label="Where this withdrawal is" steps={STEPS} current={STEP_AT[w.status]} vertical /> : null}
+      {w.status === 'processing' ? (
+        <Rule icon="refresh">Never submit this transfer again while it is processing. If the result is unclear, look it up with the provider by its transfer reference: a second submission could pay the driver twice.</Rule>
+      ) : null}
+      {approval ? (
+        <Card muted>
+          <SubHead aside={<Pill tone={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'neutral' : 'warning'} icon="checkCircle">Approval {approval.status}</Pill>}>Two person check</SubHead>
+          <KV
+            items={[
+              ['Asked by', `${approval.requestedBy.name}, ${when(approval.requestedAt, now())}`],
+              ['Decided by', approval.decidedBy ? `${approval.decidedBy.name}, ${when(approval.decidedAt, now())}` : 'Waiting. The person who asked can’t approve it'],
+            ]}
+          />
+        </Card>
+      ) : null}
       <KV
         items={[
           ['Driver', <RecordLink type="driver" id={w.driverId}>{name}</RecordLink>],

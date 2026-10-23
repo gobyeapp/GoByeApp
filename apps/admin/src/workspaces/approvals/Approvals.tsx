@@ -5,7 +5,7 @@ import { RecordLink } from '@/data/records';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Drawer, Empty, KV, Notice, PageHead, Pill, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, KV, Notice, PageHead, Pill, Stat, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
 import { applyDecision, approvalEffectText, decideBlockReason, failingChecks, requestedRoles, type Decision } from './logic';
 
 const KIND_LABEL: Record<ApprovalKind, string> = {
@@ -26,47 +26,106 @@ const STATUS: Record<ApprovalRequest['status'], { tone: Tone; text: string }> = 
 export default function Approvals() {
   const d = useData();
   const { now } = usePlatform();
+  const { staff } = useSession();
   const [tab, setTab] = useState<'pending' | 'decided'>('pending');
   const [openId, setOpenId] = useState<string | null>(null);
   const t = now();
   const pending = d.approvals.filter((a) => a.status === 'pending').sort((a, b) => b.requestedAt - a.requestedAt);
   const decided = d.approvals.filter((a) => a.status !== 'pending').sort((a, b) => (b.decidedAt ?? 0) - (a.decidedAt ?? 0));
-  const rows = tab === 'pending' ? pending : decided;
   const selected = openId ? d.approvals.find((a) => a.id === openId) : undefined;
+  const mineToDecide = staff ? pending.filter((a) => !decideBlockReason(a, staff)).length : 0;
+  const blocked = pending.filter((a) => (failingChecks(d, a) ?? []).length).length;
 
   const columns: Column<ApprovalRequest>[] = [
-    { key: 'req', label: 'Request', render: (a) => (<><div className="cell-title">{a.title}</div><div className="cell-sub">{KIND_LABEL[a.kind]}</div></>) },
-    { key: 'by', label: 'Requested by', render: (a) => (<><div>{a.requestedBy.name}</div><div className="cell-sub">{when(a.requestedAt, t)}</div></>) },
-    { key: 'amount', label: 'Amount', align: 'right', render: (a) => (a.amount !== undefined ? <span className="num">{money(a.amount)}</span> : <span className="muted">None</span>) },
-    tab === 'pending'
-      ? { key: 'who', label: 'Decided by', render: (a) => <span className="small">{a.approverRoles.map((r) => ROLE_LABELS[r]).join(' or ')}</span> }
-      : { key: 'who', label: 'Decided by', render: (a) => (<><div>{a.decidedBy?.name ?? 'Unknown'}</div><div className="cell-sub">{when(a.decidedAt, t)}</div></>) },
-    { key: 'status', label: 'Status', render: (a) => <StatusPill d={d} a={a} /> },
+    { key: 'req', label: 'Request', sortValue: (a) => a.title, render: (a) => (<><div className="cell-title">{a.title}</div><div className="cell-sub">{KIND_LABEL[a.kind]}</div></>) },
+    { key: 'by', label: 'Requested by', sortValue: (a) => a.requestedAt, render: (a) => (<><div>{a.requestedBy.name}</div><div className="cell-sub">{when(a.requestedAt, t)}</div></>) },
+    { key: 'amount', label: 'Amount', align: 'right', sortValue: (a) => a.amount ?? -1, render: (a) => (a.amount !== undefined ? <span className="num">{money(a.amount)}</span> : <span className="muted">None</span>) },
+    { key: 'who', label: 'Decided by', sortValue: (a) => a.decidedAt ?? 0, render: (a) => (<><div>{a.decidedBy?.name ?? 'Unknown'}</div><div className="cell-sub">{when(a.decidedAt, t)}</div></>) },
+    { key: 'status', label: 'Status', sortValue: (a) => a.status, render: (a) => <StatusPill d={d} a={a} /> },
   ];
 
   return (
     <>
-      <PageHead title="Approvals" sub="Sensitive changes need a second person. Nobody decides their own request." />
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'pending', label: 'Pending', count: pending.length }, { value: 'decided', label: 'Decided', count: decided.length }]} />
-      <div style={{ marginTop: 14 }}>
-        <Table
-          rows={rows}
-          columns={columns}
-          rowKey={(a) => a.id}
-          onRowClick={(a) => setOpenId(a.id)}
-          empty={
-            <Card>
-              {tab === 'pending' ? (
-                <Empty title="No approvals waiting" icon="checkCircle">New requests appear here when someone asks to publish settings, refund, pay out or change access.</Empty>
-              ) : (
-                <Empty title="No decisions yet" icon="history">Approved and rejected requests appear here with who decided and why.</Empty>
-              )}
-            </Card>
-          }
-        />
+      <PageHead eyebrow="Oversight" title="Approvals" sub="Sensitive changes need a second person. Nobody decides their own request." />
+      <div className="grid cols-4" style={{ marginBottom: 20 }}>
+        <Stat icon="time" label="Waiting for a decision" value={pending.length} sub="Newest request first" tone={pending.length ? 'warning' : undefined} onClick={() => setTab('pending')} />
+        <Stat icon="user" label="You can decide" value={mineToDecide} sub="Your role is an approver and you didn’t ask" onClick={() => setTab('pending')} />
+        <Stat icon="lock" label="Blocked by checks" value={blocked} sub="Can be rejected, not approved yet" tone={blocked ? 'danger' : undefined} onClick={() => setTab('pending')} />
+        <Stat icon="history" label="Decided" value={decided.length} sub="Approved or rejected, with reasons" onClick={() => setTab('decided')} />
       </div>
+      <div style={{ marginBottom: 16 }}>
+        <Notice icon="group">
+          Two-person rule: the person who asks for a change can never approve it. The request waits until someone holding an approver role decides, and both names are saved to the audit trail.
+        </Notice>
+      </div>
+      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'pending', label: 'Pending', count: pending.length }, { value: 'decided', label: 'Decided', count: decided.length }]} />
+      {tab === 'pending' ? (
+        pending.length ? (
+          <div className="stack" style={{ gap: 12 }}>
+            {pending.map((a) => (
+              <PendingCard key={a.id} a={a} now={t} onOpen={() => setOpenId(a.id)} />
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <Empty title="No approvals waiting" icon="checkCircle">New requests appear here when someone asks to publish settings, refund, pay out or change access.</Empty>
+          </Card>
+        )
+      ) : (
+        <Card flush>
+          <Table
+            rows={decided}
+            columns={columns}
+            rowKey={(a) => a.id}
+            onRowClick={(a) => setOpenId(a.id)}
+            pageSize={20}
+            caption="Decided approvals"
+            empty={<Empty title="No decisions yet" icon="history">Approved and rejected requests appear here with who decided and why.</Empty>}
+          />
+        </Card>
+      )}
       {selected ? <ApprovalDrawer req={selected} onClose={() => setOpenId(null)} /> : null}
     </>
+  );
+}
+
+/** One pending request: what changes, who asked, who may decide and whether this viewer can. */
+function PendingCard({ a, now, onOpen }: { a: ApprovalRequest; now: number; onOpen: () => void }) {
+  const d = useData();
+  const { staff } = useSession();
+  const block = staff ? decideBlockReason(a, staff) : 'Not signed in';
+  const failing = failingChecks(d, a) ?? [];
+  return (
+    <div className="card" style={{ padding: 16 }}>
+      <div className="row wrap" style={{ alignItems: 'flex-start', gap: 14 }}>
+        <span className="kpi-ico" style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', display: 'grid', placeItems: 'center', background: 'var(--warning-bg)', color: 'var(--warning)', flexShrink: 0 }}>
+          <Icon name="time" size={18} />
+        </span>
+        <div className="stack tight" style={{ flex: 1, minWidth: 220 }}>
+          <div className="row wrap" style={{ gap: 8 }}>
+            <span className="strong">{a.title}</span>
+            <Pill tone="neutral" icon={null}>{KIND_LABEL[a.kind]}</Pill>
+            <StatusPill d={d} a={a} />
+          </div>
+          <div className="small">If approved: {approvalEffectText(a)}</div>
+          <div className="small muted">
+            Asked by {a.requestedBy.name} · {when(a.requestedAt, now)} · decided by {a.approverRoles.map((r) => ROLE_LABELS[r]).join(' or ')}
+            {a.amount !== undefined ? <> · <span className="num">{money(a.amount)}</span></> : null}
+          </div>
+          {failing.length ? (
+            <div className="small row" style={{ gap: 6, color: 'var(--danger)' }}>
+              <Icon name="lock" size={14} /> {failing.length} live {failing.length === 1 ? 'check hasn’t' : 'checks haven’t'} passed
+            </div>
+          ) : null}
+        </div>
+        <div className="stack tight" style={{ alignItems: 'flex-end' }}>
+          <Button size="sm" variant={block ? 'secondary' : 'primary'} icon="right" onClick={onOpen}>
+            {block ? 'View' : 'Review'}
+          </Button>
+          {block ? <span className="small muted" style={{ maxWidth: 220, textAlign: 'right' }}>{block}</span> : null}
+        </div>
+      </div>
+    </div>
   );
 }
 

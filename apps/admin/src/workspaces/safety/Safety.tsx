@@ -6,7 +6,7 @@ import { useAction, useData, usePlatform } from '@/data/store';
 import { city, label, when } from '@/data/format';
 import { Icon } from '@/ui/Icon';
 import { Button, Card, ConfirmDialog, Empty, Field, KV, Notice, PageHead, Pill, Section, Skeleton, Stat, Table, type Column } from '@/ui/kit';
-import { ActionTimeline, Block, FormDialog, MessageStreams, PriorityPill, StatusPill, WideDrawer, actorName } from '../care/caseKit';
+import { ActionTimeline, Block, FormDialog, MessageStreams, PriorityPill, StatusPill, WideDrawer, actorName, useDeepLinkedCase } from '../care/caseKit';
 import { applyMessage, applyResolve, applyStatus, formatAge, isOpen } from '../care/logic';
 import {
   ACK_TARGET_MIN,
@@ -35,10 +35,11 @@ export default function Safety() {
   useTick();
   const d = useData();
   const { now } = usePlatform();
-  const { staff, can } = useSession();
+  const { staff, can, inScope } = useSession();
   const keep = useScopedFilter();
   const act = useAction();
-  const [openId, setOpenId] = useState<string | null>(null);
+  // `?open=<case id>` opens that safety case when the viewer can see it (command palette, links).
+  const { openId, setOpenId, close, missing } = useDeepLinkedCase((id) => d.cases.some((c) => c.id === id && c.team === 'safety' && inScope(c.city)));
   const t = now();
   const me = staff?.id;
 
@@ -63,31 +64,32 @@ export default function Safety() {
     );
 
   const doneCols: Column<CaseRecord>[] = [
-    { key: 'case', label: 'Case', render: (c) => <div><div className="cell-title">{c.subject}</div><div className="cell-sub">{c.ref} · {city(c.city)}</div></div> },
+    { key: 'case', label: 'Case', sortValue: (c) => c.ref, render: (c) => <div><div className="cell-title">{c.subject}</div><div className="cell-sub">{c.ref} · {city(c.city)}</div></div> },
     { key: 'status', label: 'Status', render: (c) => <StatusPill s={c.status} /> },
     { key: 'owner', label: 'Owner', render: (c) => (c.ownerId ? (d.staff.find((s) => s.id === c.ownerId)?.name ?? 'Unknown') : 'Unassigned') },
-    { key: 'raised', label: 'Raised', render: (c) => when(c.openedAt, t) },
-    { key: 'resolved', label: 'Resolved', render: (c) => (c.resolution ? when(c.resolution.at, t) : <span className="muted">No summary</span>) },
+    { key: 'raised', label: 'Raised', sortValue: (c) => c.openedAt, render: (c) => when(c.openedAt, t) },
+    { key: 'resolved', label: 'Resolved', sortValue: (c) => c.resolution?.at ?? 0, render: (c) => (c.resolution ? when(c.resolution.at, t) : <span className="muted">No summary</span>) },
   ];
 
   return (
     <>
-      <PageHead title="Safety" sub="Urgent incidents with trip context. Restricted information; every access is logged. Test data." />
-      <div className="stack" style={{ marginBottom: 16 }}>
+      <PageHead eyebrow="Care and safety" title="Safety" sub="Urgent incidents with trip context. Restricted information; every access is logged. Test data." />
+      <div className="stack" style={{ marginBottom: 20 }}>
+        {missing ? <Notice tone="warning" icon="lock">That safety case isn’t available to you. It may be in another city or need the safety role.</Notice> : null}
         <Notice icon="shield">Access to safety cases is logged. Opening a case that shows a location records an audit event with your name.</Notice>
         {!can('safety.work') ? <Notice icon="eye">You can view safety cases but not act on them. Actions are hidden for your role.</Notice> : null}
       </div>
 
       <div className="grid cols-4" style={{ marginBottom: 8 }}>
-        <Stat label="Open safety cases" value={queue.length} />
-        <Stat label="Not acknowledged" value={unassigned} tone={unassigned ? 'danger' : undefined} sub={late ? `${late} past the ${ACK_TARGET_MIN} min target` : `Target: acknowledge within ${ACK_TARGET_MIN} min`} />
-        <Stat label="With safety lead" value={escalated} sub="Escalated cases" />
-        <Stat label="Resolved or closed" value={done.length} sub="In the selected dates" />
+        <Stat icon="alert" label="Not acknowledged" value={unassigned} tone={unassigned ? 'danger' : undefined} sub={late ? `${late} past the ${ACK_TARGET_MIN} min target` : `Target: acknowledge within ${ACK_TARGET_MIN} min`} />
+        <Stat icon="safeAlert" label="Open safety cases" value={queue.length} sub="All dates; city scope applies" />
+        <Stat icon="flag" label="With safety lead" value={escalated} sub="Escalated cases" />
+        <Stat icon="checkCircle" label="Resolved or closed" value={done.length} sub="In the selected dates" />
       </div>
 
       <div className="split">
         <div>
-          <Section title="Urgent queue">
+          <Section title="Urgent queue" desc="Not acknowledged first, then the oldest alert. Times show how long has passed, not a countdown.">
             {queue.length ? (
               <div className="stack">
                 {queue.map((c) => (
@@ -102,11 +104,11 @@ export default function Safety() {
           </Section>
           <Section title="Resolved and closed">
             <Card flush>
-              <Table rows={done} columns={doneCols} rowKey={(c) => c.id} onRowClick={(c) => setOpenId(c.id)} empty={<Empty icon="history" title="No resolved safety cases">Try a wider date range.</Empty>} />
+              <Table rows={done} columns={doneCols} rowKey={(c) => c.id} onRowClick={(c) => setOpenId(c.id)} pageSize={15} caption="Resolved and closed safety cases" empty={<Empty icon="history" title="No resolved safety cases">Try a wider date range.</Empty>} />
             </Card>
           </Section>
         </div>
-        <div className="stack" style={{ marginTop: 28, gap: 14 }}>
+        <div className="stack" style={{ marginTop: 32, gap: 16 }}>
           <Card title="How alerts arrive">
             <div className="stack small">
               <p>A safety alert from the passenger or driver app creates a case here with the trip, both people and the last shared location attached.</p>
@@ -123,7 +125,7 @@ export default function Safety() {
         </div>
       </div>
 
-      {openId ? <SafetyCaseView key={openId} id={openId} onClose={() => setOpenId(null)} /> : null}
+      {openId ? <SafetyCaseView key={openId} id={openId} onClose={close} /> : null}
     </>
   );
 }
@@ -156,7 +158,7 @@ function QueueItem({ c, now, meId, canWork, onOpen, onAck }: { c: CaseRecord; no
   const owner = c.ownerId ? d.staff.find((s) => s.id === c.ownerId) : undefined;
   const trip = c.links.tripId ? d.trips.find((x) => x.id === c.links.tripId) : undefined;
   return (
-    <div className="card" style={!c.ownerId ? { borderColor: 'var(--danger)', borderWidth: 2 } : undefined}>
+    <div className="card" style={!c.ownerId ? { borderColor: 'color-mix(in srgb, var(--danger) 45%, var(--border))', boxShadow: 'inset 4px 0 0 var(--danger)' } : undefined}>
       <div className="row wrap" style={{ alignItems: 'flex-start' }}>
         <Icon name="safeAlert" size={22} style={{ color: !c.ownerId ? 'var(--danger)' : 'var(--text-2)', marginTop: 2 }} />
         <div className="stack tight" style={{ flex: 1, minWidth: 220 }}>
@@ -180,7 +182,7 @@ function QueueItem({ c, now, meId, canWork, onOpen, onAck }: { c: CaseRecord; no
         </div>
         <div className="row" style={{ gap: 8 }}>
           {canWork && c.ownerId !== meId ? (
-            <Button variant={c.ownerId ? 'secondary' : 'danger'} size="sm" icon="check" onClick={onAck}>
+            <Button variant={c.ownerId ? 'secondary' : 'primary'} size="sm" icon="check" onClick={onAck}>
               {c.ownerId ? 'Take over' : 'Acknowledge'}
             </Button>
           ) : null}

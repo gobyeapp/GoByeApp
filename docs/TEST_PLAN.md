@@ -269,3 +269,6 @@ Not yet executed: any device/emulator test, VoiceOver/TalkBack walkthroughs, fon
 | 2026-10-23 | Website and admin in Chromium with the new `vercel.json` headers applied locally | no CSP violations; site, video, waitlist dialog work |
 
 Per-case mapping and what still needs staging: `INFRASTRUCTURE_TEST_PLAN.md`.
+| 2026-10-23 | Admin redesign: `npm run typecheck`; `npm test`; `vite build` (admin) | 0 errors; core 215, rider 36, driver 14, admin **263**, infra/cloudflare 41 passed; build OK |
+| 2026-10-23 | Admin redesign in Chromium: 32 routes × 1440/1024/768/375 × light/dark (`tools/qa-web/admin-shots.cjs`), plus search, notifications, account menu, rail and phone menu | No sideways scroll, no page errors. Keyboard and screen reader checked in code and by Playwright only; not tested with VoiceOver or NVDA |
+

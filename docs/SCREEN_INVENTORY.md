@@ -75,3 +75,26 @@ Routes are relative to `apps/<app>/src/app/`.
 | `trip-paid.tsx` / `trip-summary.tsx` | R14 success, R29b summary |
 
 Rider navigation notes: finished flows (sign-in, booking, payment) reset the stack with `resetTo()` so Android back cannot return to them; Home and Activity show a "Current ride" entry while a booking is live.
+
+## Management platform (admin web, `apps/admin`) — redesigned 2026-10-23
+
+Prototype on test data (D-053, `ADMIN_DASHBOARD_REDESIGN.md`). Every page uses the shared shell and kit. Each was checked at 1440, 1024, 768 and 375 px in light and dark: none scrolls sideways and none shows a page error.
+
+| Group | Route | Screen | Status |
+|---|---|---|---|
+| Home | `/overview` | Home: greeting, attention list, KPIs, money (kept separate), daily trips chart (Lagos days), cities, approvals, integration health | Redesigned |
+| Home | `/approvals` | Approvals: request cards, two-person rule, decided table | Redesigned |
+| Operations | `/live` | Live operations: KPIs, problem cards, availability, active journeys (simulated locations) | Redesigned |
+| Operations | `/trips` | Trips: Quick Match / Negotiated KPIs, status chips, filter bar, sortable paged table | Redesigned |
+| Operations | `/demo` | Connected demo (relay) | Restyled, behaviour unchanged |
+| People | `/drivers` | Drivers: KPIs, review queue, documents progress, sectioned review sheet with pinned actions | Redesigned |
+| People | `/passengers` | Passengers: KPIs, filter bar, sortable paged table, restriction notice | Redesigned |
+| Care and safety | `/cases` | Support cases: queue KPIs, filters, sortable paged table, case sheet with pinned actions, `?open=` link | Redesigned |
+| Care and safety | `/safety` | Safety: unacknowledged first, `?open=` link, restricted-info notices | Redesigned |
+| Finance | `/finance/*` (8) | Collections, wallets, earnings, withdrawals, refunds, settlements, reconciliation, ledger: KPIs, workflow steps, rules callouts, filter bars, sortable tables | Redesigned |
+| Growth | `/comms`, `/promos`, `/events` | Announcements, promotions, events | Redesigned |
+| Insights | `/reports` | Reports: available exports (CSV of loaded test data) | Redesigned |
+| Settings | `/config/*` (5) | Versioned settings: in force vs draft, before/after, three-step editor | Redesigned |
+| Administration | `/staff`, `/audit` | Staff (people + roles and permissions matrix), activity (timeline / table) | Redesigned |
+| Technical | `/payments`, `/developer`, `/developer/events`, `/infrastructure/traffic` | Payments readiness, integrations by state, events log, traffic simulation | Redesigned |
+| Shell | all | Sidebar and rail, breadcrumb, Ctrl/Cmd+K search, notifications, account menu, Finance and Settings sub-navigation | New |

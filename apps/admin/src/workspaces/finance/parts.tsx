@@ -5,23 +5,55 @@ import { RANGE_MS, useFilters, useSession } from '@/data/session';
 import { usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
 import { Button, ConfirmDialog, PageHead, Pill, type Tone } from '@/ui/kit';
+import './finance.css';
 import { ACCOUNT_LABEL, KIND_LABEL, type ActionOption, type Include } from './logic';
 
 /* Small building blocks shared by the finance screens (local to this workspace). */
 
 /** Page heading with the test data marker every finance screen carries. */
 export function FinanceHead({ title, sub, actions }: { title: string; sub?: string; actions?: ReactNode }) {
+  return <PageHead eyebrow="Finance" title={title} sub={sub} meta={<Pill tone="warning" icon="info">Test data · Paystack (test)</Pill>} actions={actions} />;
+}
+
+/**
+ * Numbered steps of a money workflow. `current` highlights where a record is; steps before it show as
+ * done. Without `current` it is a plain explainer of the order things happen in.
+ */
+export function FlowSteps({ steps, current, title, note, vertical, label: aria }: { steps: string[]; current?: number; title?: ReactNode; note?: ReactNode; vertical?: boolean; label: string }) {
+  const list = (
+    <ol className={`flow${vertical ? ' vertical' : ''}`} aria-label={aria}>
+      {steps.map((s, i) => {
+        const state = current === undefined ? '' : i < current ? 'done' : i === current ? 'current' : '';
+        return (
+          <li key={s} className={state} aria-current={state === 'current' ? 'step' : undefined}>
+            <span className="n" aria-hidden>{state === 'done' ? <Icon name="check" size={13} /> : i + 1}</span>
+            <span>
+              {state === 'done' ? <span className="sr">Done: </span> : state === 'current' ? <span className="sr">Current step: </span> : null}
+              {s}
+            </span>
+            {i < steps.length - 1 ? <Icon name="right" size={14} className="sep" /> : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+  if (!title && !note) return list;
   return (
-    <PageHead
-      title={title}
-      sub={sub}
-      actions={
-        <>
-          <Pill tone="warning" icon="info">Test data · Paystack (test)</Pill>
-          {actions}
-        </>
-      }
-    />
+    <div className="flow-card">
+      {title ? <div className="flow-title">{title}</div> : null}
+      {list}
+      {note ? <div className="flow-note">{note}</div> : null}
+    </div>
+  );
+}
+
+/** One-line rule callout (two-person rules, no-retry rules). */
+export function Rule({ icon = 'shield', children }: { icon?: 'shield' | 'lock' | 'info' | 'refresh'; children: ReactNode }) {
+  return (
+    <div className="fin-rule">
+      <Icon name={icon} size={16} />
+      <div>{children}</div>
+    </div>
   );
 }
 

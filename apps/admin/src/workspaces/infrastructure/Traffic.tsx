@@ -20,7 +20,7 @@ import { canManageInfra, canViewInfra, createInfraStore, expectedShare, toTraffi
 const store = createInfraStore(() => Date.now());
 
 const HEALTH_TONE: Record<BackendOrigin['health'], Tone> = { healthy: 'success', degraded: 'warning', unhealthy: 'danger', unknown: 'neutral' };
-const ago = (t: number | null) => (t ? new Date(t).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }) : '—');
+const ago = (t: number | null) => (t ? new Date(t).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }) : 'Not yet');
 
 type ChangeKind = 'policy' | 'weights' | 'drain';
 
@@ -68,9 +68,9 @@ export default function Traffic() {
   };
 
   const originCols: Column<BackendOrigin>[] = [
-    { key: 'id', label: 'Origin', render: (o) => <div><strong>{o.id}</strong><div className="muted small">{o.provider} · {o.region}</div></div> },
+    { key: 'id', label: 'Origin', sortValue: (o) => o.id, render: (o) => <div><strong>{o.id}</strong><div className="muted small">{o.provider} · {o.region}</div></div> },
     { key: 'health', label: 'Health', render: (o) => <Pill tone={HEALTH_TONE[o.health]}>{o.health}</Pill> },
-    { key: 'weight', label: 'Weight', render: (o) => `${o.weight}%`, align: 'right' },
+    { key: 'weight', label: 'Weight', sortValue: (o) => o.weight, render: (o) => `${o.weight}%`, align: 'right' },
     { key: 'priority', label: 'Priority', render: (o) => o.priority, align: 'right' },
     { key: 'state', label: 'State', render: (o) => (o.maintenance ? <Pill tone="warning">Drained</Pill> : <Pill tone="neutral" icon={null}>In rotation</Pill>) },
     { key: 'version', label: 'Version', render: (o) => o.version },
@@ -84,9 +84,9 @@ export default function Traffic() {
 
   return (
     <div className="stack" style={{ gap: 20 }}>
-      <PageHead title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only." />
+      <PageHead title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only." meta={<><Pill tone="warning" icon="info">Simulation</Pill><Pill tone="neutral" icon="server">Backend provider pending</Pill></>} />
       <Notice tone="warning" icon="alert">
-        <strong>Simulation — no production traffic is changed.</strong> There is no backend origin and no connection to a live control plane yet
+        <strong>Simulation. No production traffic is changed.</strong> There is no backend origin and no connection to a live control plane yet
         (backend provider pending). Changes here run in this browser tab only, to rehearse the approval and rollback flow.
       </Notice>
 
@@ -163,7 +163,7 @@ export default function Traffic() {
                   </Field>
                 ))
               ) : (
-                <Select label="Origin" value={drain} onChange={setDrain} options={[{ value: '', label: 'Choose an origin' }, ...state.origins.map((o) => ({ value: o.id, label: `${o.id} — ${o.maintenance ? 'put back in rotation' : 'drain (no new traffic)'}` }))]} />
+                <Select label="Origin" value={drain} onChange={setDrain} options={[{ value: '', label: 'Choose an origin' }, ...state.origins.map((o) => ({ value: o.id, label: `${o.id} · ${o.maintenance ? 'put back in rotation' : 'drain (no new traffic)'}` }))]} />
               )}
               <Field label="Reason" hint="Required. Saved to the audit trail.">
                 {(id) => <textarea id={id} className="textarea" value={reason} onChange={(e) => setReason(e.target.value)} />}

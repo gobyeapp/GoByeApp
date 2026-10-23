@@ -4,7 +4,7 @@ import { RecordLink } from '@/data/records';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { when } from '@/data/format';
-import { Button, Card, Empty, PageHead, SearchInput, Section, Segmented, Select, Stat, Table, type Column } from '@/ui/kit';
+import { Button, Card, Empty, FilterBar, PageHead, SearchInput, Section, Segmented, Select, Stat, Table, type Column } from '@/ui/kit';
 import { RETRY_ACTION, SOURCE_LABEL, buildEventStream, filterEvents, outcomeCounts, type EventOutcome, type EventSource, type StreamEvent } from './logic';
 import { OutcomePill, StatePill } from './ui';
 
@@ -102,10 +102,10 @@ export default function EventLog() {
       <PageHead title="Events and failures" sub="Webhook and job history built from the shared records. Test data; no provider sends events to this prototype." />
 
       <div className="grid cols-4">
-        <Stat label="Events" value={all.length} sub="Webhooks, jobs and checks" />
-        <Stat label="Processed" value={counts.processed} onClick={() => setOutcome('processed')} />
-        <Stat label="Duplicates ignored" value={counts.duplicate} onClick={() => setOutcome('duplicate')} sub="Recorded, never applied twice" />
-        <Stat label="Failed" value={counts.failed} tone={counts.failed ? 'danger' : undefined} onClick={() => setOutcome('failed')} sub={counts.failed ? 'Retry or resolve' : 'Nothing waiting'} />
+        <Stat icon="webhook" label="Events" value={all.length} sub="Webhooks, jobs and checks" />
+        <Stat icon="checkCircle" label="Processed" value={counts.processed} onClick={() => setOutcome('processed')} />
+        <Stat icon="copy" label="Duplicates ignored" value={counts.duplicate} onClick={() => setOutcome('duplicate')} sub="Recorded, never applied twice" />
+        <Stat icon="alert" label="Failed" value={counts.failed} tone={counts.failed ? 'danger' : undefined} onClick={() => setOutcome('failed')} sub={counts.failed ? 'Retry or resolve' : 'Nothing waiting'} />
       </div>
 
       <div className="section">
@@ -125,7 +125,7 @@ export default function EventLog() {
       </div>
 
       <Section title="Event history">
-        <div className="toolbar">
+        <FilterBar count={`${Math.min(limit, rows.length)} of ${rows.length} shown`}>
           <SearchInput value={query} onChange={(v) => (setQuery(v), setLimit(PAGE))} placeholder="Search by reference or event" />
           <Select<EventSource | 'all'>
             label="Source"
@@ -144,10 +144,12 @@ export default function EventLog() {
               { value: 'failed', label: 'Failed' },
             ]}
           />
-        </div>
+        </FilterBar>
+        <Card flush>
         <Table
           rows={rows.slice(0, limit)}
           columns={columns}
+          caption="Event history"
           rowKey={(e) => e.id}
           empty={
             filtered ? (
@@ -161,6 +163,7 @@ export default function EventLog() {
             )
           }
         />
+        </Card>
         {rows.length > limit ? (
           <div className="row" style={{ justifyContent: 'center', marginTop: 12 }}>
             <Button variant="ghost" onClick={() => setLimit((n) => n + PAGE)}>

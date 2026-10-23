@@ -1,0 +1,9 @@
+/* Home (business overview): attention list icons on the shared tokens. */
+.attn-ico { width: 36px; height: 36px; border-radius: var(--r-sm); display: grid; place-items: center; flex-shrink: 0; }
+.attn-ico.danger { background: var(--danger-bg); color: var(--danger); }
+.attn-ico.warning { background: var(--warning-bg); color: var(--warning); }
+.attn-ico.info, .attn-ico.neutral { background: var(--info-bg); color: var(--info); }
+.attn-ico.success, .attn-ico.brand { background: var(--success-bg); color: var(--success); }
+@media (max-width: 520px) { .attn-row { gap: 10px; padding: 12px; } .attn-row .attn-count { min-width: 0; font-size: 18px; } .attn-ico { width: 32px; height: 32px; } }
+.ov-split { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 1180px) { .ov-split { grid-template-columns: minmax(0, 1fr); } }

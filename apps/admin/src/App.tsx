@@ -118,9 +118,11 @@ const COLLAPSE_KEY = 'gobye.admin.sidebar';
 function useCollapsed(): [boolean, () => void] {
   const [c, setC] = useState(() => {
     try {
-      return localStorage.getItem(COLLAPSE_KEY) === 'collapsed';
+      const saved = localStorage.getItem(COLLAPSE_KEY);
+      // No saved choice: start as a rail on laptop widths so tables get the room.
+      return saved ? saved === 'collapsed' : window.innerWidth < 1200;
     } catch {
-      return false;
+      return typeof window !== 'undefined' && window.innerWidth < 1200;
     }
   });
   const toggle = useCallback(() => {
@@ -356,7 +358,7 @@ function Shell() {
         </header>
         <main className="content" id="main" tabIndex={-1} style={{ outline: 'none' }}>
           {siblings.length > 1 ? (
-            <nav className="subnav" aria-label={`${group!.title} pages`}>
+            <nav className="subnav" aria-label={`${group!.title} pages`} ref={(el) => el?.querySelector<HTMLElement>('a.active')?.scrollIntoView({ block: 'nearest', inline: 'nearest' })}>
               {siblings.map((i) => (
                 <NavLink key={i.path} to={i.path} end className={({ isActive }) => (isActive ? 'active' : '')}>
                   {i.label}

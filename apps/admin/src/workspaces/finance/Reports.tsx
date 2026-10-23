@@ -4,6 +4,7 @@ import { count, date, downloadCsv, label, money } from '@/data/format';
 import { RecordLink } from '@/data/records';
 import { useFilters, useSession } from '@/data/session';
 import { useData, useToast } from '@/data/store';
+import { Icon } from '@/ui/Icon';
 import { Button, Card, Empty, Notice, Section, Stat, Table, type Column } from '@/ui/kit';
 import { reportData } from './logic';
 import { FinanceHead, REFUND_TONE, StatusPill, WITHDRAWAL_TONE, useInclude } from './parts';
@@ -55,30 +56,56 @@ export default function Reports() {
     { key: 'r', label: 'Reason', render: (x) => <span className="small">{x.reason}</span> },
     { key: 'd', label: 'Requested', render: (x) => <span className="small">{date(x.requestedAt)}</span> },
     { key: 's', label: 'Status', render: (x) => <StatusPill tone={REFUND_TONE[x.status]} status={x.status} /> },
-    { key: 'a', label: 'Amount', align: 'right', render: (x) => <span className="num">{money(x.amount)}</span> },
+    { key: 'a', label: 'Amount', align: 'right', sortValue: (x) => x.amount, render: (x) => <span className="num">{money(x.amount)}</span> },
   ];
   const payoutCols: Column<WithdrawalRecord>[] = [
     { key: 'd', label: 'Driver', render: (x) => <RecordLink type="driver" id={x.driverId}>{dNames.get(x.driverId) ?? x.driverId}</RecordLink> },
-    { key: 'r', label: 'Requested', render: (x) => <span className="small">{date(x.requestedAt)}</span> },
+    { key: 'r', label: 'Requested', sortValue: (x) => x.requestedAt, render: (x) => <span className="small">{date(x.requestedAt)}</span> },
     { key: 'b', label: 'Bank account', render: (x) => <span className="small">{x.bankAccount.bankName} {x.bankAccount.accountNumberMasked}</span> },
     { key: 's', label: 'Status', render: (x) => <StatusPill tone={WITHDRAWAL_TONE[x.status]} status={x.status} /> },
-    { key: 'a', label: 'Amount', align: 'right', render: (x) => <span className="num">{money(x.amount)}</span> },
+    { key: 'a', label: 'Amount', align: 'right', sortValue: (x) => x.amount, render: (x) => <span className="num">{money(x.amount)}</span> },
   ];
 
   return (
     <>
       <FinanceHead title="Reports" sub="Revenue, costs, balances owed, refunds and payouts for the selected city and dates. Trip value, company revenue, wallet money and driver earnings are kept apart." />
       <div className="grid cols-4">
-        <Stat label="Company revenue" value={money(r.revenueTotal)} sub="Driver access packages" />
-        <Stat label="Costs" value={money(r.costsTotal)} sub="Processing, rewards and goodwill" />
-        <Stat label="Wallet funding received" value={money(r.walletDeposits)} sub="Held for passengers, not revenue" />
-        <Stat label="Trip value" value={money(r.trips.value)} sub={`${count(r.trips.count)} completed trips, drivers’ money`} />
+        <Stat icon="ticket" label="Company revenue" value={money(r.revenueTotal)} sub="Driver access packages" />
+        <Stat icon="bill" label="Costs" value={money(r.costsTotal)} sub="Processing, rewards and goodwill" />
+        <Stat icon="wallet" label="Wallet funding received" value={money(r.walletDeposits)} sub="Held for passengers, not revenue" />
+        <Stat icon="route" label="Trip value" value={money(r.trips.value)} sub={`${count(r.trips.count)} completed trips, drivers’ money`} />
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
           Test data only: figures come from the simulated ledger and Paystack (test). GoBye keeps no commission on trips, so trip value is not company revenue.
         </Notice>
       </div>
+
+      <Section title="Available exports" desc="Each export is a CSV of the test data loaded in this dashboard, for the city and dates selected at the top. Server-side scheduled reports need the backend.">
+        <div className="grid cols-3">
+          {(
+            [
+              ['Revenue by plan', 'Package purchases and revenue per access plan', r.revenueByPlan.length, 'ticket'],
+              ['Costs', 'Provider fees, referral rewards and goodwill refunds', costRows.length, 'bill'],
+              ['Outstanding balances', 'Wallet money held, earnings owed, withdrawal reserves (as of now)', outRows.length, 'balance'],
+              ['Trip value', 'Completed trips, paid through GoBye or directly to drivers', 1, 'route'],
+              ['Refunds', 'Every refund with reason, destination and status', r.refunds.length, 'refresh'],
+              ['Payouts', 'Driver withdrawals with bank account and status', r.payouts.length, 'bank'],
+            ] as const
+          ).map(([title, what, rows, icon]) => (
+            <Card key={title}>
+              <div className="row" style={{ alignItems: 'flex-start' }}>
+                <span aria-hidden style={{ width: 34, height: 34, borderRadius: 8, display: "grid", placeItems: "center", background: "var(--primary-soft)", color: "var(--primary-ink)", flexShrink: 0 }}><Icon name={icon} size={18} /></span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span className="strong" style={{ display: 'block' }}>{title}</span>
+                  <span className="cell-sub">{what}</span>
+                </span>
+              </div>
+              <div className="small muted num" style={{ marginTop: 10 }}>{count(rows)} {rows === 1 ? 'row' : 'rows'} · CSV</div>
+            </Card>
+          ))}
+        </div>
+      </Section>
 
       <Section title="Revenue by plan" actions={<Export name="revenue" rows={r.revenueByPlan.map((x) => ({ plan: x.plan, purchases: x.count, amount_naira: naira(x.amount) }))} />}>
         <Card flush>
@@ -131,7 +158,7 @@ export default function Reports() {
           <span>Returned to drivers: <span className="num">{money(r.payoutTotals.returned)}</span></span>
         </div>
         <Card flush>
-          <Table rows={r.payouts} rowKey={(x) => x.id} columns={payoutCols} empty={<Empty title="No payouts" icon="bank">None in the selected city and dates.</Empty>} />
+          <Table rows={r.payouts} rowKey={(x) => x.id} columns={payoutCols} caption="Payouts" empty={<Empty title="No payouts" icon="bank">None in the selected city and dates.</Empty>} />
         </Card>
       </Section>
 

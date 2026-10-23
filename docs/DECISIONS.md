@@ -375,3 +375,10 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Decision:** `apps/web/vercel.json` and `apps/admin/vercel.json` enforce a CSP. Website: scripts from self and `cdnjs.cloudflare.com` (QR library), styles self + inline (style attributes are used) + Google Fonts, fonts from `fonts.gstatic.com`, connections to self and `*.supabase.co` (waitlist), no framing. Admin: self only, plus API hosts and `*.supabase.co`.
 - **Why:** the site has no inline scripts, and a Chromium run with the headers applied showed no violations, so enforcing costs nothing and blocks injected scripts and exfiltration to other hosts.
 - **Watch:** moving the waitlist to another host, adding analytics or a new CDN needs a CSP change first. Re-check the console after the first deployment (fonts and cdnjs couldn't be loaded from the build sandbox).
+
+## D-053 — Admin web uses jade green actions on an aubergine shell (2026-10-23, owner brief)
+
+- **Decision:** the management platform (`apps/admin`) uses Jade Green `#0B7A5B` as its action colour (buttons, selected tabs, focus ring, chart bars), a Deep Aubergine `#251632` sidebar in both themes, Tangerine `#FF8A3D` only for counts and the highlighted chart bar, and Soft Mint `#E7F5ED` for selected states. Status colours stay separate and always come with text or an icon.
+- **Why:** the owner's admin redesign brief names this palette. Staff work in the dashboard all day, so actions need one clear, recognisable colour.
+- **Scope:** admin web only. The mobile apps keep D-034 / D-050 (monochrome with brand accents, no gradients). Final brand colours are still Q-008. Every value is a token in `apps/admin/src/styles.css`, so changing the palette is one edit there.
+- **Contrast (checked):** white on jade 5.3:1; jade text on mint 5.8:1; secondary text 6.5:1; form-control borders 3.2:1; sidebar text 10.7:1. In dark mode jade lightens to `#3DCB97` (8.8:1 on the dark surface).

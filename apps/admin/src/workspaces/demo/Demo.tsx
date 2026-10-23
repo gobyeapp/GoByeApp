@@ -16,7 +16,7 @@ import {
 } from '@gobye/core';
 import { date, label, money, when } from '@/data/format';
 import { useSession } from '@/data/session';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, Section, Segmented, Skeleton, Stat, Table, Tabs, Timeline } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, FilterBar, Field, KV, Notice, PageHead, Pill, Section, Segmented, Skeleton, Stat, Table, Tabs, Timeline } from '@/ui/kit';
 import {
   APP_STATUS,
   CHECK_STATE,
@@ -87,12 +87,13 @@ export default function Demo() {
 function NotConnected() {
   return (
     <>
-      <PageHead title="Connected demo" sub="Riders, drivers and staff sharing the same test records." />
+      <PageHead title="Connected demo" sub="Riders, drivers and staff sharing the same test records." meta={<Pill tone="neutral" icon="link">Not connected</Pill>} />
+      <div className="stack" style={{ gap: 16 }}>
       <Notice tone="info">
         This admin isn’t connected to a demo relay, so the rider and driver apps can’t reach it yet. Everything here is test data, never real people or money.
       </Notice>
       <Card title="Connect on one Wi-Fi network (quickest)">
-        <ol className="stack" style={{ paddingLeft: 18 }}>
+        <ol className="stack" style={{ paddingLeft: 18, margin: 0, overflowWrap: 'anywhere' }}>
           <li>
             At the repo root run <code>npm run demo:relay</code>. It prints the relay address and writes <code>apps/admin/.env.local</code>, <code>apps/rider/.env.local</code> and <code>apps/driver/.env.local</code>.
           </li>
@@ -103,11 +104,12 @@ function NotConnected() {
         </ol>
       </Card>
       <Card title="Or connect over the internet (Supabase)">
-        <p className="muted">
+        <p className="muted" style={{ overflowWrap: 'anywhere' }}>
           Run <code>supabase/migrations/20261022_demo_relay.sql</code> in the Supabase SQL editor, then set <code>VITE_DEMO_RELAY_URL</code> and <code>VITE_DEMO_RELAY_KEY</code> (the project URL and anon key) in{' '}
           <code>apps/admin/.env.local</code>. See <code>apps/admin/.env.example</code>. Drop the demo tables after the demo.
         </p>
       </Card>
+      </div>
     </>
   );
 }
@@ -171,12 +173,12 @@ function Overview({ data, onTab }: { data: Snapshot; onTab: (t: TabId) => void }
   return (
     <div className="stack" style={{ gap: 18 }}>
       <div className="grid cols-4">
-        <Stat label="Riders" value={n.riders} onClick={() => onTab('people')} />
-        <Stat label="Drivers" value={n.drivers} sub={`${n.approved} approved`} onClick={() => onTab('people')} />
-        <Stat label="Waiting for review" value={n.inReview} tone={n.inReview ? 'warning' : undefined} onClick={() => onTab('applications')} />
-        <Stat label="Changes requested" value={n.changes} onClick={() => onTab('applications')} />
-        <Stat label="Live rides" value={n.live} tone={n.live ? 'info' : undefined} onClick={() => onTab('rides')} />
-        <Stat label="Completed rides" value={n.completed} onClick={() => onTab('rides')} />
+        <Stat label="Riders" icon="user" value={n.riders} onClick={() => onTab('people')} />
+        <Stat label="Drivers" icon="steering" value={n.drivers} sub={`${n.approved} approved`} onClick={() => onTab('people')} />
+        <Stat label="Waiting for review" icon="time" value={n.inReview} tone={n.inReview ? 'warning' : undefined} onClick={() => onTab('applications')} />
+        <Stat label="Changes requested" icon="edit" value={n.changes} onClick={() => onTab('applications')} />
+        <Stat label="Live rides" icon="radar" value={n.live} tone={n.live ? 'info' : undefined} onClick={() => onTab('rides')} />
+        <Stat label="Completed rides" icon="checkCircle" value={n.completed} onClick={() => onTab('rides')} />
       </div>
       <Section title="Activity">
         {data.events.length ? (
@@ -212,8 +214,10 @@ function Applications({ c, apps, refresh }: { c: DemoConnection; apps: RelayAppl
   const open = apps.find((a) => a.id === openId) ?? null;
   return (
     <>
+      <Card flush>
       <Table
         rows={apps}
+        pageSize={25}
         rowKey={(a) => a.id}
         onRowClick={(a) => setOpenId(a.id)}
         empty={<Empty title="No driver applications yet" icon="steering">When a driver registers in the driver app, the application appears here.</Empty>}
@@ -222,11 +226,12 @@ function Applications({ c, apps, refresh }: { c: DemoConnection; apps: RelayAppl
           { key: 'phone', label: 'Phone', render: (a) => a.phone },
           { key: 'city', label: 'City', render: (a) => a.city ?? 'Not set' },
           { key: 'status', label: 'Status', render: (a) => <Pill tone={APP_STATUS[a.status].tone}>{APP_STATUS[a.status].label}</Pill> },
-          { key: 'submitted', label: 'Submitted', render: (a) => (a.submitted_at ? when(a.submitted_at) : 'Not yet') },
+          { key: 'submitted', label: 'Submitted', sortValue: (a) => -(a.submitted_at ?? 0), render: (a) => (a.submitted_at ? when(a.submitted_at) : 'Not yet') },
           { key: 'issues', label: 'Open issues', align: 'right', render: (a) => openIssueCount(a) || '–' },
           { key: 'waiting', label: 'Waiting checks', align: 'right', render: (a) => waitingChecks(a).length || '–' },
         ]}
       />
+      </Card>
       {open ? <ApplicationDrawer c={c} a={open} onClose={() => setOpenId(null)} refresh={refresh} /> : null}
     </>
   );
@@ -514,7 +519,7 @@ function Rides({ c, rides, refresh }: { c: DemoConnection; rides: RelayRide[]; r
   const shown = useMemo(() => rides.filter((r) => (filter === 'all' ? true : filter === 'live' ? isActiveRide(r) : !isActiveRide(r))), [rides, filter]);
   return (
     <>
-      <div className="row wrap" style={{ marginBottom: 12 }}>
+      <FilterBar count={`${shown.length} rides`}>
         <Segmented
           label="Ride filter"
           value={filter}
@@ -525,9 +530,11 @@ function Rides({ c, rides, refresh }: { c: DemoConnection; rides: RelayRide[]; r
             { value: 'done', label: 'Finished' },
           ]}
         />
-      </div>
+      </FilterBar>
+      <Card flush>
       <Table
         rows={shown}
+        pageSize={25}
         rowKey={(r) => r.id}
         onRowClick={(r) => setOpenId(r.id)}
         empty={<Empty title="No rides yet" icon="route">Book a ride in the rider app and it appears here.</Empty>}
@@ -537,11 +544,12 @@ function Rides({ c, rides, refresh }: { c: DemoConnection; rides: RelayRide[]; r
           { key: 'rider', label: 'Rider', render: (r) => r.rider.name },
           { key: 'driver', label: 'Driver', render: (r) => (r.driver ? [r.driver.firstName, r.driver.lastName].filter(Boolean).join(' ') : '–') },
           { key: 'route', label: 'Trip', render: (r) => <span className="muted small">{r.pickup.title} → {r.destination.title}</span> },
-          { key: 'fare', label: 'Fare', align: 'right', render: (r) => money(r.agreed_fare ?? r.offer?.amount ?? r.fare) },
+          { key: 'fare', label: 'Fare', align: 'right', sortValue: (r) => r.agreed_fare ?? r.offer?.amount ?? r.fare, render: (r) => money(r.agreed_fare ?? r.offer?.amount ?? r.fare) },
           { key: 'pay', label: 'Payment', render: (r) => <Pill tone={PAYMENT_STATUS[r.payment_status].tone}>{PAYMENT_STATUS[r.payment_status].label}</Pill> },
-          { key: 'at', label: 'Requested', render: (r) => when(r.created_at) },
+          { key: 'at', label: 'Requested', sortValue: (r) => -r.created_at, render: (r) => when(r.created_at) },
         ]}
       />
+      </Card>
       {open ? <RideDrawer c={c} r={open} onClose={() => setOpenId(null)} refresh={refresh} /> : null}
     </>
   );
@@ -670,7 +678,7 @@ function People({ people }: { people: RelayPerson[] }) {
   const rows = people.filter((p) => role === 'all' || p.role === role);
   return (
     <>
-      <div className="row wrap" style={{ marginBottom: 12 }}>
+      <FilterBar count={`${rows.length} people`}>
         <Segmented
           label="Role"
           value={role}
@@ -681,9 +689,11 @@ function People({ people }: { people: RelayPerson[] }) {
             { value: 'driver', label: 'Drivers' },
           ]}
         />
-      </div>
+      </FilterBar>
+      <Card flush>
       <Table
         rows={rows}
+        pageSize={25}
         rowKey={(p) => `${p.role}-${p.id}`}
         empty={<Empty title="Nobody yet" icon="group">Accounts created in the rider and driver apps appear here.</Empty>}
         columns={[
@@ -693,9 +703,10 @@ function People({ people }: { people: RelayPerson[] }) {
           { key: 'email', label: 'Email', render: (p) => p.email ?? '–' },
           { key: 'city', label: 'City', render: (p) => p.city ?? '–' },
           { key: 'joined', label: 'Joined', render: (p) => when(p.created_at) },
-          { key: 'seen', label: 'Last seen', render: (p) => when(p.last_seen_at) },
+          { key: 'seen', label: 'Last seen', sortValue: (p) => -p.last_seen_at, render: (p) => when(p.last_seen_at) },
         ]}
       />
+      </Card>
     </>
   );
 }

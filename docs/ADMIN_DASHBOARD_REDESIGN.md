@@ -136,14 +136,63 @@ infrastructure control plane. These stay labelled "Simulated" / "Test data" / "N
 
 ## 8. Implementation checklist
 
-- [x] Audit pages, roles, components, issues; before screenshots
-- [ ] Tokens light/dark, spacing, radii, type
-- [ ] Shell: collapsible sidebar (persisted), filled icon for the active page, regrouped navigation
-- [ ] Topbar: breadcrumb, Ctrl/Cmd+K command palette (permitted pages + records), notifications panel from real dataset counts, user menu (theme, prototype tools, sign out)
-- [ ] Secondary navigation for Finance and Settings
-- [ ] Kit: KPI card, FilterBar, Table sort/sticky/pagination, focus ring, Lagos time zone
-- [ ] Fix A5 (375px overflow), A6/A7 (badge counts and scope), A9 (KPI grid)
-- [ ] Pages: Home command centre; Operations; People; Care and safety; Finance; Growth, Settings, Technical, Administration
-- [ ] QA at 1440 / 1024 / 768 / 375 in light and dark; contrast checks
-- [ ] Typecheck, admin tests, build
-- [ ] Docs: LOG, DESIGN_SYSTEM, SCREEN_INVENTORY, IMPLEMENTATION_PLAN, DECISIONS (D-053)
+- [x] Audit pages, roles, components and issues; before screenshots
+- [x] Tokens for light and dark: spacing, radii, type
+- [x] Shell: collapsible sidebar (remembered; starts as a rail below 1200px), filled icon on the active page, regrouped navigation
+- [x] Topbar: breadcrumb; Ctrl/Cmd+K search over permitted pages and loaded records; notifications panel from real dataset counts; account menu (theme, prototype tools, sign out)
+- [x] Secondary navigation for Finance and Settings
+- [x] Kit: KPI card, FilterBar, Table sort/sticky header/paging, two-tone focus ring, Lagos time zone, drawer focus handling
+- [x] Fixed A5 (375px overflow), A6/A7 (badge counts and city scope), A8 (time zone), A9 (KPI grid), A10, A11, A12, A13
+- [x] Pages: Home command centre; Operations; People; Care and safety; Finance; Growth, Settings, Technical, Administration
+- [x] QA at 1440 / 1024 / 768 / 375 in light and dark: 32 routes × 8 = 256 captures, no sideways scroll, no page errors; contrast pairs computed
+- [x] Typecheck, admin tests (263), admin build
+- [x] Docs: LOG, DESIGN_SYSTEM §13, SCREEN_INVENTORY, IMPLEMENTATION_PLAN row 14, DECISIONS D-053, TEST_PLAN
+
+## 9. Implementation report
+
+**A. What changed**
+- `styles.css`: rewritten as tokens plus components, light and dark.
+- `App.tsx`: new shell and sign-in screen.
+- `nav.tsx`: regrouped. Badges are now scoped to the viewer's cities and share the review-queue rule.
+- New `src/shell/`: `CommandPalette`, `Popover`, `attention`, plus tests.
+- `ui/kit.tsx`: upgraded components.
+- `ui/Icon.tsx`: Core Filled variants and nine new icons.
+- `data/format.ts`: Lagos time.
+- Every page under `workspaces/` moved to the kit, with page CSS files for overview, operations, people, care, finance, config, growth and developer.
+
+**B. Preserved**
+- All 33 route paths, every permission check, role landing pages, business logic and data.
+- The demo relay, the prototype banner and every Simulated / Test data label.
+
+**C. Fixed**
+- A5 to A13 above. The visible ones: the drivers badge disagreed with the queue (2 vs 3); phones scrolled sideways by 24 to 71px; times showed in the computer's time zone.
+
+**D. New capabilities (UI only)**
+- Search with Ctrl/Cmd+K.
+- Notifications panel.
+- Deep links `?open=<id>` for support and safety cases.
+- Sortable, paged tables.
+- Roles and permissions matrix (read only).
+- Audit timeline view.
+- Finance workflow steps and rules callouts.
+
+**E. Accessibility**
+- Contrast pairs computed: §3 and D-053.
+- Skip link; landmarks; `aria-current` and `aria-sort`.
+- Keyboard: command palette (combobox + listbox), tabs with arrow keys, drawers with focus handling, menus closing on Escape.
+- Status never shown by colour alone; reduced motion respected.
+
+**F. Tests**
+- Admin: 263 passed, including 8 new shell tests and 5 new care/safety page tests.
+- Whole repo: `npm run typecheck` clean; `npm test` all green; `vite build` OK.
+- Screenshots: `docs/qa-screenshots/admin/before/` and `after/`.
+
+**G. Pending (needs the backend)**
+- Real staff sign in.
+- Server-side search across all records.
+- Push or email alerts to staff.
+- Live locations and map.
+- Real payments, payouts and webhooks.
+- Exports beyond the loaded rows.
+- The infrastructure control plane.
+- Device and screen-reader testing on real hardware has not been done.

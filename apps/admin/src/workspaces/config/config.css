@@ -1,0 +1,16 @@
+/* Settings (versioned configuration) — page styles on the shared tokens. */
+.diff-table { border: 1px solid var(--border); border-radius: var(--r-md); }
+.diff-table del { text-decoration-color: var(--text-3); }
+.diff-table ins.diff-after { text-decoration: none; font-weight: 600; color: var(--primary-ink); background: var(--primary-soft); border-radius: 4px; padding: 1px 6px; }
+.cfg-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px 14px; margin: 0 0 16px; padding: 12px 14px; border-radius: var(--r-md); background: var(--muted); }
+.cfg-meta dt { font-size: 12px; color: var(--text-2); }
+.cfg-meta dd { margin: 2px 0 0; font-weight: 600; font-size: 13px; }
+.cfg-rule { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; padding: 12px 14px; border-radius: var(--r-md); border: 1px dashed var(--border-strong); color: var(--text-2); }
+.cfg-rule svg { flex-shrink: 0; margin-top: 2px; color: var(--primary-ink); }
+.cfg-rule .strong { color: var(--text); }
+.cfg-note { display: flex; gap: 6px; align-items: flex-start; color: var(--text-2); }
+.cfg-note svg { flex-shrink: 0; margin-top: 3px; }
+.cfg-step { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding-top: 4px; border-top: 1px solid var(--border); padding-top: 16px; }
+.cfg-step:first-of-type { border-top: none; padding-top: 0; }
+.cfg-step span { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; background: var(--primary-soft); color: var(--primary-ink); }
+.cfg-change { border-left: 3px solid var(--primary); }

@@ -618,3 +618,39 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Owner enabled R2 and ran `node tools/cloudflare-setup.mjs --apply`: 8 R2 buckets created (r2.dev off), CORS applied to uploads and public-media, `gobye.workers.dev` registered, API gateway and public-media Workers deployed to `gobye-api-gateway-preview.gobye.workers.dev` and `gobye-media-gateway-preview.gobye.workers.dev`, ORIGIN_AUTH_SECRET stored. The script's immediate check got a TLS handshake error (new workers.dev certificate still issuing); verification pending from the owner's browser (this workspace can't reach workers.dev).
 - Script: removed Node's DEP0190 warning on Windows (one quoted command string). Pending: gobye.app on Cloudflare (custom domains), upload signer (R2 S3 key), delete the setup token afterwards.
 
+
+## 2026-10-23 — Admin and staff dashboard redesign (D-053)
+
+- **Brief:** the "Admin and Staff Dashboard Complete UI/UX Redesign" brief. UI only: routes, permissions, logic and data are kept.
+- **Audit and plan:** `docs/ADMIN_DASHBOARD_REDESIGN.md` covers the inventory of 33 routes, role mapping, components, 13 issues and the checklist. Before and after screenshots are in `docs/qa-screenshots/admin/`.
+- **Foundation:**
+  - Jade, aubergine, tangerine and mint tokens in light and dark (D-053; contrast checked).
+  - Aubergine sidebar regrouped into Home, Operations, People, Care and safety, Finance, Growth, Insights, Settings, Administration and Technical, with a collapsible 64px rail that is remembered.
+  - Filled MingCute icon on the selected page.
+  - Breadcrumb topbar; Ctrl/Cmd+K search over permitted pages and loaded records; notifications built from the real "needs action" counts; account menu holding theme and prototype tools.
+  - Pill sub-navigation for Finance and Settings.
+  - Kit upgrades: KPI cards, FilterBar, sortable and paged tables, drawer focus handling, tab arrow keys.
+  - Every date and time in Africa/Lagos.
+- **Fixes:**
+  - The drivers badge counted 2 while the queue held 3.
+  - Badges ignored the viewer's cities.
+  - Phones scrolled sideways (24 to 71px).
+  - Times followed the computer's time zone.
+  - KPI rows left holes.
+  - The focus ring was too faint.
+- **Pages:** every workspace now uses the kit:
+  - Home is a command centre.
+  - Trips separates Quick Match from Negotiated.
+  - Drivers has a sectioned review sheet.
+  - Cases and Safety accept `?open=` links from search.
+  - Approvals shows request cards under the two-person rule.
+  - Audit has a timeline view.
+  - Finance shows workflow steps and its rules.
+  - Staff has a roles and permissions matrix.
+  - Settings shows what is in force against the draft.
+- **Checks:**
+  - `npm run typecheck` 0 errors.
+  - `npm test`: core 215, rider 36, driver 14, admin 263, infra 41, all pass. Admin build OK.
+  - 256 captures (32 routes × 4 widths × 2 themes): no sideways scroll, no errors.
+  - Not tested with a real screen reader or on devices.
+- **Next:** owner review of the palette (Q-008) and of the dashboard on a laptop. Backend items for real search, staff alerts and sign in stay pending.

@@ -5,7 +5,8 @@ import { count, date, money, pct } from '@/data/format';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon, type IconName } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, Segmented, Table, Tabs, type Column, type Tone } from '@/ui/kit';
+import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, Segmented, Stat, Table, Tabs, type Column, type Tone } from '@/ui/kit';
+import './growth.css';
 import { Check, MoveButtons, NumberField, TextField } from '@/workspaces/config/fields';
 import { dayKey, startOfDay, versionsOf } from '@/workspaces/config/logic';
 import { VersionedSettings } from '@/workspaces/config/VersionedSettings';
@@ -290,12 +291,12 @@ export default function Promotions() {
         </span>
       ),
     },
-    { key: 't', label: 'Card', render: (c) => <div><div className="cell-title">{c.title}</div><div className="cell-sub">{c.body}</div></div> },
+    { key: 't', label: 'Card', sortValue: (c) => c.title, render: (c) => <div><div className="cell-title">{c.title}</div><div className="cell-sub">{c.body}</div></div> },
     { key: 's', label: 'Status', render: (c) => <CampaignPill c={c} now={t} /> },
     { key: 'p', label: 'Placements', render: (c) => <span className="small">{c.placements.map((p) => (p === 'home' ? 'Home' : 'Wallet')).join(', ')}</span> },
     { key: 'd', label: 'Dates', render: (c) => <span className="small num">{date(c.startsAt)}{c.endsAt ? ` to ${date(c.endsAt)}` : ', no end'}</span> },
-    { key: 'i', label: 'Impressions', align: 'right', render: (c) => <span className="num">{count(c.impressions)}</span> },
-    { key: 'r', label: 'Opens', align: 'right', render: (c) => <span className="num">{count(c.opens)} <span className="muted small">{c.impressions ? pct(openRate(c)) : ''}</span></span> },
+    { key: 'i', label: 'Impressions', align: 'right', sortValue: (c) => c.impressions, render: (c) => <span className="num">{count(c.impressions)}</span> },
+    { key: 'r', label: 'Opens', align: 'right', sortValue: (c) => c.opens, render: (c) => <span className="num">{count(c.opens)} <span className="muted small">{c.impressions ? pct(openRate(c)) : ''}</span></span> },
     ...(showMoney ? [{ key: 'b', label: 'Spent', align: 'right' as const, render: (c: PromoCampaign) => <span className="num small">{money(c.spent)}{c.budget !== undefined ? <span className="muted"> of {money(c.budget)}</span> : null}</span> }] : []),
   ];
 
@@ -334,8 +335,9 @@ export default function Promotions() {
       />
       {tab === 'campaigns' ? (
         <div className="stack" style={{ gap: 16 }}>
-          <div style={{ maxWidth: 440 }}>
-            <Card className="promo-preview">
+          <div className="promo-top">
+          <div>
+            <Card className="promo-preview" title="Carousel preview">
               <div className="stack">
                 <div className="row wrap" style={{ justifyContent: 'space-between' }}>
                   <Segmented label="Placement" value={placement} onChange={setPlacement} options={[{ value: 'home', label: 'Home' }, { value: 'wallet', label: 'Wallet' }]} />
@@ -345,6 +347,13 @@ export default function Promotions() {
               </div>
             </Card>
             <div className="small muted" style={{ marginTop: 8 }}>The whole card opens its offer page; the button label is used there.</div>
+          </div>
+          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', alignContent: 'start' }}>
+            <Stat icon="layout" label="Active now" value={count(d.campaigns.filter((c) => c.status === 'active').length)} sub={`${count(d.campaigns.filter((c) => c.status === 'scheduled').length)} scheduled`} />
+            <Stat icon="edit" label="Drafts" value={count(d.campaigns.filter((c) => c.status === 'draft').length)} sub="Not shown to passengers" />
+            <Stat icon="eye" label="Impressions" value={count(d.campaigns.reduce((n, c) => n + c.impressions, 0))} sub="All campaigns, test data" />
+            <Stat icon="arrowRight" label="Opens" value={count(d.campaigns.reduce((n, c) => n + c.opens, 0))} sub="Card taps that opened the offer" />
+          </div>
           </div>
           <Card flush>
             <Table

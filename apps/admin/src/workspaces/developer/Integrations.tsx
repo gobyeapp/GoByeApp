@@ -4,7 +4,8 @@ import { APPROVAL_RULES, canGoLive, type ConnectionState, type IntegrationRecord
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform, useToast } from '@/data/store';
 import { Icon } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, SearchInput, Segmented, Select, Stat, Table, type Column } from '@/ui/kit';
+import './developer.css';
+import { Button, Card, FilterBar, ConfirmDialog, Drawer, Empty, Field, KV, Notice, PageHead, Pill, SearchInput, Segmented, Select, Stat, Table, type Column } from '@/ui/kit';
 import {
   AREA_META,
   AREA_ORDER,
@@ -66,6 +67,7 @@ export default function Integrations() {
     {
       key: 'area',
       label: 'Integration',
+      sortValue: (i) => AREA_META[i.area].label,
       render: (i) => (
         <div className="row" style={{ gap: 8 }}>
           <Icon name={AREA_META[i.area].icon} size={18} />
@@ -77,13 +79,14 @@ export default function Integrations() {
       ),
     },
     { key: 'env', label: 'Environment', render: (i) => (i.environment === 'live' ? 'Live' : 'Test') },
-    { key: 'state', label: 'State', render: (i) => <StatePill state={i.state} /> },
-    { key: 'owner', label: 'Owner', render: (i) => i.owner },
+    { key: 'state', label: 'State', sortValue: (i) => i.state, render: (i) => <StatePill state={i.state} /> },
+    { key: 'owner', label: 'Owner', render: (i) => <span style={{ whiteSpace: 'nowrap' }}>{i.owner}</span> },
     { key: 'tested', label: 'Last successful test', render: (i) => <span className={i.lastSuccessfulTestAt ? undefined : 'muted'}>{ago(i.lastSuccessfulTestAt, t)}</span> },
     {
       key: 'fail',
       label: 'Open failures',
       align: 'right',
+      sortValue: (i) => openFailures(i),
       render: (i) => {
         const n = openFailures(i);
         return n ? <Pill tone="danger">{n} open</Pill> : <span className="muted num">None</span>;
@@ -101,21 +104,35 @@ export default function Integrations() {
       </Notice>
 
       <div className="grid cols-4" style={{ marginTop: 16 }}>
-        <Stat label="Integrations" value={d.integrations.length} sub={`${AREA_ORDER.length} areas`} />
-        <Stat label="Tested" value={tested} sub="Every check passed in test" />
-        <Stat label="Open failures" value={failuresOpen} tone={failuresOpen ? 'danger' : undefined} sub={failuresOpen ? 'Open a row to resolve' : 'Nothing to resolve'} />
-        <Stat label="Live" value={live} sub={notDocumented ? `${notDocumented} with no documented dependencies` : 'Dependencies documented'} />
+        <Stat icon="plugin" label="Integrations" value={d.integrations.length} sub={`${AREA_ORDER.length} areas`} />
+        <Stat icon="checkCircle" label="Tested" value={tested} sub="Every check passed in test" />
+        <Stat icon="alert" label="Open failures" value={failuresOpen} tone={failuresOpen ? 'danger' : undefined} sub={failuresOpen ? 'Open a row to resolve' : 'Nothing to resolve'} />
+        <Stat icon="radar" label="Live" value={live} sub={notDocumented ? `${notDocumented} with no documented dependencies` : 'Dependencies documented'} />
+      </div>
+
+      <div className="health-strip" role="group" aria-label="Integrations by state">
+        <span className="small strong">By state</span>
+        {(Object.keys(STATE_META) as ConnectionState[]).map((st) => {
+          const n = d.integrations.filter((i) => i.state === st).length;
+          return (
+            <button key={st} className="health-chip" aria-pressed={state === st} onClick={() => setState(state === st ? 'all' : st)}>
+              <StatePill state={st} /> <span className="num strong">{n}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="section">
-        <div className="toolbar">
+        <FilterBar count={`${rows.length} of ${d.integrations.length}`}>
           <SearchInput value={query} onChange={setQuery} placeholder="Search provider, area, owner or feature" />
           <Select<StateFilter> label="State" value={state} onChange={setState} options={[{ value: 'all', label: 'All states' }, ...(Object.keys(STATE_META) as ConnectionState[]).map((s) => ({ value: s, label: STATE_META[s].text }))]} />
           <Segmented<EnvFilter> label="Environment" value={env} onChange={setEnv} options={[{ value: 'all', label: 'All' }, { value: 'test', label: 'Test' }, { value: 'live', label: 'Live' }]} />
-        </div>
+        </FilterBar>
+        <Card flush>
         <Table
           rows={rows}
           columns={columns}
+          caption="Integrations"
           rowKey={(i) => i.id}
           onRowClick={(i) => setOpen(i.id)}
           empty={
@@ -124,6 +141,7 @@ export default function Integrations() {
             </Empty>
           }
         />
+        </Card>
       </div>
 
       {openId ? <IntegrationDrawer key={openId} id={openId} onClose={() => setOpen(null)} onOpen={setOpen} /> : null}

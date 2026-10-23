@@ -3,8 +3,9 @@ import { canDecide, versionInForce, type ConfigKey, type ConfigVersion, type Per
 import { date, when } from '@/data/format';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
-import { Button, Card, Column, ConfirmDialog, Drawer, Empty, Field, KV, Notice, Pill, Section, Table, type Tone } from '@/ui/kit';
-import type { IconName } from '@/ui/Icon';
+import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Notice, Pill, Section, Table, type Column, type Tone } from '@/ui/kit';
+import { Icon, type IconName } from '@/ui/Icon';
+import './config.css';
 import {
   approvalFor,
   dayKey,
@@ -55,23 +56,30 @@ export function VersionPill({ status }: { status: DerivedStatus }) {
 export function DiffTable({ diff, empty = 'No changes from the version in force.' }: { diff: Diff; empty?: string }) {
   if (!diff.length) return <p className="muted small">{empty}</p>;
   return (
-    <div className="table-wrap" style={{ border: '1px solid var(--border)', borderRadius: 10 }}>
+    <div className="table-wrap diff-table">
       <table className="table">
+        <caption className="sr">Changed settings, before and after</caption>
         <thead>
           <tr>
-            <th>Setting</th>
-            <th>Before</th>
-            <th>After</th>
+            <th scope="col">Setting</th>
+            <th scope="col">Before</th>
+            <th scope="col" aria-hidden />
+            <th scope="col">After</th>
           </tr>
         </thead>
         <tbody>
           {diff.map((d) => (
             <tr key={d.field}>
               <td className="strong">{d.field}</td>
-              <td className="muted" style={{ textDecoration: 'line-through', textDecorationColor: 'var(--border)' }}>
-                {d.from}
+              <td className="muted num">
+                <del>{d.from}</del>
               </td>
-              <td>{d.to}</td>
+              <td className="muted" aria-hidden style={{ width: 24, paddingLeft: 0, paddingRight: 0 }}>
+                <Icon name="arrowRight" size={14} />
+              </td>
+              <td className="num">
+                <ins className="diff-after">{d.to}</ins>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -281,9 +289,9 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
   const confirmV = confirm?.id ? versions.find((v) => v.id === confirm.id) : undefined;
 
   const historyCols: Column<ConfigVersion<unknown>>[] = [
-    { key: 'v', label: 'Version', render: (v) => <span className="strong">v{v.version}</span>, width: 80 },
+    { key: 'v', label: 'Version', sortValue: (v) => v.version, render: (v) => <span className="strong">v{v.version}</span>, width: 90 },
     { key: 's', label: 'Status', render: (v) => <VersionPill status={deriveStatus(v, versions, d.approvals, t)} /> },
-    { key: 'e', label: 'Effective from', render: (v) => <span className="num">{date(v.effectiveFrom)}</span> },
+    { key: 'e', label: 'Effective from', sortValue: (v) => v.effectiveFrom, render: (v) => <span className="num">{date(v.effectiveFrom)}</span> },
     { key: 'c', label: 'Created by', render: (v) => <div><div>{actorName(v.createdBy)}</div><div className="cell-sub">{when(v.createdAt, t)}</div></div> },
     { key: 'a', label: 'Approved by', render: (v) => <span className={v.approvedBy ? undefined : 'muted'}>{v.approvedBy ? actorName(v.approvedBy) : 'Not yet'}</span> },
     { key: 'n', label: 'Note', render: (v) => <span className="cell-sub">{v.note}</span> },
@@ -300,31 +308,20 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
       </Notice>
 
       <div className="grid cols-2" style={{ marginTop: 14 }}>
-        <Card
-          title={
-            <span className="row" style={{ justifyContent: 'space-between' }}>
-              <span>In force now</span>
-              {inForce ? <VersionPill status="in_force" /> : <Pill tone="neutral">Default</Pill>}
-            </span>
-          }
-        >
+        <Card className="cfg-current" title="In force now" actions={inForce ? <VersionPill status="in_force" /> : <Pill tone="neutral">Default</Pill>}>
           {inForce ? (
-            <p className="muted small" style={{ marginBottom: 12 }}>
-              {label(inForce)} since {date(inForce.effectiveFrom)} · created by {actorName(inForce.createdBy)} · approved by {actorName(inForce.approvedBy)}
-            </p>
+            <dl className="cfg-meta">
+              <div><dt>Version</dt><dd>{label(inForce)}</dd></div>
+              <div><dt>Since</dt><dd className="num">{date(inForce.effectiveFrom)}</dd></div>
+              <div><dt>Created by</dt><dd>{actorName(inForce.createdBy)}</dd></div>
+              <div><dt>Approved by</dt><dd>{actorName(inForce.approvedBy)}</dd></div>
+            </dl>
           ) : (
             <p className="muted small" style={{ marginBottom: 12 }}>No version published yet. {p.fallback?.label}</p>
           )}
           {inForceValue !== null ? (p.renderValue ? p.renderValue(inForceValue) : <KV items={describedKV(p.describe(inForceValue))} />) : <Empty title="Nothing in force" />}
         </Card>
-        <Card
-          title={
-            <span className="row" style={{ justifyContent: 'space-between' }}>
-              <span>Next scheduled</span>
-              {next ? <VersionPill status="scheduled" /> : null}
-            </span>
-          }
-        >
+        <Card title="Next scheduled" actions={next ? <VersionPill status="scheduled" /> : null}>
           {next ? (
             <div className="stack">
               <p className="muted small">
@@ -344,6 +341,14 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
             </Empty>
           )}
         </Card>
+      </div>
+
+      <div className="cfg-rule small" role="note">
+        <Icon name="shield" size={16} />
+        <span>
+          <span className="strong">How a change goes live:</span> save a draft, send it for approval, the company owner approves, and it takes effect on its effective date (Lagos time).{' '}
+          {canPublish ? 'As owner you may publish directly; your name is recorded as the approver.' : canEdit ? 'You can prepare and send changes; only the owner can approve them.' : 'Your role can view these settings but not change them.'}
+        </span>
       </div>
 
       {p.renderPreview && inForceValue !== null && pendingCompare ? (
@@ -377,11 +382,13 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
               const a = approvalFor(d.approvals, v.id);
               const diff = diffOf(v);
               return (
-                <Card key={v.id}>
-                  <div className="row wrap" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
-                    <div className="row wrap">
-                      <span className="strong">{label(v)}</span>
-                      <VersionPill status={st} />
+                <Card key={v.id} className="cfg-change">
+                  <div className="row wrap" style={{ justifyContent: 'space-between', marginBottom: 12, alignItems: 'flex-start' }}>
+                    <div className="stack tight" style={{ minWidth: 0 }}>
+                      <div className="row wrap">
+                        <span className="strong" style={{ fontSize: 15 }}>{label(v)}</span>
+                        <VersionPill status={st} />
+                      </div>
                       <span className="muted small">
                         effective {date(v.effectiveFrom)} · by {actorName(v.createdBy)} {when(v.createdAt, t).toLowerCase()}
                         {a && st === 'pending_approval' ? ` · waiting for ${a.approverRoles.join(' or ')}` : ''}
@@ -399,7 +406,9 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
                       <Notice tone="warning">The effective date has passed. Publishing makes it take effect immediately.</Notice>
                     </div>
                   ) : null}
-                  <p className="small" style={{ marginBottom: 8 }}>{v.note}</p>
+                  <p className="small cfg-note" style={{ marginBottom: 10 }}>
+                    <Icon name="chat" size={14} /> {v.note}
+                  </p>
                   <DiffTable diff={diff} />
                 </Card>
               );
@@ -410,7 +419,7 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
 
       <Section title="History">
         <Card flush>
-          <Table rows={versions} columns={historyCols} rowKey={(v) => v.id} onRowClick={(v) => setOpenId(v.id)} empty={<Empty title="No versions yet" />} />
+          <Table rows={versions} columns={historyCols} caption={`${p.name} versions`} rowKey={(v) => v.id} onRowClick={(v) => setOpenId(v.id)} empty={<Empty title="No versions yet" />} />
         </Card>
       </Section>
 
@@ -478,9 +487,10 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
           }
         >
           {error ? <Notice tone="danger">{error}</Notice> : null}
+          <h3 className="cfg-step"><span>1</span> Settings</h3>
           {p.renderEditor({ value: editor.value, onChange: (value) => setEditor({ ...editor, value }), base: edBefore, canOverride: canPublish })}
           {edErrors.length ? (
-            <Notice tone="danger">
+            <Notice tone="danger" icon="alert">
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {edErrors.map((e) => (
                   <li key={e}>{e}</li>
@@ -489,6 +499,7 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
             </Notice>
           ) : null}
           {p.warnings?.(edBefore, editor.value)}
+          <h3 className="cfg-step"><span>2</span> When and why</h3>
           <div className="grid cols-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
             <Field label="Effective date" hint="Today or later. Lagos time." error={edDayError ?? undefined}>
               {(id) => <input id={id} className="input" type="date" min={dayKey(t)} value={editor.day} onChange={(e) => setEditor({ ...editor, day: e.target.value })} />}
@@ -497,6 +508,7 @@ export function VersionedSettings<T>(p: VersionedSettingsProps<T>) {
           <Field label="Note" hint="Why this change. Shown in the history and the approval request.">
             {(id) => <textarea id={id} className="textarea" value={editor.note} onChange={(e) => setEditor({ ...editor, note: e.target.value })} />}
           </Field>
+          <h3 className="cfg-step"><span>3</span> Review</h3>
           <div className="stack">
             <h3>Before and after</h3>
             <DiffTable diff={edDiff} />
