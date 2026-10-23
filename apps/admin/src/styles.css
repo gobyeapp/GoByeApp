@@ -5,10 +5,10 @@
    a rare detail. Semantic status colours appear only as small badges and icons, always with text.
    No dark theme (the white rule supersedes D-053's dark mode). Inter, tabular numbers for figures. */
 
-@font-face { font-family: Inter; font-weight: 400; font-display: swap; src: url('../../../node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf') format('truetype'); }
-@font-face { font-family: Inter; font-weight: 500; font-display: swap; src: url('../../../node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf') format('truetype'); }
-@font-face { font-family: Inter; font-weight: 600; font-display: swap; src: url('../../../node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf') format('truetype'); }
-@font-face { font-family: Inter; font-weight: 700; font-display: swap; src: url('../../../node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf') format('truetype'); }
+@font-face { font-family: Inter; font-weight: 400; font-display: swap; src: url('./assets/fonts/Inter-400Regular.woff2') format('woff2'); }
+@font-face { font-family: Inter; font-weight: 500; font-display: swap; src: url('./assets/fonts/Inter-500Medium.woff2') format('woff2'); }
+@font-face { font-family: Inter; font-weight: 600; font-display: swap; src: url('./assets/fonts/Inter-600SemiBold.woff2') format('woff2'); }
+@font-face { font-family: Inter; font-weight: 700; font-display: swap; src: url('./assets/fonts/Inter-700Bold.woff2') format('woff2'); }
 
 :root {
   color-scheme: light;
