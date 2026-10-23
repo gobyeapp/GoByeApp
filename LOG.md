@@ -772,3 +772,15 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Next:**
   - Backend implements the timeline table and verification job per `BACKEND_HANDOVER.md`.
   - Finance decides pro-rata refunds and grace period (Q-043).
+
+## 2026-10-23 — Admin Vercel build: first deploy failed, guard added
+
+- **What happened:** the first Vercel build stopped at install with `Could not read package.json: /package.json`. The log shows 170 deployment files: only `apps/admin` was uploaded. "Include files outside the root directory in the Build Step" was off, so the shared `packages/core` and the root lock file were missing.
+- **Change:**
+  - The install command now checks that the whole repository is present. If it isn't, it stops with a plain instruction naming the Vercel setting to turn on.
+  - `engines.node` pinned to `22.x`, which removes the auto-upgrade warning.
+  - `DEPLOY_VERCEL.md` has a Troubleshooting section.
+- **Checks:**
+  - Simulated the admin-only upload: clear message, exit 1.
+  - Simulated the full repository: install and build pass.
+- **Owner step:** turn the setting on and redeploy.
