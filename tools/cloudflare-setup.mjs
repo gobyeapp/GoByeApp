@@ -97,6 +97,10 @@ async function main() {
     step('Token', 'fail', 'Set CLOUDFLARE_API_TOKEN first (see the top of this file).');
     return;
   }
+  if (/[^\x21-\x7e]/.test(TOKEN) || TOKEN.length < 30) {
+    step('Token', 'fail', 'CLOUDFLARE_API_TOKEN looks like a placeholder (it contains "…" or is too short). Paste the whole token between the quotes.');
+    return;
+  }
 
   // 1. Token, account, zone, DNS backup
   try {
