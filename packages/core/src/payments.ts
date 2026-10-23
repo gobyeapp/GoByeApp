@@ -72,8 +72,12 @@ export function walletCovers(balance: Kobo, charge: PaymentCharge): boolean {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * @deprecated Use the pass timeline (`recordPassPayment` / `subscriptionTimelineResponse`, D-058). This helper
+ * only knows one current pass, so it can't queue after passes that are already scheduled.
+ */
 export function subscribe(pkg: DriverAccessPackage, now: number, current?: DriverSubscription | null): DriverSubscription {
-  // Buying while active extends from the current expiry rather than overlapping.
+  // Legacy: knows one pass only. Kept for old callers; new code uses the timeline.
   const startsAt = current && current.expiresAt > now ? current.expiresAt : now;
   return { packageId: pkg.id, startsAt, expiresAt: startsAt + pkg.durationDays * DAY_MS };
 }

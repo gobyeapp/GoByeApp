@@ -4,7 +4,7 @@ import { Icon } from '@/ui/Icon';
 import { Button, Drawer, KV, Notice, Pill, Tabs, Timeline, type Tone } from '@/ui/kit';
 import type { IconName } from '@/ui/Icon';
 import '@/workspaces/people/people.css';
-import { eligibility } from '@/workspaces/subscriptions/logic';
+import { eligibility, timelineFor } from '@/workspaces/subscriptions/logic';
 import { city, date, label, money, when } from './format';
 import { useSession } from './session';
 import { usePlatform, useData } from './store';
@@ -372,15 +372,16 @@ function DriverPanel({ id, onClose, sub }: { id: string; onClose: () => void; su
   const dr: DriverRecord | undefined = d.drivers.find((x) => x.id === id);
   if (!dr) return <Drawer title="Driver not found" onClose={onClose}>Not in the test data.</Drawer>;
   const t = now();
-  const accessActive = !!dr.access && dr.access.expiresAt > t;
+  const tl = timelineFor(d.subscriptions, dr.id, t);
+  const accessActive = tl.access.active;
   const expiring = dr.documents.filter((x) => x.expiresAt && x.expiresAt - t < 30 * 86_400_000);
   return (
     <Drawer title={dr.name} sub={sub ?? `Driver · ${city(dr.city)} · applied ${date(dr.appliedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
       <div className="panel-pills">
         <Pill tone={dr.verification === 'approved' ? 'success' : dr.verification === 'rejected' || dr.verification === 'suspended' ? 'danger' : 'warning'}>{label(dr.verification)}</Pill>
-        <Pill tone={accessActive ? 'success' : 'neutral'} icon="ticket">{accessActive ? `${label(dr.access!.packageId)} access` : 'No active access'}</Pill>
+        <Pill tone={accessActive ? 'success' : 'neutral'} icon="ticket">{accessActive ? `${label(tl.access.currentPlan!)} access${tl.summary.scheduled ? `, ${tl.summary.scheduled} queued` : ''}` : 'No active access'}</Pill>
         <Pill tone="neutral" icon="radar">{dr.online ? 'Online' : 'Offline'}</Pill>
-        {(() => { const e = eligibility(dr, t); return <Pill tone={e.eligible ? 'success' : 'neutral'} icon={e.eligible ? 'checkCircle' : 'lock'}>{e.eligible ? 'Can accept rides' : e.reason}</Pill>; })()}
+        {(() => { const e = eligibility(dr, tl); return <Pill tone={e.eligible ? 'success' : 'neutral'} icon={e.eligible ? 'checkCircle' : 'lock'}>{e.eligible ? 'Can accept rides' : e.reason}</Pill>; })()}
       </div>
       <PanelSection title="Driver" icon="steering">
         <KV

@@ -4,15 +4,18 @@ import { CITY_LABELS, DRIVER_ACCESS_PACKAGES, type DriverRecord } from '@gobye/c
 import { count, label, money, when } from '@/data/format';
 import { PanelSection, RecordLink } from '@/data/records';
 import { RANGE_MS, useFilters, useScopedFilter, useSession } from '@/data/session';
-import { useData, usePlatform } from '@/data/store';
-import { Button, Card, Drawer, Empty, FeaturedStat, FilterBar, KV, Notice, PageHead, Pill, SearchInput, Section, Select, Stat, Table, Tabs, type Column, type Tone, type TrendValue } from '@/ui/kit';
+import { useAction, useData, usePlatform } from '@/data/store';
+import { Button, Card, ConfirmDialog, Drawer, Empty, FeaturedStat, FilterBar, KV, Notice, PageHead, Pill, SearchInput, Section, Select, Stat, Table, Tabs, type Column, type Tone, type TrendValue } from '@/ui/kit';
 import '@/workspaces/people/people.css';
-import { PLAN_LABEL, currentAccess, eligibility, subscriptionRecords, subscriptionRevenue, type Plan, type SubscriptionRecord, type SubscriptionStatus } from './logic';
+import { PASS_DAYS, PLAN_LABEL, applyPassVoid, currentAccess, eligibility, subscriptionRecords, subscriptionRevenue, timelineFor, type Plan, type SubscriptionRecord, type SubscriptionStatus } from './logic';
 
 type Tab = 'all' | 'active' | 'expiring' | 'expired' | 'issues';
 const STATUS: Record<SubscriptionStatus, { tone: Tone; text: string }> = {
   active: { tone: 'success', text: 'Active' },
-  scheduled: { tone: 'info', text: 'Starts later' },
+  scheduled: { tone: 'info', text: 'Queued' },
+  cancelled: { tone: 'neutral', text: 'Cancelled' },
+  refunded: { tone: 'neutral', text: 'Refunded' },
+  reversed: { tone: 'danger', text: 'Reversed' },
   expired: { tone: 'neutral', text: 'Expired' },
   pending_payment: { tone: 'warning', text: 'Payment pending' },
   failed: { tone: 'danger', text: 'Payment failed' },
@@ -39,8 +42,8 @@ export default function Subscriptions() {
   const drivers = d.drivers.filter((x) => keepRow(x.city, undefined, t));
   const byId = useMemo(() => new Map(d.drivers.map((x) => [x.id, x])), [d.drivers]);
   const inScope = new Set(drivers.map((x) => x.id));
-  const records = useMemo(() => subscriptionRecords(d.collections, t), [d.collections, t]).filter((r) => inScope.has(r.driverId));
-  const access = currentAccess(drivers, t);
+  const records = useMemo(() => subscriptionRecords(d.collections, d.subscriptions, t), [d.collections, d.subscriptions, t]).filter((r) => inScope.has(r.driverId));
+  const access = currentAccess(drivers, d.subscriptions, t);
   const R = RANGE_MS[range];
   const revenue = subscriptionRevenue(records, (at) => t - at <= R);
   const prev = range === 'all' ? null : subscriptionRevenue(records, (at) => t - at > R && t - at <= 2 * R);
@@ -53,8 +56,8 @@ export default function Subscriptions() {
   const tabRows: Record<Tab, SubscriptionRecord[]> = {
     all: records,
     active: records.filter((r) => r.status === 'active' || r.status === 'scheduled'),
-    expiring: records.filter((r) => r.status === 'active' && r.expiresAt! - t <= 72 * HOUR),
-    expired: records.filter((r) => r.status === 'expired'),
+    expiring: records.filter((r) => r.status === 'active' && (timelineFor(d.subscriptions, r.driverId, t).access.activeUntil ?? 0) - t <= 72 * HOUR),
+    expired: records.filter((r) => r.status === 'expired' || r.status === 'cancelled' || r.status === 'refunded' || r.status === 'reversed'),
     issues,
   };
   const rows = tabRows[tab].filter((r) => (plan === 'all' || r.plan === plan) && (!s || (byId.get(r.driverId)?.name.toLowerCase().includes(s) ?? false) || r.reference.toLowerCase().includes(s)));
@@ -64,8 +67,9 @@ export default function Subscriptions() {
     { key: 'driver', label: 'Driver', sortValue: (r) => byId.get(r.driverId)?.name ?? '', render: (r) => { const x = byId.get(r.driverId); return (<><div className="cell-title">{x?.name ?? r.driverId}</div><div className="cell-sub">{x ? CITY_LABELS[x.city] : ''}</div></>); } },
     { key: 'plan', label: 'Plan', sortValue: (r) => r.plan ?? '', render: (r) => (r.plan ? PLAN_LABEL[r.plan] : <Pill tone="warning">Unknown amount</Pill>) },
     { key: 'paid', label: 'Paid', align: 'right', sortValue: (r) => r.amount, render: (r) => <span className="num">{money(r.amount)}</span> },
-    { key: 'start', label: 'Activated', sortValue: (r) => r.startsAt ?? 0, render: (r) => <span className="small">{r.startsAt ? when(r.startsAt, t) : 'Not activated'}</span> },
-    { key: 'end', label: 'Expires', sortValue: (r) => r.expiresAt ?? 0, render: (r) => <span className="small">{r.expiresAt ? when(r.expiresAt, t) : 'Not set'}</span> },
+    { key: 'paidAt', label: 'Confirmed', sortValue: (r) => r.paidAt ?? 0, render: (r) => <span className="small">{r.paidAt ? when(r.paidAt, t) : 'Not confirmed'}</span> },
+    { key: 'start', label: 'Starts', sortValue: (r) => r.startsAt ?? 0, render: (r) => <span className="small">{r.startsAt ? when(r.startsAt, t) : 'No pass'}</span> },
+    { key: 'end', label: 'Ends', sortValue: (r) => r.accessEndsAt ?? 0, render: (r) => <span className="small">{r.accessEndsAt !== undefined ? (r.accessEndsAt <= r.startsAt! ? 'No access given' : when(r.accessEndsAt, t)) : 'Not set'}</span> },
     { key: 'status', label: 'Pass period', sortValue: (r) => r.status, render: (r) => <Pill tone={STATUS[r.status].tone}>{STATUS[r.status].text}</Pill> },
     {
       key: 'elig',
@@ -73,7 +77,7 @@ export default function Subscriptions() {
       render: (r) => {
         const x = byId.get(r.driverId);
         if (!x) return null;
-        const e = eligibility(x, t);
+        const e = eligibility(x, timelineFor(d.subscriptions, x.id, t));
         return <Pill tone={e.eligible ? 'success' : 'neutral'} icon={e.eligible ? 'checkCircle' : 'lock'}>{e.eligible ? 'Yes' : e.reason}</Pill>;
       },
     },
@@ -100,7 +104,7 @@ export default function Subscriptions() {
       />
 
       <div className="grid featured">
-        <FeaturedStat label="Active subscriptions" value={count(access.active)} sub={`${count(access.daily)} daily · ${count(access.monthly)} monthly`} art="subscription" onClick={go('active')} />
+        <FeaturedStat label="Active subscriptions" value={count(access.active)} sub={`${count(access.daily)} daily · ${count(access.monthly)} monthly · ${count(access.queued)} with a queued pass`} art="subscription" onClick={go('active')} />
         <Stat icon="time" label="Expiring soon" value={count(access.expiring3d)} sub={`${count(access.expiring24h)} within 24 hours`} tone={access.expiring24h ? 'warning' : undefined} onClick={go('expiring')} />
         <Stat icon="wallet" label="Subscription revenue" value={money(revenue.total)} trend={trend} sub={`${count(revenue.count)} verified payments ${RANGE_TEXT[range]}`} />
         <Stat icon="alert" label="Payment issues" value={count(issues.length)} sub={failed ? `${count(failed)} failed or abandoned` : 'None failed'} tone={failed ? 'danger' : undefined} onClick={go('issues')} />
@@ -137,12 +141,12 @@ export default function Subscriptions() {
         </div>
         <div style={{ marginTop: 16 }}>
           <Notice tone="info" icon="info">
-            When a pass expires the driver stops receiving new ride requests; a ride already in progress may finish. Renewal is manual (Q-043): no automatic renewal runs, so there are no failed renewals to show. Failed package payments are listed under Payment issues.
+            A pass bought while another is active or queued starts when the last queued pass ends, so drivers never lose time they paid for. Queued passes start on their own at their start time. When access ends the driver stops receiving new ride requests; a ride already in progress may finish. Renewal is manual: the driver buys the next pass. Failed package payments are listed under Payment issues.
           </Notice>
         </div>
       </Section>
 
-      <Section title="Subscription records" desc="One row per package payment, each running from its own verified activation. The driver’s current access record is what decides ride requests.">
+      <Section title="Subscription records" desc="One row per package payment. Start and end come from the driver’s pass timeline, the same one the Driver App shows.">
         <Tabs
           value={tab}
           onChange={setTab}
@@ -150,7 +154,7 @@ export default function Subscriptions() {
             { value: 'all', label: 'All', count: records.length },
             { value: 'active', label: 'Active', count: tabRows.active.length },
             { value: 'expiring', label: 'Expiring in 3 days', count: tabRows.expiring.length },
-            { value: 'expired', label: 'Expired', count: tabRows.expired.length },
+            { value: 'expired', label: 'Ended or refunded', count: tabRows.expired.length },
             { value: 'issues', label: 'Payment issues', count: issues.length },
           ]}
         />
@@ -176,22 +180,41 @@ export default function Subscriptions() {
 }
 
 function RecordDrawer({ r, driver, onClose }: { r: SubscriptionRecord; driver?: DriverRecord; onClose: () => void }) {
+  const d = useData();
   const { now } = usePlatform();
   const { can } = useSession();
+  const act = useAction();
+  const [voidKind, setVoidKind] = useState<'cancelled' | 'refunded' | null>(null);
   const t = now();
-  const e = driver ? eligibility(driver, t) : null;
+  const tl = timelineFor(d.subscriptions, r.driverId, t);
+  const e = driver ? eligibility(driver, tl) : null;
+  const canVoid = can('refunds.approve');
+  const voidable = r.status === 'active' || r.status === 'scheduled';
   return (
-    <Drawer title={r.plan ? `${PLAN_LABEL[r.plan]} pass` : 'Package payment'} sub={driver ? `${driver.name} · ${CITY_LABELS[driver.city]}` : r.driverId} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
+    <Drawer
+      title={r.plan ? `${PLAN_LABEL[r.plan]} pass` : 'Package payment'}
+      sub={driver ? `${driver.name} · ${CITY_LABELS[driver.city]}` : r.driverId}
+      onClose={onClose}
+      footer={
+        <>
+          {voidable ? (
+            <>
+              <Button variant="secondary" disabledReason={canVoid ? undefined : 'Needs finance approval rights'} onClick={() => setVoidKind('cancelled')}>Cancel pass</Button>
+              <Button variant="danger-soft" disabledReason={canVoid ? undefined : 'Needs finance approval rights'} onClick={() => setVoidKind('refunded')}>Refund pass</Button>
+            </>
+          ) : null}
+          <Button onClick={onClose}>Close</Button>
+        </>
+      }
+    >
       <div className="panel-pills">
         <Pill tone={STATUS[r.status].tone}>{STATUS[r.status].text}</Pill>
         {e ? <Pill tone={e.eligible ? 'success' : 'neutral'} icon={e.eligible ? 'checkCircle' : 'lock'}>{e.eligible ? 'Can accept rides' : e.reason}</Pill> : null}
         {driver ? <RecordLink type="driver" id={driver.id}>Open driver record</RecordLink> : null}
       </div>
-      {r.status === 'active' && driver && !(driver.access && driver.access.expiresAt > t) ? (
-        <Notice tone="warning">This pass is within its paid period, but the driver’s access record shows no active access, so they don’t receive ride requests. Activation should write both; check the access record before acting. (Test data mismatch.)</Notice>
-      ) : null}
       {r.status === 'needs_review' ? <Notice tone="warning">The amount matches neither confirmed plan, so no access was given. Finance should check the payment with the provider.</Notice> : null}
       {r.status === 'failed' ? <Notice tone="danger">This payment did not succeed, so no access was given. The driver can pay again.</Notice> : null}
+      {r.voidReason ? <Notice tone="info">{STATUS[r.status].text}: {r.voidReason}. The record is kept; only access not yet given was removed.</Notice> : null}
       <PanelSection title="Payment" icon="wallet">
         <KV
           items={[
@@ -199,31 +222,66 @@ function RecordDrawer({ r, driver, onClose }: { r: SubscriptionRecord; driver?: 
             ['Provider', r.provider],
             ['Reference', can('finance.view') ? r.reference : 'Hidden for your role'],
             ['Payment status', label(r.paymentStatus)],
-            ['Verified', r.paidAt ? when(r.paidAt, t) : 'Not verified'],
+            ['Confirmed', r.paidAt ? when(r.paidAt, t) : 'Not confirmed'],
           ]}
         />
       </PanelSection>
-      <PanelSection title="Activation" icon="ticket">
+      <PanelSection title="Pass period" icon="ticket">
         <KV
           items={[
-            ['Plan', r.plan ? `${PLAN_LABEL[r.plan]} (${r.plan === 'daily' ? '24 hours' : '30 days'})` : 'Unknown'],
-            ['Starts', r.startsAt ? when(r.startsAt, t) : 'Not activated'],
-            ['Expires', r.expiresAt ? when(r.expiresAt, t) : 'Not set'],
-            ['Renewal', 'Manual: the driver buys a new pass'],
+            ['Plan', r.plan ? `${PLAN_LABEL[r.plan]} (${PASS_DAYS[r.plan]})` : 'Unknown'],
+            ['Starts', r.startsAt ? when(r.startsAt, t) : 'No pass'],
+            ['Scheduled end', r.expiresAt ? when(r.expiresAt, t) : 'Not set'],
+            ['Access ends', r.accessEndsAt !== undefined ? (r.accessEndsAt <= (r.startsAt ?? 0) ? 'No access given' : when(r.accessEndsAt, t)) : 'Not set'],
           ]}
         />
-        <span className="small muted">Times in Lagos time. Activation happens only after the provider confirms the payment; a webhook alone never activates a pass. Whether a pass bought during another extends it is still open (Q-043).</span>
+        <span className="small muted">Lagos time. Starts at the later of payment confirmation and the end of the driver’s last queued pass. Only a provider-confirmed payment creates a pass; a repeated webhook never adds time.</span>
       </PanelSection>
-      {driver ? (
-        <PanelSection title="Driver eligibility" icon="steering">
-          <KV
-            items={[
-              ['Verification', label(driver.verification)],
-              ['Current access', driver.access ? `${PLAN_LABEL[driver.access.packageId]} until ${when(driver.access.expiresAt, t)}` : 'None'],
-              ['New ride requests', e?.eligible ? 'Receives requests' : `Blocked: ${e?.reason ?? ''}`],
-            ]}
-          />
-        </PanelSection>
+      <PanelSection title="Driver’s pass timeline" icon="calendar">
+        <KV
+          items={[
+            ['Access now', tl.access.active ? `${PLAN_LABEL[tl.access.currentPlan!]} pass` : 'None'],
+            ['Continuous access until', tl.access.activeUntil ? when(tl.access.activeUntil, t) : 'Not active'],
+            ['Queued passes', String(tl.summary.scheduled)],
+            ['New ride requests', e?.eligible ? 'Receives requests' : `Blocked: ${e?.reason ?? ''}`],
+          ]}
+        />
+        <ol className="timeline" style={{ marginTop: 8 }}>
+          {tl.passes.slice(0, 8).map((p) => (
+            <li key={p.id}>
+              <div className="strong">
+                {PLAN_LABEL[p.plan]} · <span style={{ fontWeight: 500 }}>{STATUS[p.status].text}</span>
+              </div>
+              <div className="when">
+                {when(p.startsAt, t)} to {p.accessEndsAt <= p.startsAt ? 'no access given' : when(p.accessEndsAt, t)}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </PanelSection>
+      {voidKind && driver ? (
+        <ConfirmDialog
+          title={voidKind === 'refunded' ? 'Refund this pass?' : 'Cancel this pass?'}
+          body={r.status === 'active' ? 'Access from this pass ends now. Any queued passes start at once, so the driver keeps the time they paid for. The record stays in history.' : 'This queued pass gives no access. Later passes move up. The record stays in history.'}
+          confirmLabel={voidKind === 'refunded' ? 'Refund pass' : 'Cancel pass'}
+          danger
+          requireReason
+          onCancel={() => setVoidKind(null)}
+          onConfirm={async (reason) => {
+            const ok = await act(
+              {
+                label: voidKind === 'refunded' ? 'Refund pass' : 'Cancel pass',
+                apply: (draft, ctx) => {
+                  const res = applyPassVoid(draft, driver.id, { paymentRef: r.reference, kind: voidKind, at: ctx.now, reason, by: ctx.actor.name }, ctx.now);
+                  return res.ok ? { ok: true } : { ok: false, error: res.error };
+                },
+                audit: () => ({ action: `subscription.${voidKind}`, target: { type: 'driver', id: driver.id, label: driver.name }, summary: `${voidKind === 'refunded' ? 'Refunded' : 'Cancelled'} ${r.plan ?? ''} pass ${r.reference}`, reason }),
+              },
+              voidKind === 'refunded' ? 'Pass refunded. Pay the money back through finance.' : 'Pass cancelled',
+            );
+            if (ok) setVoidKind(null);
+          }}
+        />
       ) : null}
     </Drawer>
   );

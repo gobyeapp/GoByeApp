@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Dimensional, type DimName } from './Dimensional';
 import { Icon, type IconName } from './Icon';
@@ -609,7 +610,8 @@ export function ConfirmDialog({
   onCancel: () => void;
 }) {
   const [reason, setReason] = useState('');
-  return (
+  // Rendered at the page root so it sits above a side panel it was opened from (a drawer's transform would trap it).
+  return createPortal(
     <>
       <div className="scrim" onClick={onCancel} />
       <div className="dialog" role="alertdialog" aria-modal="true" aria-label={title}>
@@ -629,7 +631,8 @@ export function ConfirmDialog({
           </Button>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 

@@ -24,7 +24,7 @@ import {
   draftStatus,
   driverLocationReducer,
   emptyApplication,
-  hasActiveAccess,
+  emptySubscriptionState,
   initialDriverLocationState,
   makeMockRequest,
   markArrived,
@@ -34,7 +34,9 @@ import {
   pointAlong,
   startTripFromRequest,
   submitApplication,
-  subscribe,
+  recordPassPayment,
+  subscriptionStateFromLegacy,
+  subscriptionTimelineResponse,
   trackingIssues,
   tripErrorMessage,
   updateProfileFor,
@@ -52,6 +54,9 @@ import {
   type DriverLocationPermission,
   type DriverLocationState,
   type DriverSubscription,
+  type SubscriptionPassView,
+  type SubscriptionState,
+  type SubscriptionTimelineResponse,
   type DriverTrip,
   type IncomingRequest,
   type Kobo,
@@ -79,7 +84,10 @@ const SIM = {
 
 interface Stored {
   application: DriverApplication;
-  subscription: DriverSubscription | null;
+  /** The driver's pass timeline (D-058). In production this is read from `GET /v1/drivers/{id}/subscription`. */
+  passes: SubscriptionState;
+  /** @deprecated Pre-D-058 single pass; migrated into `passes` on load. */
+  subscription?: DriverSubscription | null;
   history: DriverTrip[];
   activeTrip: DriverTrip | null;
   primerSeen: boolean;
@@ -91,7 +99,8 @@ interface Stored {
   activeRide: string | null;
 }
 
-const INITIAL: Stored = { application: emptyApplication, subscription: null, history: [], activeTrip: null, primerSeen: false, seeded: false, payout: null, activeRide: null };
+const SELF = 'self';
+const INITIAL: Stored = { application: emptyApplication, passes: emptySubscriptionState(SELF), history: [], activeTrip: null, primerSeen: false, seeded: false, payout: null, activeRide: null };
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
@@ -110,9 +119,12 @@ interface DriverValue {
   /** Connected to the demo relay: staff review in the admin, requests come from real riders. */
   relayConnected: boolean;
   /* Access */
+  /** The same timeline response the admin shows (D-058). */
+  timeline: SubscriptionTimelineResponse;
+  /** Current continuous access: plan of the pass in force, ending when the last queued pass ends. Null without access. */
   subscription: DriverSubscription | null;
   hasAccess: boolean;
-  buyPackage(pkg: DriverAccessPackage): Promise<Result<DriverSubscription>>;
+  buyPackage(pkg: DriverAccessPackage): Promise<Result<SubscriptionPassView>>;
   /* Online / location */
   location: DriverLocationState;
   issues: TrackingIssue[];
@@ -190,7 +202,10 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
     (async () => {
       const [s, permission] = await Promise.all([readJson<Stored>(storeKey), readPermission()]);
       if (!alive) return;
-      const next = { ...INITIAL, ...(s ?? {}) };
+      const loaded = { ...INITIAL, ...(s ?? {}) };
+      // Migrate the old single stored pass into the timeline once (D-058).
+      const { subscription: legacy, ...rest } = loaded;
+      const next: Stored = s && !s.passes ? { ...rest, passes: subscriptionStateFromLegacy(SELF, legacy) } : rest;
       setStored(next);
       // A trip survives an app restart: restore the matching tracking state (the driver is still working).
       const base = { ...initialDriverLocationState, permission, backgroundCapable: false };
@@ -337,14 +352,26 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
 
   /* ---------- Access ---------- */
 
-  const hasAccess = hasActiveAccess(stored.subscription, now);
+  // One authoritative timeline (D-058): passes queue after the last scheduled one; status comes from the clock,
+  // so a queued pass takes over by itself when the one before it ends.
+  const timeline = useMemo(() => subscriptionTimelineResponse(stored.passes, now), [stored.passes, now]);
+  const hasAccess = timeline.access.canAcceptRides;
+  const subscription = useMemo<DriverSubscription | null>(() => {
+    const cur = timeline.passes.find((p) => p.id === timeline.access.currentPassId);
+    return cur && timeline.access.activeUntil ? { packageId: cur.plan, startsAt: cur.startsAt, expiresAt: timeline.access.activeUntil } : null;
+  }, [timeline]);
   const buyPackage = useCallback(
-    async (pkg: DriverAccessPackage): Promise<Result<DriverSubscription>> => {
-      // Simulated payment: no money moves in the preview.
+    async (pkg: DriverAccessPackage): Promise<Result<SubscriptionPassView>> => {
+      // Simulated payment: no money moves in the preview. In production the client only starts the payment;
+      // the backend's verification job records the pass when the provider confirms it.
       await new Promise((r) => setTimeout(r, SIM.packagePaymentMs));
-      const sub = subscribe(pkg, Date.now(), storedRef.current.subscription);
-      persist((prev) => ({ ...prev, subscription: sub }));
-      return { ok: true, value: sub };
+      const confirmedAt = Date.now();
+      const paymentRef = `sim-${confirmedAt.toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      const r = recordPassPayment(storedRef.current.passes, { paymentRef, driverId: SELF, plan: pkg.id, amount: pkg.price, confirmedAt }, { expectedVersion: storedRef.current.passes.version });
+      if (!r.ok) return { ok: false, error: r.message };
+      persist((prev) => ({ ...prev, passes: r.state }));
+      const view = subscriptionTimelineResponse(r.state, confirmedAt).passes.find((p) => p.paymentRef === paymentRef)!;
+      return { ok: true, value: view };
     },
     [persist],
   );
@@ -368,7 +395,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       state = driverLocationReducer(state, { type: 'PERMISSION_CHANGED', permission: p, backgroundCapable: false }).state;
       dispatchLoc({ type: 'PERMISSION_CHANGED', permission: p, backgroundCapable: false });
     }
-    const r = driverLocationReducer(state, { type: 'GO_ONLINE', now: Date.now(), hasAccess: hasActiveAccess(storedRef.current.subscription, Date.now()) });
+    const r = driverLocationReducer(state, { type: 'GO_ONLINE', now: Date.now(), hasAccess: subscriptionTimelineResponse(storedRef.current.passes, Date.now()).access.canAcceptRides });
     if (r.error) return { ok: false, error: r.error };
     dispatchLoc({ type: 'GO_ONLINE', now: Date.now(), hasAccess: true });
     return { ok: true, value: true };
@@ -692,7 +719,8 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         return { ok: true, value: true };
       },
       relayConnected: !!relay,
-      subscription: stored.subscription,
+      timeline,
+      subscription,
       hasAccess,
       buyPackage,
       location,
@@ -730,7 +758,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         persist(() => INITIAL);
       },
     }),
-    [ready, application, verification, persist, stored, hasAccess, buyPackage, location, issues, canReceive, position, requestLocation, goOnline, goOffline, request, counter, acceptRequest, sendCounter, declineRequest, activeTrip, activeRide, tripNotice, arrive, confirmPin, complete, cancel, confirmPayment, finishTrip, pushApplication, relay, phone],
+    [ready, application, verification, persist, stored, timeline, subscription, hasAccess, buyPackage, location, issues, canReceive, position, requestLocation, goOnline, goOffline, request, counter, acceptRequest, sendCounter, declineRequest, activeTrip, activeRide, tripNotice, arrive, confirmPin, complete, cancel, confirmPayment, finishTrip, pushApplication, relay, phone],
   );
 
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;

@@ -50,7 +50,7 @@ When a question is answered: record the answer and date here, add/supersede a de
 | Q-040 | Languages | Product | 3, Launch |
 | Q-041 | Driver document expiry handling | Ops / Legal | 4, BE |
 | Q-042 | Payment provider, bank-transfer virtual accounts & confirmation, real processing fees | Finance / Eng | 6, BE, Launch |
-| Q-043 | Driver access package billing (how drivers pay, renewal, grace, refunds, VAT) | Finance / Legal / Product | 4, 6, BE |
+| Q-043 | Driver access package billing (how drivers pay, renewal, grace, VAT). *Stacking decided 2026-10-23 (D-058): passes queue after the last scheduled pass. Mid-trip expiry decided (BR-138). Refunds keep history and remove only unused access (BR-139); whether unused time is refunded pro rata is still open.* | Finance / Legal / Product | 4, 6, BE |
 | Q-044 | Google Maps Platform cost projection & usage caps | Eng / Finance | 5, BE, Launch |
 | Q-045 | Driver location update-profile tuning from device tests | Eng | 4, 8 |
 | Q-046 | Name styling and tagline: "Go-Bye" vs "GoBye"; "Your next move." vs "Your ride. Your say." | Product / Brand | 3, 9 |

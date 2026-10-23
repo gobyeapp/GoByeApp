@@ -159,7 +159,7 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 
 **Decision.**
 - `MOCK_PRICING_CONFIG.commissionRate = 0`; `driverEarnings` returns the full fare.
-- Drivers need an active **access package** to go online (BR-072). Configurable packages in `DRIVER_ACCESS_PACKAGES`: Daily ₦2,000 / 1 day, Monthly ₦60,000 / 30 days, both flagged `provisional: true`. Buying while active extends from the current expiry.
+- Drivers need an active **access package** to go online (BR-072). Configurable packages in `DRIVER_ACCESS_PACKAGES`: Daily ₦2,000 / 1 day, Monthly ₦60,000 / 30 days, both flagged `provisional: true`. Buying while active extends from the current expiry. *(Superseded by D-058: passes queue after the last scheduled pass.)*
 - Payment-processing charges are modelled per method (`ProcessingFeeRule`: fixed, percent, optional cap, bearer) and always shown as a **separate line** from the fare, before booking and on receipts (BR-105). Current values are placeholders (bank transfer ₦50 passenger-borne; wallet ₦0 platform-borne).
 
 **Supersedes** the 15% mock commission assumption under D-007 (D-007 itself — "values live in mock config" — still applies). Billing details → Q-043.
@@ -430,3 +430,14 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Seeds:** honest only: Vercel, Cloudflare, R2 and Supabase are on free plans; backend, SMS, email, monitoring and maps are not chosen or only proposed; Paystack is in test mode. No bill is invented.
 - **Automation:** `costs.sync` is defined but not connected.
 - **Open:** invoice files need the backend and private R2 to store them.
+
+## D-058 — One authoritative driver pass timeline; new passes queue after the last scheduled pass (2026-10-23, owner brief)
+
+**Problem (audit).** Validity was calculated in three places that disagreed:
+1. Driver App kept one stored pass and extended from the *current* expiry only. A purchase made while a pass was active replaced the record with a future-dated one, so `hasActiveAccess` became false: the driver lost access they had paid for, and earlier history was overwritten. It could not chain after a pass that was already queued.
+2. Admin subscriptions computed each pass independently from its own `verifiedAt`, so passes overlapped and paid time was lost on screen.
+3. Admin eligibility read `driver.access`, which the test data set independently of both.
+
+**Decision.** `packages/core/src/subscriptions` is the only calculation. It is a deterministic fold over verified payments ordered by (confirmation time, payment reference): `startsAt = max(confirmedAt, end of the last access given)`, `endsAt = startsAt + 24 h | 30 × 24 h`. Cancellations, refunds and reversals are stored as separate void records: they cut `accessEndsAt` at the void time (never before the start, never later than the scheduled end), never delete the pass, and later passes move up. Status (`scheduled → active → expired`) is derived from the clock, so queued passes take over without a job. Writes are idempotent by payment reference and checked with `expectedVersion`. `SubscriptionTimelineResponse` is the one API shape (`GET /v1/drivers/{id}/subscription`) rendered by both the Driver App and the admin. Prices unchanged: ₦2,000 / 24 hours, ₦60,000 / 30 days, 0% commission.
+
+**Consequences.** `subscribe` / `hasActiveAccess` are deprecated. The Driver App migrates an old stored pass once (`subscriptionStateFromLegacy`). Admin can cancel or refund a pass (permission `refunds.approve`, reason required, audited). Rules BR-062, BR-072, BR-137 to BR-139. Supersedes the "extends from the current expiry" note under D-024 and assumption A-20.

@@ -1,5 +1,6 @@
 import type { FeeSchedule } from '../gateway/fees';
 import { seedVendors, type Budget, type Expense, type Vendor } from '../costs';
+import { emptySubscriptionState, planForAmount, recordPassPayment, subscriptionTimelineResponse, voidPass, type SubscriptionState } from '../subscriptions';
 import type { AutomationRun } from '../automation/runs';
 import { simulatedAutomationRuns, simulatedFeeSchedules, simulatedSettingChanges } from '../automation/simulate';
 import type { AutomationSettingChange } from '../automation/settings';
@@ -67,6 +68,8 @@ export interface PlatformDataset {
   vendors: Vendor[];
   expenses: Expense[];
   budgets: Budget[];
+  /** Authoritative pass timelines per driver (D-058). `DriverRecord.access` is derived from these. */
+  subscriptions: SubscriptionState[];
 }
 
 const HOUR = 3_600_000;
@@ -247,29 +250,38 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
   }
 
   // ---------- Driver package purchases (company revenue) ----------
+  // Purchases follow the stacking rule (D-058): a driver renews either a few hours before their access ends
+  // (the new pass queues after it) or after a gap. Drivers listed with access end up covered now; others lapsed.
+  let duplicateRef: string | null = null;
   activeDrivers.forEach((d, i) => {
-    const n = int(1, 6);
-    for (let k = 0; k < n; k++) {
-      let monthly = r() < 0.3;
-      let at = now - int(0, 30) * DAY - int(0, 20) * HOUR;
-      // Keep passes consistent with each driver's access: the latest purchase is the pass in force (24 hours or
-      // 30 days from verification); earlier ones, and every purchase by a driver without access, have ended.
-      if (k === n - 1 && d.access) {
-        monthly = d.access.packageId === 'monthly';
-        const span = (monthly ? 30 : 1) * DAY;
-        at = Math.min(d.access.expiresAt - span - 30_000, now - 60_000);
-        d.access.expiresAt = at + 30_000 + span;
-      } else {
-        const span = (monthly ? 30 : 1) * DAY;
-        if (at + 30_000 + span > now) at = now - span - (k + 1) * 2 * HOUR;
-      }
+    const wantsAccess = !!d.access;
+    const plans: { at: number; monthly: boolean }[] = [];
+    let at = now - int(12, 45) * DAY - int(0, 20) * HOUR;
+    let end = Number.NEGATIVE_INFINITY;
+    for (let k = 0; k < 8 && at < now; k++) {
+      const monthly = (k === 0 ? d.access?.packageId === 'monthly' : false) || r() < 0.25;
+      const passEnd = Math.max(at + 30_000, end) + (monthly ? 30 : 1) * DAY;
+      if (!wantsAccess && passEnd > now) break;
+      plans.push({ at, monthly });
+      end = passEnd;
+      at = end + (r() < 0.45 ? -int(1, 6) * HOUR : int(1, 60) * HOUR);
+    }
+    if (wantsAccess && end <= now) plans.push({ at: now - int(1, 20) * HOUR, monthly: d.access!.packageId === 'monthly' });
+    if (!plans.length) plans.push({ at: now - int(3, 30) * DAY, monthly: false });
+    // One driver paid twice by mistake a few minutes apart; the second pass queues and is refunded below.
+    if (wantsAccess && !duplicateRef) {
+      const last = plans[plans.length - 1]!;
+      plans.push({ at: last.at + 4 * 60_000, monthly: last.monthly });
+      duplicateRef = `GB-PKG-${i}-${plans.length - 1}`;
+    }
+    plans.forEach(({ at, monthly }, k) => {
       const amount = naira(monthly ? 60000 : 2000);
       const reference = `GB-PKG-${i}-${k}`;
       collections.push({ id: `col-p-${i}-${k}`, purpose: 'package_purchase', payerType: 'driver', payerId: d.id, amount, fee: Math.round(amount * 0.015) as Kobo, provider: PROVIDER, reference, status: 'successful', createdAt: at, verifiedAt: at + 30_000, events: [{ at: at + 30_000, event: 'charge.success' }] });
       post(postJournal(ledger, { lines: [{ account: { kind: 'company_revenue' }, amount }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: -amount as Kobo }], kind: 'package_purchase', description: `${monthly ? 'Monthly' : 'Daily'} access package`, by: { kind: 'provider', name: PROVIDER }, now: at, reference, provider: PROVIDER }));
       const fee = Math.round(amount * 0.015) as Kobo;
       post(postJournal(ledger, { lines: [{ account: { kind: 'processing_costs' }, amount: -fee as Kobo }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: fee }], kind: 'processing_fee', description: 'Provider fee on package purchase', by: { kind: 'provider', name: PROVIDER }, now: at, reference: `${reference}-fee`, provider: PROVIDER }));
-    }
+    });
   });
 
   // ---------- Trips ----------
@@ -553,10 +565,39 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
     { id: 'aud-6', at: now - 5 * HOUR, actor: actor('stf-owner'), action: 'staff.invited', target: { type: 'staff', id: 'stf-new', label: 'Pending Invite' }, summary: 'Invited new care agent (Lagos)' },
   ];
 
+  // ---------- Driver pass timelines (D-058): built from verified package payments by the shared calculation ----------
+  const subscriptions: SubscriptionState[] = [];
+  for (const d of drivers) {
+    let st = emptySubscriptionState(d.id);
+    for (const c of collections.filter((x) => x.purpose === 'package_purchase' && x.payerId === d.id && x.status === 'successful' && x.verifiedAt)) {
+      const plan = planForAmount(c.amount);
+      if (!plan) continue;
+      const r = recordPassPayment(st, { paymentRef: c.reference, driverId: d.id, plan, amount: c.amount, confirmedAt: c.verifiedAt! });
+      if (r.ok) st = r.state;
+    }
+    subscriptions.push(st);
+  }
+  // One honest example of a refund: the duplicate purchase above, refunded before it started.
+  {
+    const st = subscriptions.find((s) => s.passes.some((p) => p.paymentRef === duplicateRef));
+    const queued = st?.passes.find((p) => p.paymentRef === duplicateRef);
+    if (st && queued) {
+      const r = voidPass(st, { paymentRef: queued.paymentRef, kind: 'refunded', at: now - 2 * HOUR, reason: 'Bought twice by mistake; refunded to the driver', by: 'Grace Finance' });
+      if (r.ok) subscriptions[subscriptions.indexOf(st)] = r.state;
+    }
+  }
+  // Driver records show the timeline's answer, never a separate calculation.
+  for (const d of drivers) {
+    const tl = subscriptionTimelineResponse(subscriptions.find((s) => s.driverId === d.id)!, now);
+    const last = tl.passes.find((p) => p.accessEndsAt > p.startsAt);
+    d.access = tl.access.active ? { packageId: tl.access.currentPlan!, expiresAt: tl.access.activeUntil! } : last ? { packageId: last.plan, expiresAt: last.accessEndsAt } : null;
+    if (!tl.access.active) d.online = false;
+  }
+
   const feeSchedules = simulatedFeeSchedules(now, { id: 'stf-fin', name: 'Grace Finance' });
   const automationRuns = simulatedAutomationRuns({ collections, withdrawals, drivers, cases }, now);
   const automationChanges = simulatedSettingChanges(now, { mkt: { id: 'stf-mkt', name: 'Lola Marketing' }, owner: { id: 'stf-owner', name: 'Akorede (Owner)' }, care: { id: 'stf-care', name: 'Ruth Care' } });
   approvals.push({ id: 'apr-0006', kind: 'automation_config', title: 'Daily package reminder: 2 → 3 hours before', requestedBy: actor('stf-mkt'), requestedAt: now - 5 * HOUR, target: { type: 'automation', id: 'subscription.reminder', label: 'Package renewal reminders' }, status: 'pending', approverRoles: ['owner', 'admin'], note: 'asc-0001' });
 
-  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges, vendors: seedVendors(), expenses: [], budgets: [] };
+  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges, vendors: seedVendors(), expenses: [], budgets: [], subscriptions };
 }

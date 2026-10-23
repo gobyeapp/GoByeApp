@@ -739,3 +739,36 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Served with the `vercel.json` headers: no CSP errors, fonts and 3D images load.
   - Not yet deployed on Vercel (owner step, `apps/admin/DEPLOY_VERCEL.md`).
 - **Next:** the owner imports the repository as a second Vercel project with Root Directory `apps/admin` and turns on Deployment Protection. Connect the backend later via the `VITE_*` variables listed in `DEPLOY_VERCEL.md`.
+
+## 2026-10-23 — One driver pass timeline for the Driver App and the admin (D-058)
+
+- **Audit.** Pass validity was calculated in three places that disagreed:
+  1. **Driver App:** a single stored pass, extended from the current expiry. Buying while active replaced it with a future-dated pass, so the driver lost access they had paid for and history was overwritten.
+  2. **Admin subscriptions:** each pass ran from its own payment time, so passes overlapped and paid time disappeared.
+  3. **Admin eligibility:** read a separately generated `driver.access`.
+- **Fix.**
+  - `packages/core/src/subscriptions` is now the only calculation. A pass starts at the later of payment confirmation and the end of the last scheduled pass. Daily is exactly 24 hours and monthly exactly 30 days. Confirmation, start, end and access end are stored separately.
+  - Queued passes take over by themselves.
+  - Writes are idempotent by payment reference (a duplicate webhook adds nothing), version-checked, and independent of arrival order.
+  - Cancel, refund and reversal keep the pass in history, remove only unused access, and never extend access.
+  - `SubscriptionTimelineResponse` is the one response for both apps (`GET /v1/drivers/{id}/subscription`).
+- **Driver App.**
+  - Stores the timeline and migrates an old stored pass once.
+  - Access and "time left" come from the response.
+  - The access screen lists active, queued, ended and refunded passes, and says when a new pass will start.
+- **Admin.**
+  - Subscriptions, drivers and the driver panel read the timeline. The list shows Confirmed, Starts and Ends separately.
+  - New statuses: Queued, Cancelled, Refunded, Reversed.
+  - The record panel shows the driver's full timeline, plus Cancel pass and Refund pass actions (finance approval rights, reason required, audited).
+  - Test data now follows the stacking rule and includes one honest refund example (a duplicate purchase).
+- **Bug found while testing:** a confirm dialog opened from a side panel sat under its own backdrop and could not be clicked. It now renders at the page root.
+- **Prices unchanged:** ₦2,000 for 24 hours, ₦60,000 for 30 days, 0% commission.
+- **Checks:**
+  - Typecheck: 0 errors.
+  - Tests: core 265 (18 timeline tests), rider 36, driver 14, admin 405, infra 41, all pass.
+  - Driver `expo export` (android, ios) OK; admin build OK.
+  - Refund flow clicked through in Chromium: no page errors.
+  - Not tested on a device.
+- **Next:**
+  - Backend implements the timeline table and verification job per `BACKEND_HANDOVER.md`.
+  - Finance decides pro-rata refunds and grace period (Q-043).

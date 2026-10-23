@@ -42,7 +42,7 @@ Guiding rule: **the client displays and validates for UX; the backend decides.**
 - Quick Match: dispatch to eligible drivers (sequential or broadcast — design choice), first valid accept wins; search timeout → `no_drivers` (BR-032).
 - Negotiation: broadcast offer to eligible drivers; drivers respond via `/driver/offers/{id}/responses`.
 - Driver cancellation after acceptance: record for reliability (BR-082); rematch policy open (Q-030).
-- **Access packages (D-024, BR-072):** matching must **reject drivers without an active access package**; `/driver/availability` returns `403 NO_ACTIVE_ACCESS`. On expiry while online and idle, force offline (`driver.availability_forced`, reason `access_expired`); behaviour mid-trip is open (Q-043; client assumption: trip finishes, no new requests).
+- **Access packages (D-024, BR-072):** matching must **reject drivers without an active access package**; `/driver/availability` returns `403 NO_ACTIVE_ACCESS`. On expiry while online and idle, force offline (`driver.availability_forced`, reason `access_expired`); a trip accepted while the driver had access may finish (BR-138); no new requests. "Expiry" means the end of continuous access (`activeUntil`), not the end of one pass.
 - **Location health (D-026, BR-073):** exclude drivers whose location is stale, interrupted, approximate-only, permission-lost or less accurate than the dispatch threshold (placeholder 100 m); emit `driver.matching_paused` / `driver.matching_resumed`.
 
 ## 4. Negotiation enforcement
@@ -79,7 +79,7 @@ Guiding rule: **the client displays and validates for UX; the backend decides.**
 - **Commission is 0% per trip** (D-024, Q-002 resolved 2026-10-21). Still store the rate (0) on each booking at lock time so a future change is auditable.
 - Earnings = full fare (BR-060); passenger-borne processing fees are not driver earnings. Mark trip "settled" when payment final → client stops showing "Estimated" (BR-061).
 - *(Superseded: cash-trip commission netting, Q-034 — no commission; cash itself is open.)*
-- **Driver access packages (PROPOSED):** server-configurable catalogue (`GET /driver/access-packages`; provisional Daily ₦2,000 / 1 day, Monthly ₦60,000 / 30 days), purchase (`POST /driver/access-packages/{id}/purchase`, idempotent), status/expiry (`GET /driver/access`). Purchase while active extends from current expiry (mock behaviour). Payment method for packages, renewal, grace period, refunds/pro-rating and VAT → Q-043. Audit-log package price changes.
+- **Driver access packages (PROPOSED):** server-configurable catalogue (`GET /driver/access-packages`; provisional Daily ₦2,000 / 1 day, Monthly ₦60,000 / 30 days), purchase (`POST /driver/access-packages/{id}/purchase`, idempotent), status/expiry (`GET /driver/access`). Validity comes only from the pass timeline (D-058): the payment verification job calls `recordVerifiedPayment` inside the same DB transaction as the `package_purchase` journal, with `expectedVersion` (row version on the driver's timeline) and retry on conflict; a unique constraint on `payment_ref` makes duplicate webhooks no-ops. Store `confirmed_at`, `starts_at`, `ends_at`, `access_ends_at` separately; a pass starts at max(confirmed_at, end of last scheduled pass). Voids are rows, never deletes. Serve `GET /v1/drivers/{id}/subscription` (`SubscriptionTimelineResponse`) to both clients. Payment method for packages, renewal, grace period, refunds/pro-rating and VAT → Q-043. Audit-log package price changes.
 - Payouts: bank account verification (name enquiry), schedule/minimums (Q-031), payout via provider transfers API, status webhooks, failed payout handling.
 
 ## 7. Driver verification / KYC
@@ -201,7 +201,7 @@ Swap plan:
 | A-17 | Commission rate (0%, D-024) stored per booking; earnings "Estimated" until settled | Finance |
 | A-18 | Processing fees returned as separate fields; method never changes the fare | Backend/Finance (Q-042) |
 | A-19 | Idempotency key `${bookingId}-${attempt}` for payment attempts | Backend |
-| A-20 | Buying an access package while active extends from current expiry; no grace period | Finance (Q-043) |
+| A-20 | ~~Buying while active extends from current expiry~~ Decided D-058: passes queue after the last scheduled pass. No grace period (still open) | Finance (Q-043) |
 | A-21 | Server can deliver the location update profile per activity | Backend (Q-045) |
 
 ## 16. Infrastructure contracts (D-051)

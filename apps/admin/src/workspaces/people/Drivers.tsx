@@ -6,7 +6,7 @@ import { useScopedFilter, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Icon } from '@/ui/Icon';
 import { Button, Card, ConfirmDialog, Drawer, Empty, FeaturedStat, FilterBar, KV, Meter, Notice, PageHead, Pill, SearchInput, Select, Stat, Table, Tabs, Timeline, type Column, type Tone } from '@/ui/kit';
-import { PLAN_LABEL, eligibility, subscriptionRecords } from '@/workspaces/subscriptions/logic';
+import { PLAN_LABEL, eligibility, subscriptionRecords, timelineFor } from '@/workspaces/subscriptions/logic';
 import './people.css';
 import {
   DOC_LABELS,
@@ -174,7 +174,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
   const [rejectDoc, setRejectDoc] = useState<DocumentKind | null>(null);
   const ready = documentReadiness(x, t);
   const access = accessStatus(x, t);
-  const elig = eligibility(x, t);
+  const elig = eligibility(x, timelineFor(d.subscriptions, x.id, t));
   const canVerify = can('drivers.verify');
   const canRestrict = can('drivers.restrict') || canVerify;
   const actions = verificationActions(x.verification);
@@ -186,7 +186,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
   const trips = useMemo(() => d.trips.filter((tr) => tr.driverId === x.id).sort((a, b) => b.requestedAt - a.requestedAt), [d.trips, x.id]);
   const completed = trips.filter((tr) => tr.status === 'completed');
   const tripValue = completed.reduce((s, tr) => s + (tr.agreedFare ?? 0), 0);
-  const subs = useMemo(() => subscriptionRecords(d.collections, t).filter((r) => r.driverId === x.id), [d.collections, t, x.id]);
+  const subs = useMemo(() => subscriptionRecords(d.collections, d.subscriptions, t).filter((r) => r.driverId === x.id), [d.collections, t, x.id]);
   const seeMoney = can('finance.view') || can('ledger.view');
   const contact = can('drivers.contact_details');
 
