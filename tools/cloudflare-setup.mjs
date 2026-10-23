@@ -178,10 +178,7 @@ async function main() {
   }
 
   // 4. Workers on custom domains (only once gobye.app is in this account)
-  if (!zone) {
-    step('Workers on api/media addresses', 'skip', 'waiting for gobye.app to be added to Cloudflare and visible to the token');
-    return finish();
-  }
+  if (!zone) return previewWorkers(accountId);
   let bound = [];
   try {
     bound = (await cf('GET', `/accounts/${accountId}/workers/domains`)).result || [];
@@ -201,14 +198,14 @@ async function main() {
         step(`${w.label} (${env})`, 'plan', ours ? `already on https://${host}; would redeploy the latest code` : `would deploy and attach https://${host}`);
         continue;
       }
-      const d = wrangler(['deploy', '-c', w.config, '--env', env]);
+      const d = wrangler(['deploy', '-c', w.config, '--env', env], undefined, accountId);
       if (!d.ok) {
         step(`${w.label} (${env})`, 'fail', d.out.split('\n').filter((l) => /error|✘/i.test(l)).slice(0, 4).join(' | ') || 'wrangler deploy failed');
         continue;
       }
       step(`${w.label} (${env})`, 'made', `deployed, https://${host}`);
       for (const name of w.secrets) {
-        const s = wrangler(['secret', 'put', name, '-c', w.config, '--env', env], randomBytes(32).toString('base64url'));
+        const s = wrangler(['secret', 'put', name, '-c', w.config, '--env', env], randomBytes(32).toString('base64url'), accountId);
         step(`  secret ${name} (${env})`, s.ok ? 'made' : 'fail', s.ok ? 'stored in Cloudflare (random, not shown)' : 'could not store');
       }
     }
@@ -226,6 +223,68 @@ async function main() {
         } catch (e) {
           step(`Check ${url}`, 'warn', `not answering yet (${e.cause?.code || e.message}); new certificates can take a few minutes`);
         }
+      }
+    }
+  }
+  return finish();
+}
+
+/** No gobye.app zone yet: put both Workers on the account's free workers.dev address instead. */
+async function previewWorkers(accountId) {
+  step('api/media custom addresses', 'skip', 'waiting for gobye.app on Cloudflare; using workers.dev preview addresses instead');
+  let sub = null;
+  try {
+    sub = (await cf('GET', `/accounts/${accountId}/workers/subdomain`)).result?.subdomain || null;
+  } catch {
+    /* not registered yet */
+  }
+  if (!sub) {
+    if (!APPLY) {
+      step('workers.dev subdomain', 'plan', 'would register gobye.workers.dev (or similar) for this account');
+    } else {
+      for (const name of ['gobye', 'gobye-app', `gobye-${randomBytes(2).toString('hex')}`]) {
+        try {
+          await cf('PUT', `/accounts/${accountId}/workers/subdomain`, { subdomain: name });
+          sub = name;
+          step('workers.dev subdomain', 'made', `${name}.workers.dev`);
+          break;
+        } catch (e) {
+          if (!/taken|exists|unavailable|10036|10037/i.test(e.message)) {
+            step('workers.dev subdomain', 'fail', `${e.message}. Open Workers & Pages in the dashboard once to choose a subdomain, then run again.`);
+            return finish();
+          }
+        }
+      }
+    }
+  } else step('workers.dev subdomain', 'ok', `${sub}.workers.dev`);
+  for (const w of WORKERS) {
+    const script = w.config.includes('api-gateway') ? 'gobye-api-gateway-preview' : 'gobye-media-gateway-preview';
+    const host = sub ? `${script}.${sub}.workers.dev` : `${script}.<subdomain>.workers.dev`;
+    if (!APPLY) {
+      step(`${w.label} (preview)`, 'plan', `would deploy to https://${host}`);
+      continue;
+    }
+    const d = wrangler(['deploy', '-c', w.config, '--env', 'preview'], undefined, accountId);
+    if (!d.ok) {
+      step(`${w.label} (preview)`, 'fail', d.out.split('\n').filter((l) => /error|✘/i.test(l)).slice(0, 4).join(' | ') || 'wrangler deploy failed');
+      continue;
+    }
+    step(`${w.label} (preview)`, 'made', `https://${host}`);
+    report.previewUrls = { ...(report.previewUrls || {}), [w.label]: `https://${host}` };
+    for (const name of w.secrets) {
+      const s = wrangler(['secret', 'put', name, '-c', w.config, '--env', 'preview'], randomBytes(32).toString('base64url'), accountId);
+      step(`  secret ${name} (preview)`, s.ok ? 'made' : 'fail', s.ok ? 'stored in Cloudflare (random, not shown)' : 'could not store');
+    }
+  }
+  if (APPLY && sub) {
+    await new Promise((r) => setTimeout(r, 8000));
+    for (const [label, url] of Object.entries(report.previewUrls || {})) {
+      const check = url + (label === 'API gateway' ? '/health/live' : '/');
+      try {
+        const res = await fetch(check, { signal: AbortSignal.timeout(10000) });
+        step(`Check ${check}`, 'ok', `HTTP ${res.status}`);
+      } catch (e) {
+        step(`Check ${check}`, 'warn', `not answering yet (${e.cause?.code || e.message}); a new workers.dev address can take a minute`);
       }
     }
   }

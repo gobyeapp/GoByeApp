@@ -35,3 +35,14 @@ PUBLIC_HOST = "api.gobye.app"
 ORIGINS_JSON = "[]"
 TRAFFIC_POLICY = "primary_only"
 ALLOWED_ORIGINS = "https://admin.gobye.app"
+
+# Preview on a workers.dev address (no domain needed). Used until gobye.app is on Cloudflare.
+[env.preview]
+name = "gobye-api-gateway-preview"
+workers_dev = true
+[env.preview.vars]
+ENVIRONMENT = "staging"
+PUBLIC_HOST = "workers.dev"
+ORIGINS_JSON = "[]"
+TRAFFIC_POLICY = "primary_only"
+ALLOWED_ORIGINS = ""

@@ -14,3 +14,9 @@ r2_buckets = [{ binding = "PUBLIC_MEDIA", bucket_name = "gobye-staging-public-me
 name = "gobye-media-gateway"
 routes = [{ pattern = "media.gobye.app", custom_domain = true }]
 r2_buckets = [{ binding = "PUBLIC_MEDIA", bucket_name = "gobye-prod-public-media" }]
+
+# Preview on a workers.dev address (no domain needed), serving the STAGING public bucket only.
+[env.preview]
+name = "gobye-media-gateway-preview"
+workers_dev = true
+r2_buckets = [{ binding = "PUBLIC_MEDIA", bucket_name = "gobye-staging-public-media" }]
