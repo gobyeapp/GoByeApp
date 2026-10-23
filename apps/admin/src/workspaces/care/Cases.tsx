@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import type { CaseCategory, CasePriority, CaseRecord, CaseStatus, RefundRecord, RefundStatus } from '@gobye/core';
 import { RecordLink, PAYMENT_STATE } from '@/data/records';
 import { useScopedFilter, useSession } from '@/data/session';
@@ -78,7 +78,10 @@ export default function Cases() {
     d.staff.forEach((s) => m.set(s.id, s.name));
     return m;
   }, [d.passengers, d.drivers, d.staff]);
-  const customerOf = (c: CaseRecord) => (c.openedBy.kind === 'passenger' || c.openedBy.kind === 'driver' ? c.openedBy.name : c.links.passengerId ? nameOf.get(c.links.passengerId) : c.links.driverId ? nameOf.get(c.links.driverId) : undefined) ?? 'Unknown';
+  const customerOf = useCallback(
+    (c: CaseRecord) => (c.openedBy.kind === 'passenger' || c.openedBy.kind === 'driver' ? c.openedBy.name : c.links.passengerId ? nameOf.get(c.links.passengerId) : c.links.driverId ? nameOf.get(c.links.driverId) : undefined) ?? 'Unknown',
+    [nameOf],
+  );
 
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -92,7 +95,7 @@ export default function Cases() {
           (!s || c.ref.toLowerCase().includes(s) || c.subject.toLowerCase().includes(s) || customerOf(c).toLowerCase().includes(s)),
       ),
     );
-  }, [scoped, tab, me, category, priority, status, q, nameOf]);
+  }, [scoped, tab, me, category, priority, status, q, customerOf]);
 
   const counts = {
     mine: scoped.filter((c) => inTab(c, 'mine', me)).length,

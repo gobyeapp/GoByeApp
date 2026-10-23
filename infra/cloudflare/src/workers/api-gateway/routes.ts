@@ -18,7 +18,6 @@ export interface RouteRule {
 }
 
 const KB = 1024;
-const READ = ['GET', 'HEAD'] as const;
 const WRITE = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'] as const;
 
 export const RULES: Record<RouteClass, RouteRule> = {

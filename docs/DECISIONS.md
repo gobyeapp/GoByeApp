@@ -492,3 +492,52 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - Staff permissions (`permissionsOf`, the admin's table) require `aal2` when `STAFF_REQUIRE_MFA` is on (mandatory in production).
 - **Resolves (partly) Q-065:** Supabase Auth is the auth provider; the SMS provider for phone OTP is still open.
 - **Plan:** `AUTHENTICATION_PLAN.md`.
+
+## D-062 — PROPOSED: phone verification at onboarding, on new devices and before sensitive actions (amends D-045 / D-048) (2026-10-23, Phase 1.5)
+
+- **Status: Proposed. Not approved.** D-045 and D-048 stay in force until the owner approves this entry and it is marked Accepted here. No code implements either version yet; the apps' sign-in is still simulated.
+- **Purpose kept from D-045:** every rider and driver has a **phone number that was proven reachable**, so a driver can reach the rider at pickup (and support can reach both). Also: a stolen password alone must not be enough to take over an account or move money.
+- **What changes:** D-045 says every sign-in ends with a 6-digit code to the phone. Delivered literally through Supabase, that is the **Advanced MFA (Phone)** add-on: $75/month for the first project and $10 per additional project, plus every SMS. It also sends an SMS on every sign-in, which adds cost and SMS-pumping exposure (R-5) without a safety gain after the number is proven. Proposed instead:
+  1. **Onboarding:** the phone number is verified by OTP before the account can book or drive (Supabase phone verification through the SMS provider or Send SMS hook, A-4). A number already verified on another account is refused or sent to support.
+  2. **New or untrusted device:** a sign-in from a device the account has not verified before needs a phone OTP. The app keeps a device key in secure storage; the API records verified devices per user, revocable from Account and by support.
+  3. **Sensitive actions (step-up):** a fresh OTP (or staff TOTP), not older than 5 minutes, before:
+     - changing the phone number, email or password;
+     - adding or changing a payout or bank account;
+     - wallet withdrawals or transfers (when they exist after the money reviews);
+     - deleting the account.
+  4. **Ordinary sign-in on a trusted device:** password, Apple or Google, with no SMS.
+  5. **Sessions:** 15-minute access tokens (A-6), refresh-token rotation with reuse detection, sign-out revokes the refresh token, and suspension takes effect on the next request (already true: principals are read from the database).
+  6. **Staff:** unchanged. TOTP is mandatory (`aal2`, D-061).
+- **Threat controls added to keep the purpose:**
+  - per-number, per-device and per-IP OTP rate limits;
+  - Nigerian numbers only at launch;
+  - CAPTCHA (Turnstile) before OTP on web;
+  - SMS spend alerts;
+  - a notice to the old phone and the email on a phone change, with a 24-hour hold on payout changes after it;
+  - device list and "sign out everywhere" in Account;
+  - audit rows for every verification and step-up.
+- **Not enabled:** the paid Advanced MFA Phone add-on, which needs explicit approval.
+- **Cost:**
+  - SMS per OTP (onboarding, new devices and step-ups only), provider price unknown (A-4);
+  - no fixed add-on fee.
+- **Work it implies (Phase 2):**
+  - a `user_devices` table and the device-verification flow;
+  - a step-up check (`@RequireRecentVerification`);
+  - OTP rate limits;
+  - app screens for "verify this device" and step-up;
+  - tests.
+- **Approval needed:** owner (A-3, A-4, A-6). On approval, mark this entry Accepted, mark D-045's phone-code step "amended by D-062", and update `AUTHENTICATION_PLAN.md` §6 from "proposed" to "decided".
+
+## D-063 — Engineering checks for the backend: role-level DB timeouts, CI, lint (2026-10-23, Phase 1.5)
+
+- **Database timeouts (C-1):**
+  - No session settings at connection start: no `statement_timeout`, `options` or `search_path` start-up parameters.
+  - Timeouts come from the role (`apps/api/db/roles.sql`), `SET LOCAL` per transaction, and a client-side `query_timeout`.
+  - Regression-tested through PgBouncer in transaction mode. `migrate.js check-runtime` checks a real environment.
+- **CI:**
+  - `.github/workflows/ci.yml`, read-only, actions pinned by commit SHA.
+  - Typecheck, lint, every workspace's tests, the Expo exports and the admin build.
+  - API tests against PostgreSQL 16 with a non-superuser admin role like Supabase's, plus PgBouncer. Database tests must run: a skip, an unreachable database or a `not ok` fails the job (`scripts/test-strict.mjs`).
+  - The API image is built with a digest-pinned base and smoke-tested (`scripts/docker-smoke.sh`).
+- **Lint:** ESLint 10 flat config at the root with the recommended JavaScript and typescript-eslint rules, plus React hooks. Problems were fixed in code. The only relaxations are written in `eslint.config.mjs` with their reason: Metro asset `require()`, Jest mock factories, and `_`-prefixed unused names.
+- **Not adopted:** type-aware lint rules. They would roughly double CI time and need per-workspace project setup. Revisit when Phase 2 grows the API.

@@ -21,6 +21,14 @@
     "demo:relay": "node tools/demo-relay/server.mjs",
     "infra:test": "npm run test --workspace infra/cloudflare",
     "check:env": "node tools/check-env.mjs",
-    "cloudflare:setup": "node tools/cloudflare-setup.mjs"
+    "cloudflare:setup": "node tools/cloudflare-setup.mjs",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "typescript-eslint": "^8.72.0"
   }
 }

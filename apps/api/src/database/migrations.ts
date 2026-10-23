@@ -125,7 +125,7 @@ export async function migrate(client: Client, files: MigrationFile[], log: (m: s
           await client.query('commit');
         } catch (e) {
           await client.query('rollback').catch(() => undefined);
-          throw new Error(`Migration ${f.version}_${f.name} failed and was rolled back: ${(e as Error).message}`);
+          throw new Error(`Migration ${f.version}_${f.name} failed and was rolled back: ${(e as Error).message}`, { cause: e });
         }
       } else {
         await client.query(f.sql);

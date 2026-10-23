@@ -14,9 +14,10 @@ import { providersFromConfig } from '../src/providers/providers';
 /**
  * Test database: a fresh, throwaway database per test file on the Postgres at TEST_DATABASE_ADMIN_URL
  * (default: the local development server). Tests that need it skip with a clear reason when no Postgres
- * is reachable, so `npm test` still runs the rest on a laptop without Postgres.
+ * is reachable, so `npm test` still runs the rest on a laptop without Postgres. CI sets
+ * REQUIRE_DATABASE_TESTS=1 (and REQUIRE_POOLER_TESTS=1), which turns a skip into a failure.
  */
-const ADMIN_URL = process.env.TEST_DATABASE_ADMIN_URL ?? 'postgres://gobye:gobye_local_only@127.0.0.1:5432/postgres';
+export const ADMIN_URL = process.env.TEST_DATABASE_ADMIN_URL ?? 'postgres://gobye:gobye_local_only@127.0.0.1:5432/postgres';
 
 export interface TestDb {
   db: Database;
@@ -35,6 +36,8 @@ export async function postgresAvailable(): Promise<boolean> {
   } catch {
     reachable = false;
   }
+  // CI sets REQUIRE_DATABASE_TESTS=1: an unreachable database must fail the run, never skip silently.
+  if (!reachable && process.env.REQUIRE_DATABASE_TESTS === '1') throw new Error(`REQUIRE_DATABASE_TESTS=1 but ${NO_DB_REASON}`);
   return reachable;
 }
 export const NO_DB_REASON = `PostgreSQL not reachable at TEST_DATABASE_ADMIN_URL (${ADMIN_URL.replace(/:[^:@/]+@/, ':***@')}); database tests skipped`;

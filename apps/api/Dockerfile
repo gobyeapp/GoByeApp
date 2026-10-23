@@ -7,7 +7,13 @@
 #   Migrations: node apps/api/dist/apps/api/src/migrate.js up   (a release step, before the new API starts)
 # Secrets are never baked in: they come from the host's environment at run time.
 
-ARG NODE_IMAGE=node:22.22.0-bookworm-slim
+# Pinned by the multi-architecture INDEX digest (Phase 1.5), so every build uses the same bytes even if
+# the tag is re-pushed. The tag is kept for readability; Docker uses the digest.
+#   node:22.23.4-bookworm-slim, Docker Hub library/node, index digest read 2026-10-23 from
+#   hub.docker.com/v2/repositories/library/node/tags/22.23.4-bookworm-slim (and 22-bookworm-slim, same digest).
+# To update: read the new tag's top-level "digest" from that API (not a per-architecture digest), change
+# both lines below, and let CI build and smoke-test the image (.github/workflows/ci.yml, job "docker").
+ARG NODE_IMAGE=node:22.23.4-bookworm-slim@sha256:de170b39439eb0e5a3444ad7d60b015614a381e10fecae2e30ec9e735122f38d
 
 # ---- 1. Install all dependencies of the API workspace (only), from the shared lock file ----
 FROM ${NODE_IMAGE} AS deps

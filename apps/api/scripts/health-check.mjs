@@ -46,7 +46,9 @@ async function get(path, headers = {}) {
   let json = null;
   try {
     json = JSON.parse(text);
-  } catch {}
+  } catch {
+    // Not JSON: the checks below report it using `text`.
+  }
   return { status: res.status, headers: res.headers, json, text, ms };
 }
 
@@ -58,7 +60,9 @@ async function main() {
     try {
       live = await get('/health/live');
       if (live.status === 200) break;
-    } catch {}
+    } catch {
+      // Not reachable yet: keep waiting until the deadline.
+    }
     await new Promise((r) => setTimeout(r, 3000));
   }
   check('live: 200 {status:"ok"}', live?.status === 200 && live.json?.status === 'ok', live ? `HTTP ${live.status}` : 'no answer');

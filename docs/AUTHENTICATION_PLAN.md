@@ -72,3 +72,31 @@ Token claims such as `user_metadata` and `app_metadata` grant nothing. `user_met
 - [ ] The staff session without TOTP gets `MFA_REQUIRED`; with TOTP it gets its role permissions
 - [ ] A suspended person is refused on their next request
 - [ ] Phone OTP rate limits and Apple/Google sign-in work in the apps (manual)
+
+## 6. Rider and driver verification: PROPOSED change to D-045 / D-048 (D-062, not approved)
+
+**Status:** proposal only. D-045 ("every sign-in ends with a phone code") stays the recorded decision until the owner approves D-062 and `DECISIONS.md` is updated.
+
+| Moment | D-045 / D-048 as written | D-062 proposal |
+|---|---|---|
+| Sign-up | Phone code | Phone code (unchanged): the number must be proven before booking or driving |
+| Sign-in, trusted device | Phone code every time | Password, Apple or Google only |
+| Sign-in, new or untrusted device | Phone code | Phone code, then the device is remembered (revocable) |
+| Change phone, email, password; payout or bank details; withdrawals; account deletion | Not specified | Fresh phone code (≤ 5 min) as a step-up; notice to the old phone and email; 24-hour hold on payout changes after a phone change |
+| Sessions | 15 min proposed (A-6) | 15 min access token; refresh rotation with reuse detection; sign-out revokes |
+| Staff | TOTP (`aal2`) | Unchanged |
+| Supabase add-on | Advanced MFA (Phone): $75/month for the first project and $10 for each additional, if done with Supabase MFA | **None.** Phone verification through the SMS provider or Send SMS hook (A-4). The add-on is **not** enabled without explicit approval. |
+
+**Abuse controls:**
+- OTP rate limits per number, per device and per IP;
+- Nigerian numbers only at launch;
+- Turnstile CAPTCHA before OTP on web;
+- SMS spend alerts;
+- an audit row for each verification and step-up.
+
+**Phase 2 work if approved:**
+- `app.user_devices` table;
+- `POST /v1/me/devices/verify`;
+- the `@RequireRecentVerification()` guard;
+- app screens for device verification and step-up;
+- tests.

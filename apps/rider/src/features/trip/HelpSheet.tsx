@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Button, Icon, Sheet, Text, layout, spacing, useTheme, type IconName } from '@gobye/ui';
+import { Button, Icon, Sheet, Text, layout, useTheme, type IconName } from '@gobye/ui';
 
 /**
  * In-trip Help (brief §8): emergency (112), safety centre, report an issue, and — once on board —

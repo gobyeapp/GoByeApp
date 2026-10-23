@@ -524,7 +524,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
     const ride = relayRides.current.get(request.id);
     if (relay && ride) {
       if (ride.kind === 'negotiate') return answerOffer(request, 'accept', request.amount);
-      let won = false;
+      let won: boolean;
       try {
         won = await claimRide(relay, ride.id, summary(), Date.now());
       } catch {
@@ -554,7 +554,6 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       }, between(SIM.riderReplyMs));
       return { ok: true, value: true };
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [request, beginTrip, relay, answerOffer],
   );
 
@@ -655,7 +654,6 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       later(() => persist((prev) => (prev.activeTrip?.id === id ? { ...prev, activeTrip: { ...prev.activeTrip, paymentStatus: 'confirmed' } } : prev)), SIM.walletConfirmMs);
     }
     return { ok: true, value: true };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setTrip, persist, syncRide]);
 
   const cancel = useCallback(

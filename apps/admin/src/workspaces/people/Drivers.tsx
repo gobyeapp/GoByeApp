@@ -186,7 +186,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
   const trips = useMemo(() => d.trips.filter((tr) => tr.driverId === x.id).sort((a, b) => b.requestedAt - a.requestedAt), [d.trips, x.id]);
   const completed = trips.filter((tr) => tr.status === 'completed');
   const tripValue = completed.reduce((s, tr) => s + (tr.agreedFare ?? 0), 0);
-  const subs = useMemo(() => subscriptionRecords(d.collections, d.subscriptions, t).filter((r) => r.driverId === x.id), [d.collections, t, x.id]);
+  const subs = useMemo(() => subscriptionRecords(d.collections, d.subscriptions, t).filter((r) => r.driverId === x.id), [d.collections, d.subscriptions, t, x.id]);
   const seeMoney = can('finance.view') || can('ledger.view');
   const contact = can('drivers.contact_details');
 

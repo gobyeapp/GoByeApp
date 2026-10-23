@@ -563,8 +563,13 @@ export function Drawer({ title, onClose, children, footer, sub }: { title: React
         if (!f.length) return;
         const first = f[0]!;
         const last = f[f.length - 1]!;
-        if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) (e.preventDefault(), last.focus());
-        else if (!e.shiftKey && document.activeElement === last) (e.preventDefault(), first.focus());
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === ref.current)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     };
     window.addEventListener('keydown', k);

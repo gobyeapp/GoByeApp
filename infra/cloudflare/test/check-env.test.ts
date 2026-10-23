@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-// @ts-ignore — plain ESM script in tools/, no type declarations (D-051).
+// @ts-expect-error — plain ESM script in tools/, no type declarations (D-051).
 import { checkEnv, parseEnv } from '../../../tools/check-env.mjs';
 
 /** tools/check-env.mjs: public variables must never carry server secrets (D-051). */

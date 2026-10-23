@@ -7,6 +7,15 @@ import { clientPut, fakeBucket, sha256Hex } from './r2-fake';
 const SECRET = 'test-only-assertion-secret-0123456789abcdef';
 const T0 = Date.UTC(2026, 9, 22, 12);
 
+/** The response fields these tests read (every field optional: each endpoint returns a subset). */
+interface ResponseBody {
+  file: { fileId: string; status: string };
+  files: unknown[];
+  upload: { url: string; headers: Record<string, string> };
+  url: string;
+  error: { code: string };
+}
+
 function setup(scanner: MalwareScanner = createTestScanner('clean')) {
   let t = T0;
   let n = 0;
@@ -28,7 +37,7 @@ function setup(scanner: MalwareScanner = createTestScanner('clean')) {
     const headers: Record<string, string> = { 'content-type': 'application/json', ...extra };
     if (who) headers[ASSERTION_HEADER] = await signAssertion({ sub: who.sub, roles: who.roles as never, iat: t }, SECRET);
     const res = await worker.fetch(new Request(`https://api.gobye.app${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) }), env);
-    return { status: res.status, body: (await res.json()) as any, headers: res.headers };
+    return { status: res.status, body: (await res.json()) as ResponseBody, headers: res.headers };
   };
   return { env, byName, call, audit, tick: (ms: number) => (t += ms), now: () => t };
 }
@@ -61,8 +70,8 @@ describe('upload signer worker', () => {
     const done = await s.call('POST', `/v1/files/uploads/${init.body.file.fileId}/complete`, driver);
     expect(done.status).toBe(200);
     expect(done.body.file.status).toBe('approved');
-    expect((s.env.DOCUMENTS as any).data.size).toBe(1);
-    expect((s.env.UPLOADS as any).data.size).toBe(0);
+    expect((s.env.DOCUMENTS as unknown as ReturnType<typeof fakeBucket>).data.size).toBe(1);
+    expect((s.env.UPLOADS as unknown as ReturnType<typeof fakeBucket>).data.size).toBe(0);
     const dl = await s.call('GET', `/v1/files/${init.body.file.fileId}/download`, driver);
     expect(dl.status).toBe(200);
     expect(new URL(dl.body.url).searchParams.get('X-Amz-Expires')).toBe('60');
@@ -132,7 +141,7 @@ describe('upload signer worker', () => {
     const c = await s.call('POST', `/v1/files/uploads/${mis.body.file.fileId}/complete`, driver);
     expect(c.status).toBe(422);
     expect(c.body.error.code).toBe('verification_failed');
-    expect((s.env.UPLOADS as any).data.size).toBe(0);
+    expect((s.env.UPLOADS as unknown as ReturnType<typeof fakeBucket>).data.size).toBe(0);
   });
 
   it('infected file: quarantined, never downloadable, owner told it failed checks', async () => {

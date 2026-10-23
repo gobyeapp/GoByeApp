@@ -172,7 +172,9 @@ describe('Negotiate lifecycle', () => {
   });
 
   it('raising an offer withdraws responses to the previous offer', () => {
-    let { s, offer } = setup();
+    const setupResult = setup();
+    const { offer } = setupResult;
+    let { s } = setupResult;
     s = bookingReducer(s, { type: 'RESPONSE_RECEIVED', response: response('r1', 1), now: 2000 });
     const raised = createOffer({ id: 'o2', amount: naira(3000), config: C, now: 5000, previous: offer });
     s = bookingReducer(s, { type: 'OFFER_SENT', offer: raised, now: 5000 });

@@ -15,7 +15,7 @@
 | Variables | Per environment, encrypted at rest. Saving triggers a redeploy. Build-time vs runtime-only keys. | Audit trail of who changed a variable. |
 | Domains | Custom domains with "SSL activation". | Whether a Cloudflare-proxied hostname (our gateway → origin) works; origin certificate behaviour. |
 | Databases | Managed databases, connection pooling on paid plans. | Not needed: we use Supabase. |
-| Plans | Free (0.5 vCPU, 512 MB, no backups), Ignite, Pro, Enterprise ("SLA" mentioned on Enterprise only). Naira or dollar billing. | **Prices** (not shown on the public page). **Regions / data-centre locations.** **Bandwidth limits.** **Uptime SLA** below Enterprise. |
+| Plans | Free (0.5 vCPU, 512 MB, 2 projects, 1 node, no backups), Ignite (1 vCPU, 1.5 GB, 3 nodes, 7-day backups), Pro (1.5 vCPU, 2 GB, 10 nodes, 30-day backups), Enterprise (4 vCPU, 8 GB, "SLA"). Naira or dollar billing. Re-read 2026-10-23: the page text still shows no price. | **Prices** (not shown on the public page). **Regions / data-centre locations.** **Bandwidth limits.** **Uptime SLA** below Enterprise. |
 
 Sources: [stackshift.cloud](https://stackshift.cloud/), [pricing](https://stackshift.cloud/pricing), docs: [deploy from GitHub](https://docs.stackshift.cloud/projects/deploy-from-github.md), [deploy a Docker image](https://docs.stackshift.cloud/projects/deploy-a-docker-image.md), [environment, domains and previews](https://docs.stackshift.cloud/projects/environment-domains-and-previews.md).
 
@@ -35,7 +35,7 @@ Then, in the staging gateway Worker:
 
 1. Owner: create the StackShift account and project; choose the plan that allows two services (worker + API).
 2. Connect the GitHub repository; set the Dockerfile path to `apps/api/Dockerfile` and the build context to the repo root.
-   - If StackShift can't do that, use the image path instead: GitHub Actions builds and pushes to GHCR, and StackShift deploys by digest. The CI template has the build step.
+   - If StackShift can't do that, use the image path instead: GitHub Actions builds and pushes to GHCR, and StackShift deploys by digest. `.github/workflows/ci.yml` already builds and smoke-tests the image; a push-to-GHCR step needs approval and a `packages: write` permission, so it is not there yet.
 3. Set the variables from `staging.env.example` (secrets from the password manager). `APP_VERSION` = the commit SHA.
 4. Run the release step (`migrate.js status`, then `up`) against the **staging** Supabase project.
 5. Deploy the API and the worker. Set the platform health check to `GET /health/live` if configurable.
@@ -72,3 +72,22 @@ If D1–D5, N1–N2, R1–R3 and S1–S2 pass and B1 has a written price, StackS
 - [ ] Gateway signature required and S1 passing
 - [ ] Alerting on the health check and error rate goes to a named person (Q-072)
 - [ ] Owner approval for the first production deploy
+
+## 6. Phase 1.5: what is verified, and what only the real host can show (2026-10-23)
+
+**No StackShift account was available, so nothing was deployed.** Everything below was checked on the actual API image, built from `apps/api/Dockerfile`, with Docker locally. The real base image (Docker Hub) is blocked from this workspace. A stand-in base with the same Node 22 major was used. CI builds the real, digest-pinned base (`.github/workflows/ci.yml`, job `docker`).
+
+| Brief item | Verified locally (stand-in base) | Still to verify on StackShift |
+|---|---|---|
+| CPU and memory | 0.5 CPU / 512 MB cap: ≈ 50 MB idle, ≈ 61 MB under 1,200 requests/s, no OOM (`STAGING_COST_ESTIMATE.md` §3) | Real traffic with sign-in and TLS (R3); the plan's actual CPU share |
+| Environment variables | Invalid config exits **78** and names the variables without printing values; `check-runtime` prints no secrets | Encrypted variables reach the container; redeploy on change (D4); nothing in build logs |
+| Docker compatibility | Multi-stage build; non-root user `node`; no TypeScript sources in the image; Docker `HEALTHCHECK` turns healthy | Dockerfile outside the repo root with a root context (D1); or deploy by digest |
+| Health routing | `/health/live` 200; `/health/ready` 200 with the database and 503 without it; `health-check.mjs` passes from inside the image | Which path the platform probes; that `/health/ready` gates traffic |
+| Worker behaviour | Worker in-process (`WORKER_ENABLED=true`) and as its own process; both stop cleanly on SIGTERM (exit 0) | A "worker" service type with no ingress; job lease recovery across a redeploy (D5) |
+| Logging | JSON lines (pino) per request with request id, version and environment; no bodies; Nest start-up lines are JSON in staging and production | Retention, search and export on the platform (not published) |
+| Restarts | SIGTERM: the API stops the worker, closes the server (which lets in-flight requests finish) and the pool, then exits 0 in under 1 s. Stopping **under load** was not tested here (D5). | Restart on a hung process via the health check (R2); restart policy |
+| Connectivity to Supabase | Through PgBouncer in transaction mode, role timeouts apply (C-1 tests). TLS settings come only from `DATABASE_SSL` / `DATABASE_CA_CERT`. | Egress from the platform's region to the Supabase pooler; latency (N2); `check-runtime` OK |
+| Database exposure | The API never listens for database traffic. Supabase is reached outbound over TLS only. StackShift's managed databases are **not** used. | Whether the host offers fixed egress addresses for Supabase network restrictions |
+| Limits and pricing | — | **Prices are not published.** Bandwidth, regions and SLA below Enterprise are unknown. Needs a written quote (Q-075). |
+
+**Smallest fit for staging:** one Free-plan service running the API with the worker in-process. That is enough for staging at the measured footprint. Production still needs two API instances and a separate worker (§2).

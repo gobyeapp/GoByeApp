@@ -36,11 +36,23 @@ export function poolConfig(url: string, cfg: Pick<AppConfig, 'DATABASE_SSL' | 'D
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 5_000,
     application_name: `${appName}-${cfg.APP_ENV}`,
-    // Server-side limit for every statement, inside or outside a transaction (sent at connection start;
-    // also set it on the role, DATABASE_MIGRATIONS.md §Roles, for poolers that ignore start-up options).
-    statement_timeout: cfg.DATABASE_STATEMENT_TIMEOUT_MS,
+    // C-1 (Phase 1.5): NO session settings here. A `statement_timeout` (or `options=-c …`) start-up
+    // parameter is rejected by PgBouncer ("unsupported startup parameter") and is not carried through
+    // Supavisor's transaction mode (port 6543), where each transaction may run on a different server
+    // connection. Timeouts come from three layers that all work through a transaction pooler:
+    //   1. the role: `alter role gobye_api set statement_timeout …` (apps/api/db/roles.sql), applied by
+    //      the server to every connection it opens for that role;
+    //   2. every transaction: SET LOCAL statement_timeout / lock_timeout (Database.tx);
+    //   3. the client: query_timeout on every pool query (Database.query).
+    // See STARTUP_PARAMETERS_ALLOWED and the regression tests in config.test.ts / pooler.test.ts.
   };
 }
+
+/**
+ * The only connection start-up parameters the API may send. Anything else (statement_timeout, options,
+ * search_path, …) is session state that a transaction pooler does not preserve or refuses outright.
+ */
+export const STARTUP_PARAMETERS_ALLOWED = ['application_name'] as const;
 
 export class Database implements Querier {
   private constructor(

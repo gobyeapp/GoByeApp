@@ -1,6 +1,6 @@
 # Database migrations: safe workflow (D-059)
 
-**Status:** the runner and the five initial migrations are built and tested against PostgreSQL 16 (`apps/api/test/database.test.ts`). No Supabase database has been migrated yet.
+**Status:** the runner, the five initial migrations and the role scripts are built and tested against PostgreSQL 16 (`apps/api/test/database.test.ts`, `pooler.test.ts`), directly and through PgBouncer. No Supabase database has been migrated yet.
 
 ## Rules
 
@@ -45,32 +45,42 @@ On StackShift, run `up` as a one-off release command from the same image, before
 4. Run `node apps/api/scripts/health-check.mjs <url> --expect-version <sha>`.
 5. If the health check fails: roll the API back to the previous image. That is safe because every migration is additive (rule 3). Never roll back a migration.
 
-## Roles (run once per Supabase project, as `postgres`; passwords from a password manager)
+## Roles (once per Supabase project; the SQL is in `apps/api/db/`)
 
-```sql
--- Owner of the GoBye schemas; used only by the migration step.
-create role gobye_migrator login password '<from password manager>' noinherit;
-grant create on database postgres to gobye_migrator;
--- Runtime role for the API and the worker: data access only, no DDL.
-create role gobye_api login password '<from password manager>' noinherit;
--- After the first migration (schemas exist):
-grant usage on schema app, ops to gobye_api;
-grant select, insert, update, delete on all tables in schema app, ops to gobye_api;
-grant usage, select on all sequences in schema app, ops to gobye_api;
-alter default privileges for role gobye_migrator in schema app, ops grant select, insert, update, delete on tables to gobye_api;
-alter default privileges for role gobye_migrator in schema app, ops grant usage, select on sequences to gobye_api;
--- RLS is on with no policies; the runtime role reads through it only as table owner or with bypassrls:
-alter role gobye_api bypassrls;
--- Server-side limits for every statement, even through the pooler:
-alter role gobye_api set statement_timeout = '5s';
-alter role gobye_api set lock_timeout = '3s';
-alter role gobye_api set idle_in_transaction_session_timeout = '30s';
+Passwords come from the password manager through `psql -v`, never from a file, chat or the command history. Use `read -s` to load them:
+
+```bash
+# 1. As `postgres`, over a SESSION connection (5432), BEFORE the first migration:
+read -s GOBYE_MIGRATOR_PASSWORD; read -s GOBYE_API_PASSWORD
+psql "$ADMIN_SESSION_URL" -v ON_ERROR_STOP=1 \
+     -v migrator_password="$GOBYE_MIGRATOR_PASSWORD" -v api_password="$GOBYE_API_PASSWORD" \
+     -f apps/api/db/roles.sql
+# 2. Migrations as gobye_migrator (DATABASE_MIGRATION_URL), from the image or the build:
+node apps/api/dist/apps/api/src/migrate.js up
+# 3. As gobye_migrator (the owner of the app and ops schemas), after each migration that adds tables:
+psql "$DATABASE_MIGRATION_URL" -v ON_ERROR_STOP=1 -f apps/api/db/grants.sql
+# 4. Check the runtime connection the way the API uses it (transaction pooler, gobye_api):
+node apps/api/dist/apps/api/src/migrate.js check-runtime
 ```
 
-**Checked on plain PostgreSQL 16 (2026-10-23):**
+What the files do:
+- **`roles.sql`** (safe to re-run):
+  - creates `gobye_migrator` and `gobye_api` (`login noinherit`);
+  - sets their passwords;
+  - grants `create` on the database to the migrator;
+  - `alter role gobye_api bypassrls`;
+  - sets the **role-level limits that hold through a transaction pooler** (C-1): `gobye_api` gets `statement_timeout 5s`, `lock_timeout 3s` and `idle_in_transaction_session_timeout 30s`; `gobye_migrator` gets `statement_timeout 15min` as a ceiling for `CREATE INDEX CONCURRENTLY`.
+  - It refuses to run without both passwords.
+- **`grants.sql`:** usage on `app` and `ops`, DML on all tables and sequences, and default privileges for future tables. It runs as `gobye_migrator`, because a non-superuser `postgres` can't grant on another role's tables.
+- **`check-runtime`** connects with `DATABASE_URL` and reports the role, the timeouts it got from the server, TLS, `bypassrls`, superuser and DDL rights. It exits 1 on any problem and prints no secret.
+
+**Why role-level (C-1):** the API used to send `statement_timeout` as a connection start-up parameter. PgBouncer refuses that parameter, and Supavisor's transaction mode (6543) doesn't carry session settings between transactions. The server applies role settings to every connection it opens for the role, so nothing has to be sent. `SET LOCAL` in each transaction and the client-side `query_timeout` remain as the second and third layers. Tested in `apps/api/test/pooler.test.ts` through PgBouncer in transaction mode (not Supavisor; the staging check is `check-runtime`).
+
+**Checked on plain PostgreSQL 16 (2026-10-23), with a non-superuser admin that has `CREATEROLE` + `BYPASSRLS`, like Supabase's `postgres`:**
 - Without `bypassrls`, the runtime role reads **0 rows**, because RLS is on with no policies. With it, reads work.
 - The runtime role cannot create tables.
 - The runtime role cannot delete audit rows.
+- A fresh connection as `gobye_api`, through PgBouncer in transaction mode, gets `statement_timeout 5s`, `lock_timeout 3s` and `idle_in_transaction_session_timeout 30s` with nothing sent at start-up. A `pg_sleep(8)` outside a transaction is cancelled by the server after 5 s.
 
 **To verify on the Supabase staging project:** that `postgres` may grant `bypassrls`. If it may not, add a migration that creates `using (true)` policies for `gobye_api` on each `app` and `ops` table, so the runtime role reads through RLS instead.
 

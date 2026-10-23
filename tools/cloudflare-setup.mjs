@@ -154,7 +154,7 @@ async function main() {
   }
 
   // 2 + 3. Buckets and CORS
-  let existing = [];
+  let existing;
   try {
     existing = ((await cf('GET', `/accounts/${accountId}/r2/buckets?per_page=1000`)).result.buckets || []).map((b) => b.name);
   } catch (e) {

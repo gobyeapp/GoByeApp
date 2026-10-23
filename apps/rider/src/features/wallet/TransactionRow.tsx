@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { SignedAmount, TxStatusBadge } from '@/features/common/Money';
-import { formatNaira, kobo, nairaAccessibilityLabel, type WalletTransaction } from '@gobye/core';
+import { kobo, nairaAccessibilityLabel, type WalletTransaction } from '@gobye/core';
 import { Icon, Text, layout, spacing, useTheme, type IconName, type StatusKind } from '@gobye/ui';
 
 export const TX_LABEL: Record<WalletTransaction['type'], string> = {

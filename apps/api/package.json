@@ -13,7 +13,10 @@
     "start:worker": "node --env-file-if-exists=.env dist/apps/api/src/worker.js",
     "migrate": "node --env-file-if-exists=.env dist/apps/api/src/migrate.js",
     "dev": "npm run build && node --enable-source-maps --env-file-if-exists=.env dist/apps/api/src/main.js",
-    "test": "rm -rf dist-test && tsc -p tsconfig.test.json && tsc-alias -p tsconfig.test.json && node --test --test-reporter=spec --test-concurrency=1 'dist-test/apps/api/test/**/*.test.js'",
+    "test": "npm run build:test && node --test --test-reporter=spec --test-concurrency=1 'dist-test/apps/api/test/**/*.test.js'",
+    "build:test": "rm -rf dist-test && tsc -p tsconfig.test.json && tsc-alias -p tsconfig.test.json",
+    "test:ci": "npm run build:test && node scripts/test-strict.mjs",
+    "lint": "eslint . --max-warnings 0",
     "health-check": "node scripts/health-check.mjs"
   },
   "devDependencies": {

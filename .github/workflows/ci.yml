@@ -1,0 +1,163 @@
+# GoBye CI (Phase 1.5). Read-only: builds and tests, never deploys, never pushes images, uses no secrets.
+# Actions are pinned to commit SHAs (tag in the comment). The API image's base is pinned by digest in
+# apps/api/Dockerfile.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  NODE_VERSION: "22"
+  EXPO_NO_TELEMETRY: "1"
+  CI: "true"
+
+jobs:
+  checks:
+    name: Install, typecheck, lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - name: No focused or skipped tests committed
+        run: |
+          if git grep -nE "\b(it|test|describe)\.(skip|only|todo)\(|\bx(it|describe)\(" -- apps packages infra; then
+            echo "::error::Remove .only/.skip/.todo before merging"; exit 1
+          fi
+      - name: No secrets in env templates or wrangler files
+        run: node tools/check-env.mjs $(git ls-files '*.env.example' '*wrangler*.toml')
+
+  api:
+    name: API (PostgreSQL + transaction pooler, no skipped tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci_only
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      # A NON-superuser admin with CREATEDB, CREATEROLE and BYPASSRLS, like Supabase's `postgres` role.
+      TEST_DATABASE_ADMIN_URL: postgres://gobye:gobye_local_only@127.0.0.1:5432/postgres
+      TEST_POOLER_URL: postgres://127.0.0.1:6432
+      REQUIRE_DATABASE_TESTS: "1"
+      REQUIRE_POOLER_TESTS: "1"
+      STRICT_NO_SKIPS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - name: Test admin role and PgBouncer (transaction mode)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q pgbouncer postgresql-client
+          sudo systemctl stop pgbouncer || true
+          PGPASSWORD=postgres_ci_only psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 \
+            -c "create role gobye login password 'gobye_local_only' createdb createrole bypassrls" \
+            -c "grant pg_signal_backend to gobye"
+          apps/api/test/pooler/start.sh
+      - run: npm ci --workspace apps/api --include-workspace-root=false --no-audit --no-fund
+      - run: npm run typecheck --workspace apps/api
+      - run: npm run build --workspace apps/api
+      - name: Tests (fails on any skip, "not ok" or unreachable database)
+        run: npm run test:ci --workspace apps/api
+      - name: Migrations apply to a fresh database through the CLI
+        env:
+          APP_ENV: development
+          ORIGIN_AUTH_REQUIRED: "false"
+          DATABASE_SSL: disable
+          DATABASE_URL: postgres://gobye:gobye_local_only@127.0.0.1:5432/gobye_ci_cli
+        run: |
+          PGPASSWORD=gobye_local_only psql -h 127.0.0.1 -U gobye -d postgres -c "create database gobye_ci_cli"
+          node apps/api/dist/apps/api/src/migrate.js up
+          node apps/api/dist/apps/api/src/migrate.js status | tee /dev/stderr | grep -q "Pending: none"
+
+  packages:
+    name: Shared packages and edge workers
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: npm test --workspace packages/core -- --ci
+      - run: npm run typecheck --workspace packages/ui
+      - run: npm test --workspace infra/cloudflare
+
+  admin:
+    name: Admin (tests + production build)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: npm test --workspace apps/admin
+      - run: npm run build --workspace apps/admin
+
+  mobile:
+    name: ${{ matrix.app }} (tests + Expo export)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [rider, driver]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "${{ env.NODE_VERSION }}", cache: npm }
+      - run: npm ci --no-audit --no-fund
+      - run: npm test --workspace apps/${{ matrix.app }} -- --ci
+      - name: Expo export (Android + iOS bundles; no build, no upload)
+        working-directory: apps/${{ matrix.app }}
+        run: npx expo export --platform android --platform ios --output-dir "$RUNNER_TEMP/export-${{ matrix.app }}"
+
+  docker:
+    name: API image (build with pinned base, run, smoke test)
+    needs: api
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres_ci_only
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Admin role like Supabase's (non-superuser)
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q postgresql-client
+          PGPASSWORD=postgres_ci_only psql -h 127.0.0.1 -U postgres -v ON_ERROR_STOP=1 \
+            -c "create role gobye login password 'gobye_local_only' createdb createrole bypassrls" \
+            -c "grant pg_signal_backend to gobye"
+      - name: Build (base image pinned by digest in the Dockerfile)
+        run: |
+          grep -E '^ARG NODE_IMAGE=.+@sha256:[0-9a-f]{64}$' apps/api/Dockerfile
+          docker build -f apps/api/Dockerfile --build-arg APP_VERSION=${GITHUB_SHA::7} -t gobye-api:${GITHUB_SHA::7} .
+          docker image inspect gobye-api:${GITHUB_SHA::7} --format 'Image {{.Id}} size {{.Size}} bytes'
+      - name: Smoke test the built image
+        env:
+          ADMIN_URL: postgres://gobye:gobye_local_only@127.0.0.1:5432/postgres
+        run: IMAGE=gobye-api:${GITHUB_SHA::7} apps/api/scripts/docker-smoke.sh

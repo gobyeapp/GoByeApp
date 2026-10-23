@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { validateEmail, validateName } from '@gobye/core';
-import { Button, Checkbox, Screen, Text, TextField, layout, spacing, useTheme } from '@gobye/ui';
+import { Button, Checkbox, Screen, TextField, layout, spacing, useTheme } from '@gobye/ui';
 import { AuthStepHeader, FieldMessage } from '@/features/auth/AuthStep';
 import { resetTo } from '@/features/navigation/reset';
 import { useSession } from '@/state/session';
