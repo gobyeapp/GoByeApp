@@ -218,6 +218,13 @@
       }, reduce() ? 0 : 380);
     }
 
+    // iPhone Safari can leave a stale patch inside the sliding questions after the sheet rises; repaint once it settles.
+    function repaint() {
+      var v = form.querySelector('.wsteps');
+      if (!v) return;
+      v.style.webkitTransform = 'translateZ(0) scale(1.0001)';
+      requestAnimationFrame(function () { v.style.webkitTransform = ''; });
+    }
     function open(e) {
       opened = e && e.currentTarget;
       form.hidden = false;
@@ -229,6 +236,9 @@
       if (pre && (want || !val.intent())) pre.checked = true;
       if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
       go(0);
+      dlg.addEventListener('animationend', repaint, { once: true });
+      setTimeout(repaint, 450);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(repaint);
     }
     function close() {
       if (typeof dlg.close === 'function') dlg.close(); else dlg.removeAttribute('open');

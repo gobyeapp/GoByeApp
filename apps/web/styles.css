@@ -585,9 +585,11 @@ fieldset[aria-invalid='true'] .chip, fieldset[aria-invalid='true'] .choice label
 .route-labels span:nth-child(4) { text-align: right; }
 
 .wl #waitlist-form { gap: 16px; padding-top: 24px; }
-.wsteps { position: relative; overflow: hidden; margin: -6px -6px 0; padding: 6px; transition: height 0.45s cubic-bezier(0.3, 0.8, 0.2, 1); }
-.wtrack { display: flex; align-items: flex-start; transition: transform 0.5s cubic-bezier(0.3, 0.8, 0.2, 1); }
-.wstep { flex: 0 0 100%; min-width: 0; padding: 0 6px 12px; display: flex; flex-direction: column; gap: 14px; }
+.wsteps { position: relative; overflow: hidden; margin: -6px -6px 0; padding: 6px; transition: height 0.45s cubic-bezier(0.3, 0.8, 0.2, 1); -webkit-transform: translateZ(0); transform: translateZ(0); isolation: isolate; }
+.wtrack { display: flex; align-items: flex-start; transition: transform 0.5s cubic-bezier(0.3, 0.8, 0.2, 1); will-change: transform; -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.wstep { flex: 0 0 100%; min-width: 0; padding: 0 6px 12px; display: flex; flex-direction: column; gap: 14px; visibility: visible; transition: visibility 0s; }
+/* Questions not on screen are fully hidden once the slide ends, so nothing bleeds in at the edges (and iPhone Safari has nothing stale to paint). */
+.wstep[inert] { visibility: hidden; transition: visibility 0s linear 0.5s; }
 .wstep .q { margin: 0; font-size: 23px; line-height: 1.15; letter-spacing: -0.035em; font-weight: 700; }
 .wstep .hint { margin: -8px 0 4px; font-size: 14.5px; color: var(--muted); }
 .input-ico.big input { height: 60px !important; font-size: 18px !important; border-radius: 18px !important; }

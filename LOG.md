@@ -832,3 +832,15 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Screenshots reviewed.
   - Typecheck: 0 errors. Admin tests: 405 pass.
   - Not checked on a physical phone.
+
+## 2026-10-23 — Landing page waitlist: Safari patch removed
+
+- **Problem:** on iPhone Safari, a grey box showing a blurred piece of the page covered the start of "First, what should we call you?" (owner screenshot). A faint strip from the next question also showed beside the name field in every browser.
+- **Cause:** sliding questions inside a clipped area, inside the animated sheet. Safari sometimes leaves part of that area unpainted.
+- **Fix:**
+  - The slide area gets its own stable layer.
+  - Questions not on screen are fully hidden once the slide ends.
+  - The area repaints once after the sheet finishes rising and the fonts load.
+- **Checks:**
+  - Chromium with iPhone 13 emulation: waitlist steps 1 and 2 clean, no errors.
+  - WebKit could not be installed here, so confirm on the iPhone after deploy.
