@@ -140,7 +140,7 @@
     var back = $('#wl-back');
     var NAMES = ['Your name', 'Ride or drive', 'Your city', 'How to reach you'];
 
-    var cityLine = { Lagos: 'Launching first', Abuja: 'Launching first' };
+    var cityLine = { Lagos: 'Lagos State', Abuja: 'FCT' };
     $('#wl-city-opts').innerHTML = C.waitlist.cities.map(function (c, i) {
       var other = !cityLine[c];
       return '<label class="ctile' + (other ? ' wide' : '') + '"><input type="radio" name="city" value="' + esc(c) + '" id="wl-city-' + i + '">' +
@@ -570,7 +570,7 @@
       var l = $('#foot-cta-label'); if (l) { l.removeAttribute('data-a'); l.textContent = 'Book a ride'; } // only once the apps are actually in the stores
     }
     var cities = $('#foot-cities');
-    if (cities) cities.textContent = C.launch.cities.join(' · ');
+    if (cities) cities.textContent = C.launch.area || C.launch.cities.join(' · ');
     var fd = C.founder || {};
     var card = $('#founder');
     if (card && fd.name && fd.title && fd.photo) {

@@ -11,12 +11,12 @@ window.GOBYE_SITE = {
   brand: { name: 'GoBYE', logo: 'assets/logo-mark-inverse.png', logoDark: 'assets/logo-mark.png' },
 
   /** 'prelaunch' shows the waitlist. 'live' shows store badges, but only when both store links are set. */
-  launch: { status: 'prelaunch', cities: ['Lagos', 'Abuja'] },
+  launch: { status: 'prelaunch', area: 'Nigeria', cities: ['Lagos', 'Abuja'] },
 
   hero: {
     headline: 'Your next move.',
     supporting: 'Request a car, agree your fare, and get moving with GoBYE.',
-    cityLine: 'Coming to Lagos and Abuja.',
+    cityLine: 'Coming to Nigeria.',
     ctaLabel: 'Join the waitlist',
   },
 
@@ -26,7 +26,7 @@ window.GOBYE_SITE = {
    * The chip is a GoBYE app notification drawn over the photo, not part of the photograph.
    */
   people: {
-    eyebrow: 'MADE FOR LAGOS AND ABUJA',
+    eyebrow: 'MADE FOR NIGERIA',
     lines: ['Built for the way', 'your city moves.'],
     tiles: [
       { photo: 'assets/people/rider.jpg', alt: 'A young woman checks her phone at a Lagos roadside at sunset, traffic behind her', title: 'Book from the roadside', chip: 'Where are you going?', pos: '30% 55%', big: true },
@@ -41,7 +41,7 @@ window.GOBYE_SITE = {
       label: 'For riders',
       hero: { headline: 'Your next move.', supporting: 'Request a car, agree your fare, and get moving with GoBYE.', ctaLabel: 'Join the waitlist' },
       people: {
-        eyebrow: 'MADE FOR LAGOS AND ABUJA',
+        eyebrow: 'MADE FOR NIGERIA',
         lines: ['Built for the way', 'your city moves.'],
         tiles: [
           { photo: 'assets/people/rider.jpg', alt: 'A young woman checks her phone at a Lagos roadside at sunset, traffic behind her', title: 'Book from the roadside', chip: 'Where are you going?', pos: '30% 55%', big: true },
@@ -79,14 +79,14 @@ window.GOBYE_SITE = {
           { title: 'Help on every trip', body: 'Call 112, report an issue or share your trip from the trip screen.', frag: 'assets/ui/feat/r-help.webp' },
         ],
       },
-      statement: 'Getting around Lagos and Abuja shouldn’t mean arguing over the fare at the roadside. With GoBYE you agree it before you go, and pay only when you arrive.',
+      statement: 'Getting around Nigeria shouldn’t mean arguing over the fare at the roadside. With GoBYE you agree it before you go, and pay only when you arrive.',
       compare: {
         eyebrow: 'DESIGNED FOR RIDERS, NOT ROADSIDE HAGGLING',
         lines: ['A better trip,', 'from booking to receipt.'],
         old: { title: 'Hailing on the street', tag: 'Fare argued at the roadside', frag: 'assets/ui/feat/r-haggle.webp', items: ['Price argued every trip', 'No record of who is driving', 'Cash in hand only', 'No receipt afterwards', 'Hard to arrange a ride for someone else'] },
         ours: { tag: 'Fare agreed before you book', sub: 'Everything you need, from booking to receipt.', frag: 'assets/ui/feat/r-fare.webp', items: ['Suggested fare before you book', 'Quick Match or offer your own fare', 'Driver, car and plate before pickup', 'Pickup PIN to start every trip', 'Pay after the trip, wallet or bank transfer', 'Book rides for family and friends', 'A receipt for every paid trip'], highlightLast: 3 },
       },
-      banner: { headline: 'See where GoBYE can take you', supporting: 'Coming to Lagos and Abuja. Join the waitlist to hear first.' },
+      banner: { headline: 'See where GoBYE can take you', supporting: 'Coming to Nigeria. Join the waitlist to hear first.' },
     },
     driver: {
       label: 'For drivers',
@@ -139,7 +139,7 @@ window.GOBYE_SITE = {
         old: { title: 'Commission per trip', tag: 'A share of every fare', frag: 'assets/ui/feat/d-commission.webp', items: ['Part of each fare goes to the platform', 'The more you drive, the more you pay', 'Fares set without your say', 'Hard to plan your week', 'Less left at the end of a long day'] },
         ours: { tag: '0% commission', sub: 'Keep the full fare on every trip.', frag: 'assets/ui/feat/d-earn.webp', items: ['No commission on your trips', 'Daily or monthly access', 'See the fare before you accept', 'Counter offers to passengers', 'PIN check at pickup', 'Earnings to your verified bank', 'Simple weekly planning'], highlightLast: 3 },
       },
-      banner: { headline: 'Drive with GoBYE', supporting: 'Coming to Lagos and Abuja. Join the waitlist to be first to apply.' },
+      banner: { headline: 'Drive with GoBYE', supporting: 'Coming to Nigeria. Join the waitlist to be first to apply.' },
     },
   },
 
@@ -185,7 +185,7 @@ window.GOBYE_SITE = {
     prelaunch: {
       eyebrow: 'MEET GOBYE',
       heading: 'A better way to make your next move.',
-      supporting: 'Starting with Lagos and Abuja.',
+      supporting: 'Coming soon across Nigeria.',
       cards: [
         { icon: 'fare', title: 'Choose your fare', body: 'Quick Match or negotiate before your trip.' },
         { icon: 'someone', title: 'Book for someone else', body: 'Arrange a ride for a friend or family member.' },

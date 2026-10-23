@@ -844,3 +844,15 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Checks:**
   - Chromium with iPhone 13 emulation: waitlist steps 1 and 2 clean, no errors.
   - WebKit could not be installed here, so confirm on the iPhone after deploy.
+
+## 2026-10-23 — Website says "Coming to Nigeria"
+
+- **Change:** the landing page now says **Coming to Nigeria** instead of naming Lagos and Abuja:
+  - hero line and meta description;
+  - "Made for Nigeria" eyebrow;
+  - fare statement;
+  - footer ("COMING TO Nigeria");
+  - trust section and banners.
+- **Waitlist:** the city step still offers Lagos, Abuja and "Another city", so sign-ups say where people are. The tiles now read "Lagos State" and "FCT" instead of "Launching first".
+- **Unchanged:** operating cities in the apps and admin (Lagos, Abuja). Photo descriptions of Lagos scenes were kept, as they describe the photos.
+- **Checks:** iPhone-size render in Chromium; no Lagos/Abuja text left on the page; no errors.
