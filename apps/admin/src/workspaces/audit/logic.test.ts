@@ -7,7 +7,7 @@ const { audit } = createPlatformDataset();
 describe('filterAudit', () => {
   it('filters by record type, actor and text, newest first', () => {
     expect(filterAudit(audit, { q: '', actor: 'all', type: 'config' }).map((e) => e.id)).toEqual(['aud-1']);
-    expect(filterAudit(audit, { q: '', actor: 'staff:stf-owner', type: 'all' }).every((e) => e.actor.name.startsWith('Akorede'))).toBe(true);
+    expect(filterAudit(audit, { q: '', actor: 'staff:stf-owner', type: 'all' }).every((e) => e.actor.name.startsWith('Emeka'))).toBe(true);
     expect(filterAudit(audit, { q: 'licence', actor: 'all', type: 'all' }).map((e) => e.id)).toEqual(['aud-5']);
     const all = filterAudit(audit, { q: '', actor: 'all', type: 'all' });
     expect(all[0]!.at).toBeGreaterThanOrEqual(all.at(-1)!.at);

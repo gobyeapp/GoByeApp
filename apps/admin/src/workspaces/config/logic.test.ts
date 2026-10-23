@@ -35,7 +35,7 @@ import {
 
 const DAY = 86_400_000;
 const admin: Actor = { kind: 'staff', id: 'stf-admin', name: 'Ifeoma Admin' };
-const owner: Actor = { kind: 'staff', id: 'stf-owner', name: 'Akorede (Owner)' };
+const owner: Actor = { kind: 'staff', id: 'stf-owner', name: 'Emeka (Owner)' };
 
 describe('dates', () => {
   const now = Date.UTC(2026, 9, 21, 20, 0); // 21:00 in Lagos

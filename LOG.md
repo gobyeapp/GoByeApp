@@ -792,3 +792,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Checks (both simulated again):**
   - Admin-only upload: clear message, exit 1.
   - Full repository: install and build pass.
+
+## 2026-10-23 — Test owner account renamed
+
+- **Change:** the test-data owner account in the admin is now **Emeka (Owner)** (id `stf-owner` unchanged), at the owner's request. Three admin tests were updated to match.
+- **Checks:**
+  - Typecheck: 0 errors.
+  - Tests: core 265, admin 405, all pass.
+  - Admin build: OK.
