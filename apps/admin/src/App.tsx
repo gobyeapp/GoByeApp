@@ -10,27 +10,19 @@ import { attentionNotes } from '@/shell/attention';
 import { CommandPalette } from '@/shell/CommandPalette';
 import { Popover } from '@/shell/Popover';
 import { Icon } from '@/ui/Icon';
-import { ErrorState, IconButton, Notice, Select, Skeleton } from '@/ui/kit';
+import { Dimensional } from '@/ui/Dimensional';
+import { Empty, ErrorState, IconButton, Notice, Select, Skeleton } from '@/ui/kit';
 
-type Theme = 'system' | 'light' | 'dark';
-function useTheme(): [Theme, (t: Theme) => void] {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try {
-      return (localStorage.getItem('gobye.admin.theme') as Theme) || 'system';
-    } catch {
-      return 'system';
-    }
-  });
+/** The dashboard is white only (owner rule 2026-10-23): no dark theme. Clears any choice saved by older builds. */
+function useLightOnly() {
   useEffect(() => {
-    if (theme === 'system') document.documentElement.removeAttribute('data-theme');
-    else document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.removeAttribute('data-theme');
     try {
-      localStorage.setItem('gobye.admin.theme', theme);
+      localStorage.removeItem('gobye.admin.theme');
     } catch {
-      /* per-viewer preference only */
+      /* storage unavailable */
     }
-  }, [theme]);
-  return [theme, setTheme];
+  }, []);
 }
 
 export default function App() {
@@ -82,8 +74,13 @@ function SignIn() {
         <div>
           <h1>Run rides, drivers, care and money from one place.</h1>
           <p>Each staff role sees its own workspace and only the actions it is allowed to take.</p>
+          <div className="signin-art" aria-hidden>
+            <Dimensional name="sedan" size={128} />
+            <Dimensional name="routePin" size={96} />
+            <Dimensional name="wallet" size={104} />
+          </div>
         </div>
-        <div className="small" style={{ color: 'rgba(255,255,255,0.6)' }}>Lagos · Abuja</div>
+        <div className="small muted">Lagos · Abuja</div>
       </section>
       <section className="signin-panel" aria-labelledby="signin-title">
         <div>
@@ -149,7 +146,7 @@ function Shell() {
   const { staff, can, inScope, signOut } = useSession();
   const { data, loading, error, reload, reset, now, simulateFailures, setSimulateFailures } = usePlatform();
   const { city, setCity, range, setRange } = useFilters();
-  const [theme, setTheme] = useTheme();
+  useLightOnly();
   const [collapsed, toggleCollapsed] = useCollapsed();
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -176,6 +173,7 @@ function Shell() {
   const group = current ? groupOf(current.path) : undefined;
   const siblings = group?.subnav ? group.items.filter((i) => i.anyOf.some((p) => can(p))) : [];
   const notes = data ? attentionNotes(data, now(), can, inScope) : [];
+  const scopeText = `${city === 'all' ? (staff.cities.length ? 'My cities' : 'All cities') : CITY_LABELS[city]} · ${RANGE_OPTIONS.find((o) => o.value === range)?.label ?? ''}`;
   const noteTotal = notes.reduce((s, n) => s + n.count, 0);
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
 
@@ -238,123 +236,158 @@ function Shell() {
           <Icon name="info" size={15} /> Prototype · test data and simulated responses only. No real money, people or providers.
         </div>
         <header className="topbar">
-          <span className="menu-btn">
-            <IconButton icon="menu" label="Open menu" onClick={() => setNavOpen(true)} />
-          </span>
-          <nav className="crumbs" aria-label="Breadcrumb">
-            <ol>
-              {group?.title ? (
-                <>
-                  <li className="crumb-parent">{group.title}</li>
-                  <li className="crumb-sep" aria-hidden><Icon name="right" size={14} /></li>
-                </>
-              ) : null}
-              <li aria-current="page">{current?.label ?? 'GoBye Management'}</li>
-            </ol>
-          </nav>
-          <span className="spacer" />
-          <div className="scope" role="group" aria-label="Filters for every page">
-            <Select label="City" value={city} onChange={setCity} options={cityOptions} />
-            <Select<RangeKey> label="Date range" value={range} onChange={setRange} options={RANGE_OPTIONS} />
+          <div className="top-left">
+            <span className="menu-btn">
+              <IconButton icon="menu" label="Open menu" onClick={() => setNavOpen(true)} />
+            </span>
+            <nav className="crumbs" aria-label="Breadcrumb">
+              <ol>
+                <li className="crumb-parent">GoBye</li>
+                <li className="crumb-sep" aria-hidden><Icon name="right" size={14} /></li>
+                {group?.title ? (
+                  <>
+                    <li className="crumb-parent">{group.title}</li>
+                    <li className="crumb-sep" aria-hidden><Icon name="right" size={14} /></li>
+                  </>
+                ) : null}
+                <li aria-current="page">{current?.label ?? 'Management'}</li>
+              </ol>
+            </nav>
           </div>
-          <button className="search-trigger" onClick={() => setPaletteOpen(true)} aria-label="Search pages and records" aria-keyshortcuts={isMac ? 'Meta+K' : 'Control+K'}>
-            <Icon name="search" size={16} />
-            <span className="label small">Search</span>
-            <kbd>{isMac ? '⌘K' : 'Ctrl K'}</kbd>
-          </button>
-          <Popover
-            label="Notifications"
-            className="icon-dot"
-            trigger={({ open, toggle, id }) => (
-              <button className="icon-btn" aria-label={noteTotal ? `Notifications, ${notes.length} need attention` : 'Notifications'} aria-expanded={open} aria-controls={id} onClick={toggle} title="Notifications">
-                <Icon name="bell" size={19} />
-                {notes.length ? <span className="dot" aria-hidden>{notes.length}</span> : null}
-              </button>
-            )}
-          >
-            {(close) => (
-              <>
-                <div className="popover-head">
-                  <h2>Needs attention</h2>
-                  <span className="muted small" style={{ marginLeft: 'auto' }}>Your pages and cities</span>
-                </div>
-                <div className="popover-list">
-                  {notes.length ? (
-                    notes.map((n) => (
-                      <button key={n.key} className="pop-item" onClick={() => (close(), navigate(n.path))}>
-                        <span className="tone-ico" style={{ background: `var(--${n.tone}-bg)`, color: `var(--${n.tone})` }}><Icon name={n.icon} size={16} /></span>
-                        <span className="body">
-                          <span className="strong" style={{ display: 'block' }}>{n.text}</span>
-                          <span className="cell-sub">{ALL_ITEMS.find((i) => i.path === n.path)?.label}</span>
-                        </span>
-                        <Icon name="right" size={16} />
-                      </button>
-                    ))
-                  ) : (
-                    <div className="empty" style={{ padding: 24 }}>
-                      <div className="title">You’re all caught up</div>
-                      <div>Nothing waiting in the pages you can open.</div>
-                    </div>
-                  )}
-                </div>
-                <div className="cmdk-foot">Counts from the loaded test data. Staff alerts by push or email need the backend.</div>
-              </>
-            )}
-          </Popover>
-          <Popover
-            label="Account"
-            trigger={({ open, toggle, id }) => (
-              <button className="who" aria-label={`Account: ${staff.name}`} aria-expanded={open} aria-controls={id} onClick={toggle}>
-                <span className="avatar">{initials(staff.name)}</span>
-                <span className="who-text">
-                  <span className="strong small">{staff.name}</span>
-                  <span className="muted small">{staff.roles.map((r) => ROLE_LABELS[r]).join(' + ')}</span>
-                </span>
-                <Icon name="down" size={16} />
-              </button>
-            )}
-          >
-            {(close) => (
-              <>
-                <div className="popover-head" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
-                  <span className="strong">{staff.name}</span>
-                  <span className="muted small">{staff.email}</span>
-                  <span className="muted small">
-                    {staff.roles.map((r) => ROLE_LABELS[r]).join(' + ')} · {staff.cities.length ? staff.cities.map((c) => CITY_LABELS[c as CityId]).join(', ') : 'All cities'}
+          <div className="top-center">
+            <button className="search-trigger" onClick={() => setPaletteOpen(true)} aria-label="Search rides, drivers, riders, payments" aria-keyshortcuts={isMac ? 'Meta+K' : 'Control+K'}>
+              <Icon name="search" size={17} />
+              <span className="label">Search rides, drivers, riders, payments...</span>
+              <kbd>{isMac ? '⌘ K' : 'Ctrl K'}</kbd>
+            </button>
+          </div>
+          <div className="top-right">
+            <span className="search-mobile">
+              <IconButton icon="search" label="Search" onClick={() => setPaletteOpen(true)} />
+            </span>
+            <Popover
+              label="Scope"
+              trigger={({ open, toggle, id }) => (
+                <button className="scope-chip" aria-label={`Showing ${scopeText}. Change city or dates`} aria-expanded={open} aria-controls={id} onClick={toggle}>
+                  <span className="dot" aria-hidden />
+                  <span className="scope-text">{scopeText}</span>
+                  <Icon name="down" size={14} />
+                </button>
+              )}
+            >
+              {() => (
+                <>
+                  <div className="popover-head">
+                    <h2>What every page shows</h2>
+                  </div>
+                  <div className="popover-body">
+                    <Select label="City" value={city} onChange={setCity} options={cityOptions} />
+                    <Select<RangeKey> label="Date range" value={range} onChange={setRange} options={RANGE_OPTIONS} />
+                    <span className="small muted">Applies to lists and figures across the dashboard. Test data.</span>
+                  </div>
+                </>
+              )}
+            </Popover>
+            <Popover
+              label="Notifications"
+              className="icon-dot"
+              trigger={({ open, toggle, id }) => (
+                <button className="icon-btn" aria-label={noteTotal ? `Notifications, ${notes.length} need attention` : 'Notifications'} aria-expanded={open} aria-controls={id} onClick={toggle} title="Notifications">
+                  <Icon name="bell" size={19} />
+                  {notes.length ? <span className="dot" aria-hidden>{notes.length}</span> : null}
+                </button>
+              )}
+            >
+              {(close) => (
+                <>
+                  <div className="popover-head">
+                    <h2>Needs attention</h2>
+                    <span className="muted small" style={{ marginLeft: 'auto' }}>Your pages and cities</span>
+                  </div>
+                  <div className="popover-list">
+                    {notes.length ? (
+                      notes.map((n) => (
+                        <button key={n.key} className="pop-item" onClick={() => (close(), navigate(n.path))}>
+                          <span className="tone-ico" style={{ color: `var(--${n.tone})` }}><Icon name={n.icon} size={16} /></span>
+                          <span className="body">
+                            <span className="strong" style={{ display: 'block' }}>{n.text}</span>
+                            <span className="cell-sub">{ALL_ITEMS.find((i) => i.path === n.path)?.label}</span>
+                          </span>
+                          <Icon name="right" size={16} />
+                        </button>
+                      ))
+                    ) : (
+                      <Empty title="You’re all caught up" art="completedTrips">Nothing waiting in the pages you can open.</Empty>
+                    )}
+                  </div>
+                  <div className="cmdk-foot">Counts from the loaded test data. Staff alerts by push or email need the backend.</div>
+                </>
+              )}
+            </Popover>
+            <Popover
+              label="Help"
+              trigger={({ open, toggle, id }) => (
+                <button className="icon-btn" aria-label="Help" aria-expanded={open} aria-controls={id} onClick={toggle} title="Help">
+                  <Icon name="question" size={19} />
+                </button>
+              )}
+            >
+              {(close) => (
+                <>
+                  <div className="popover-head"><h2>Help</h2></div>
+                  <div className="popover-body small">
+                    <div className="row" style={{ justifyContent: 'space-between' }}><span>Search everything</span><kbd className="kbd">{isMac ? '⌘ K' : 'Ctrl K'}</kbd></div>
+                    <div className="row" style={{ justifyContent: 'space-between' }}><span>Close a panel or menu</span><kbd className="kbd">Esc</kbd></div>
+                    <div className="row" style={{ justifyContent: 'space-between' }}><span>Move between tabs</span><kbd className="kbd">← →</kbd></div>
+                  </div>
+                  <div className="menu-section">
+                    <button className="menu-item" onClick={() => (close(), setPaletteOpen(true))}><Icon name="search" size={16} /> Find a page</button>
+                  </div>
+                  <div className="cmdk-foot">This is a prototype on test data. Nothing here moves real money or contacts real people.</div>
+                </>
+              )}
+            </Popover>
+            <Popover
+              label="Account"
+              trigger={({ open, toggle, id }) => (
+                <button className="who" aria-label={`Account: ${staff.name}`} aria-expanded={open} aria-controls={id} onClick={toggle}>
+                  <span className="avatar">{initials(staff.name)}</span>
+                  <span className="who-text">
+                    <span className="strong small">{staff.name}</span>
+                    <span className="muted small">{staff.roles.map((r) => ROLE_LABELS[r]).join(' + ')}</span>
                   </span>
-                </div>
-                <div className="menu-section" role="radiogroup" aria-label="Appearance">
-                  {(
-                    [
-                      ['system', 'Match device', 'computer'],
-                      ['light', 'Light', 'sun'],
-                      ['dark', 'Dark', 'moon'],
-                    ] as const
-                  ).map(([v, l, ic]) => (
-                    <button key={v} className="menu-item" role="radio" aria-checked={theme === v} onClick={() => setTheme(v)}>
-                      <Icon name={ic} size={16} /> {l}
-                      {theme === v ? <Icon name="check" size={16} className="end" /> : null}
+                  <Icon name="down" size={16} />
+                </button>
+              )}
+            >
+              {(close) => (
+                <>
+                  <div className="popover-head" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2 }}>
+                    <span className="strong">{staff.name}</span>
+                    <span className="muted small">{staff.email}</span>
+                    <span className="muted small">
+                      {staff.roles.map((r) => ROLE_LABELS[r]).join(' + ')} · {staff.cities.length ? staff.cities.map((c) => CITY_LABELS[c as CityId]).join(', ') : 'All cities'}
+                    </span>
+                  </div>
+                  <div className="menu-section">
+                    <div className="cmdk-group" style={{ padding: '6px 10px 2px' }}>Prototype tools</div>
+                    <label className="menu-item" style={{ cursor: 'pointer' }}>
+                      <input type="checkbox" checked={simulateFailures} onChange={(e) => setSimulateFailures(e.target.checked)} />
+                      Simulate server failures
+                    </label>
+                    <button className="menu-item" onClick={() => (close(), reset())}>
+                      <Icon name="refresh" size={16} /> Reset test data
                     </button>
-                  ))}
-                </div>
-                <div className="menu-section">
-                  <div className="cmdk-group" style={{ padding: '6px 10px 2px' }}>Prototype tools</div>
-                  <label className="menu-item" style={{ cursor: 'pointer' }}>
-                    <input type="checkbox" checked={simulateFailures} onChange={(e) => setSimulateFailures(e.target.checked)} />
-                    Simulate server failures
-                  </label>
-                  <button className="menu-item" onClick={() => (close(), reset())}>
-                    <Icon name="refresh" size={16} /> Reset test data
-                  </button>
-                </div>
-                <div className="menu-section">
-                  <button className="menu-item" onClick={signOut}>
-                    <Icon name="exit" size={16} /> Sign out
-                  </button>
-                </div>
-              </>
-            )}
-          </Popover>
+                  </div>
+                  <div className="menu-section">
+                    <button className="menu-item" onClick={signOut}>
+                      <Icon name="exit" size={16} /> Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </Popover>
+          </div>
         </header>
         <main className="content" id="main" tabIndex={-1} style={{ outline: 'none' }}>
           {siblings.length > 1 ? (

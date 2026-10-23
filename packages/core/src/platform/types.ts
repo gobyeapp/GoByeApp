@@ -45,7 +45,8 @@ export type RecordType =
   | 'event'
   | 'fee_schedule'
   | 'automation'
-  | 'automation_run';
+  | 'automation_run'
+  | 'expense';
 
 export interface PassengerRecord {
   id: string;
@@ -114,7 +115,27 @@ export interface TripRecord {
   cancellation?: { by: 'passenger' | 'driver' | 'system'; reason: string; fee: Kobo };
   /** Pickup delay beyond the first estimate, in seconds (operations "delayed pickup"). */
   pickupDelaySeconds?: number;
+  /** Negotiate mode only: the fare conversation (rider offer, driver accepts and counters, selection). */
+  negotiation?: NegotiationHistory;
   timeline: { at: number; label: string }[];
+}
+
+export interface NegotiationStep {
+  at: number;
+  by: 'rider' | 'driver' | 'system';
+  kind: 'offer' | 'accept' | 'counter' | 'select' | 'expired';
+  amount: Kobo;
+  driverId?: string;
+  driverName?: string;
+}
+export interface NegotiationHistory {
+  riderOffer: Kobo;
+  offeredAt: number;
+  /** When the rider's offer stops taking responses. */
+  expiresAt: number;
+  events: NegotiationStep[];
+  outcome: 'open' | 'agreed' | 'expired';
+  agreedAt?: number;
 }
 
 export type CaseCategory = 'payment' | 'fare' | 'driver_conduct' | 'passenger_conduct' | 'lost_item' | 'app_problem' | 'account' | 'safety';
@@ -342,7 +363,7 @@ export interface Announcement {
   delivery: Record<Channel, { attempted: number; delivered: number; failed: number }>;
 }
 
-export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role' | 'fee_schedule' | 'automation_config' | 'gateway_switch';
+export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role' | 'fee_schedule' | 'automation_config' | 'gateway_switch' | 'expense';
 export interface ApprovalRequest {
   id: string;
   kind: ApprovalKind;

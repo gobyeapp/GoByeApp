@@ -338,6 +338,27 @@ export const AUTOMATIONS: readonly AutomationDefinition[] = [
   },
 ];
 
+// Appended separately so the list above stays grouped by the brief's order.
+(AUTOMATIONS as AutomationDefinition[]).push({
+  id: 'costs.sync',
+  name: 'Expense synchronisation',
+  purpose: 'Pull usage and invoices from providers that offer billing APIs, so costs don’t rely on manual entry alone.',
+  area: 'infrastructure',
+  trigger: { type: 'schedule', source: 'Scheduler', schedule: 'Daily at 07:00 Lagos time', conditions: ['Provider has a connected billing API'] },
+  action: ['Fetch usage and invoices for the month', 'Create draft expenses for finance to review (never approved automatically)', 'Flag usage approaching a budget'],
+  execution: 'server',
+  financial: false,
+  idempotencyKey: 'provider + invoice id',
+  retry: slowRetry,
+  timeoutMs: 5 * MIN,
+  escalation: { afterFailures: 3, toRoles: ['finance', 'developer'], channel: 'admin_alert', note: 'Costs may be missing from the dashboard.' },
+  ownerRole: 'finance',
+  params: [],
+  manualRetry: 'allowed',
+  runtime: 'not_connected',
+  rules: ['No billing API is connected yet; costs are entered by hand with an invoice.', 'Synced costs arrive as drafts and still need approval.'],
+});
+
 export const AREA_LABEL: Record<AutomationArea, string> = {
   subscriptions: 'Driver packages',
   wallet: 'Wallet',

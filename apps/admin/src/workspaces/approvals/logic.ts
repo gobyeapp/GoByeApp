@@ -146,6 +146,15 @@ function approveEffect(draft: PlatformDataset, req: ApprovalRequest, ctx: { now:
       const by = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
       return approveFeeSchedule(draft.feeSchedules, req.target.id, by, ctx.now);
     }
+    case 'expense': {
+      const e = draft.expenses.find((x) => x.id === req.target.id);
+      if (!e) return { ok: false, error: 'Expense not found' };
+      if (e.status !== 'pending_approval') return { ok: false, error: `This expense is ${e.status.replace(/_/g, ' ')}, not waiting for approval` };
+      e.status = 'approved';
+      e.approvedBy = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
+      e.approvedAt = ctx.now;
+      return { ok: true };
+    }
     case 'gateway_switch':
       // Recorded only: routing new payments is a backend setting that doesn't exist yet (D-054).
       return { ok: true };
@@ -190,6 +199,11 @@ function rejectEffect(draft: PlatformDataset, req: ApprovalRequest, ctx: { now: 
       w.history.push({ at: ctx.now, status: 'rejected', by: ctx.actor, note: reason });
       return { ok: true };
     }
+    case 'expense': {
+      const e = draft.expenses.find((x) => x.id === req.target.id);
+      if (e && e.status === 'pending_approval') e.status = 'rejected';
+      return { ok: true };
+    }
     case 'fee_schedule': {
       const f = draft.feeSchedules.find((x) => x.id === req.target.id);
       if (f && f.status === 'pending_approval') f.status = 'rejected';
@@ -226,6 +240,8 @@ export function approvalEffectText(req: ApprovalRequest): string {
       return 'The requested roles are added to the staff member.';
     case 'fee_schedule':
       return 'The fee schedule is scheduled for its start date. Customers see the new fees before they confirm; nothing changes before that date.';
+    case 'expense':
+      return 'The expense is approved and counts towards this month’s operating cost and budget. Paying the vendor happens outside this prototype.';
     case 'gateway_switch':
       return 'The switch is approved and recorded. The backend moves new payments to the new provider; payments already in flight finish on the old one. No backend is connected yet.';
     case 'automation_config':

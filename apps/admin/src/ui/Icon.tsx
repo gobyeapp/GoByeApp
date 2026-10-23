@@ -66,6 +66,11 @@ import UserForbidIcon from '@mingcute/icons/core-regular/user-forbid';
 import WalletIcon from '@mingcute/icons/core-regular/wallet-4';
 import WarningIcon from '@mingcute/icons/core-regular/warning';
 import WebhookIcon from '@mingcute/icons/core-regular/webhook';
+import QuestionIcon from '@mingcute/icons/core-regular/question';
+import ReceiptIcon from '@mingcute/icons/core-regular/bill-2';
+import CloudIcon from '@mingcute/icons/core-regular/cloud';
+import UploadIcon from '@mingcute/icons/core-regular/upload-2';
+import StoreIcon from '@mingcute/icons/core-regular/store';
 import ComputerIcon from '@mingcute/icons/core-regular/computer';
 import MenuIcon from '@mingcute/icons/core-regular/menu';
 import SidebarCloseIcon from '@mingcute/icons/core-regular/layout-leftbar-close';
@@ -122,7 +127,7 @@ const ICONS = {
   refresh: RefreshIcon, right: RightIcon, route: RouteIcon, safeAlert: SafeAlertIcon, search: SearchIcon, server: ServerIcon, settings: SettingsIcon,
   shield: ShieldIcon, star: StarIcon, steering: SteeringIcon, sun: SunIcon, ticket: TicketIcon, time: TimeIcon, user: UserIcon, userAdd: UserAddIcon,
   userForbid: UserForbidIcon, wallet: WalletIcon, warning: WarningIcon, webhook: WebhookIcon,
-  computer: ComputerIcon, menu: MenuIcon, sidebarClose: SidebarCloseIcon, sidebarOpen: SidebarOpenIcon, command: CommandIcon, up: UpIcon, sortAsc: SortAscIcon, sortDesc: SortDescIcon, enter: EnterIcon,
+  question: QuestionIcon, receipt: ReceiptIcon, cloud: CloudIcon, upload: UploadIcon, store: StoreIcon, computer: ComputerIcon, menu: MenuIcon, sidebarClose: SidebarCloseIcon, sidebarOpen: SidebarOpenIcon, command: CommandIcon, up: UpIcon, sortAsc: SortAscIcon, sortDesc: SortDescIcon, enter: EnterIcon,
 } as const;
 
 export type IconName = keyof typeof ICONS;

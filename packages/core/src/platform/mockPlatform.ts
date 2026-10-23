@@ -1,4 +1,5 @@
 import type { FeeSchedule } from '../gateway/fees';
+import { seedVendors, type Budget, type Expense, type Vendor } from '../costs';
 import type { AutomationRun } from '../automation/runs';
 import { simulatedAutomationRuns, simulatedFeeSchedules, simulatedSettingChanges } from '../automation/simulate';
 import type { AutomationSettingChange } from '../automation/settings';
@@ -22,6 +23,8 @@ import type {
   EventPartnership,
   IntegrationRecord,
   LedgerEntry,
+  NegotiationStep,
+  NegotiationHistory,
   PassengerRecord,
   PromoCampaign,
   RefundRecord,
@@ -60,6 +63,10 @@ export interface PlatformDataset {
   /** SIMULATED automation run history (D-055). No job runner exists yet. */
   automationRuns: AutomationRun[];
   automationChanges: AutomationSettingChange[];
+  /** Infrastructure and operating costs (D-057): real plan status, no invented bills. */
+  vendors: Vendor[];
+  expenses: Expense[];
+  budgets: Budget[];
 }
 
 const HOUR = 3_600_000;
@@ -79,6 +86,37 @@ const VEHICLES = [
   { make: 'Kia', model: 'Rio', colour: 'Blue' },
 ];
 const PROVIDER = 'Paystack (test)';
+
+/** Fare conversation for a Negotiate trip. Uses its own random stream so the rest of the test data is unchanged. */
+function negotiationFor(t: TripRecord, drivers: DriverRecord[], rnd: () => number): NegotiationHistory {
+  const n5 = (k: number) => (Math.round(k / 5000) * 5000) as Kobo;
+  const riderOffer = n5(t.suggestedFare * (0.75 + rnd() * 0.2));
+  const offeredAt = t.requestedAt;
+  const expiresAt = offeredAt + 120_000;
+  const events: NegotiationStep[] = [{ at: offeredAt, by: 'rider', kind: 'offer', amount: riderOffer }];
+  const pool = [...drivers].sort(() => rnd() - 0.5).slice(0, 1 + Math.floor(rnd() * 3));
+  const target = t.agreedFare;
+  pool.forEach((d, k) => {
+    const at = offeredAt + (15 + k * 20 + Math.floor(rnd() * 15)) * 1000;
+    const amount = k === 0 && target ? target : rnd() < 0.4 ? riderOffer : n5(riderOffer * (1.05 + rnd() * 0.2));
+    events.push({ at, by: 'driver', kind: amount === riderOffer ? 'accept' : 'counter', amount, driverId: d.id, driverName: d.name });
+  });
+  if (target && t.driverId) {
+    const chosen = drivers.find((d) => d.id === t.driverId);
+    const firstDriver = events.find((e) => e.by === 'driver');
+    if (firstDriver && chosen) {
+      firstDriver.driverId = chosen.id;
+      firstDriver.driverName = chosen.name;
+      firstDriver.kind = target === riderOffer ? 'accept' : 'counter';
+    }
+    const agreedAt = Math.max(...events.map((e) => e.at)) + 8_000;
+    events.push({ at: agreedAt, by: 'rider', kind: 'select', amount: target, driverId: t.driverId, driverName: chosen?.name });
+    return { riderOffer, offeredAt, expiresAt, events, outcome: 'agreed', agreedAt };
+  }
+  if (t.status === 'searching') return { riderOffer, offeredAt, expiresAt, events, outcome: 'open' };
+  events.push({ at: expiresAt, by: 'system', kind: 'expired', amount: riderOffer });
+  return { riderOffer, offeredAt, expiresAt, events, outcome: 'expired' };
+}
 
 export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)): PlatformDataset {
   const r = seededRandom(20261021);
@@ -260,6 +298,7 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
       payment: 'not_due',
       timeline: [{ at: requestedAt, label: 'Requested' }],
     };
+    if (mode === 'negotiate') t.negotiation = negotiationFor(t, cityDrivers, seededRandom(9100 + i));
     if (t.driverId) t.timeline.push({ at: requestedAt + 40_000, label: 'Driver matched' });
     if (status === 'en_route' && r() < 0.6) t.pickupDelaySeconds = int(180, 900);
     if (status === 'no_driver') t.timeline.push({ at: requestedAt + 180_000, label: 'No driver found' });
@@ -508,5 +547,5 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
   const automationChanges = simulatedSettingChanges(now, { mkt: { id: 'stf-mkt', name: 'Lola Marketing' }, owner: { id: 'stf-owner', name: 'Akorede (Owner)' }, care: { id: 'stf-care', name: 'Ruth Care' } });
   approvals.push({ id: 'apr-0006', kind: 'automation_config', title: 'Daily package reminder: 2 → 3 hours before', requestedBy: actor('stf-mkt'), requestedAt: now - 5 * HOUR, target: { type: 'automation', id: 'subscription.reminder', label: 'Package renewal reminders' }, status: 'pending', approverRoles: ['owner', 'admin'], note: 'asc-0001' });
 
-  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges };
+  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges, vendors: seedVendors(), expenses: [], budgets: [] };
 }

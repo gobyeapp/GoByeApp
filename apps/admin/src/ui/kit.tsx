@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Dimensional, type DimName } from './Dimensional';
 import { Icon, type IconName } from './Icon';
 
 /** Every date and time in the platform is shown in Nigerian time. */
@@ -49,7 +50,36 @@ export function Card({ children, title, flush, muted, className, actions }: { ch
 }
 
 /** KPI card. `icon` adds a tinted icon; `onClick` makes the whole card a link to the detail page. */
-export function Stat({ label, value, sub, onClick, tone, icon }: { label: string; value: ReactNode; sub?: ReactNode; onClick?: () => void; tone?: Tone; icon?: IconName }) {
+/**
+ * Change against the previous equal period, computed by the caller from real records. Never pass a made-up
+ * figure: when there is no earlier period to compare, leave `trend` out.
+ */
+export interface TrendValue {
+  /** Fractional change, e.g. 0.12 = +12%. */
+  delta: number;
+  /** What it is compared with, e.g. "vs previous 7 days". */
+  vs: string;
+  /** Whether a rise is good (green) or bad (red). Default: up is good. */
+  goodWhen?: 'up' | 'down';
+}
+
+export function Trend({ t }: { t: TrendValue }) {
+  const pctText = `${t.delta > 0 ? '+' : ''}${Math.round(t.delta * 100)}%`;
+  const flat = Math.abs(t.delta) < 0.005;
+  const good = flat ? null : (t.delta > 0) === ((t.goodWhen ?? 'up') === 'up');
+  return (
+    <span className="row" style={{ gap: 6, display: 'inline-flex' }}>
+      <span className={`trend ${flat ? 'flat' : good ? 'up' : 'down'}`}>
+        {flat ? null : <Icon name={t.delta > 0 ? 'up' : 'down'} size={12} />}
+        {flat ? 'No change' : pctText}
+      </span>
+      <span>{t.vs}</span>
+    </span>
+  );
+}
+
+/** Standard metric card: label, figure, context, optional real trend. `onClick` links to the detail page. */
+export function Stat({ label, value, sub, onClick, tone, icon, trend }: { label: string; value: ReactNode; sub?: ReactNode; onClick?: () => void; tone?: Tone; icon?: IconName; trend?: TrendValue }) {
   const body = (
     <>
       <span className="label">
@@ -61,6 +91,7 @@ export function Stat({ label, value, sub, onClick, tone, icon }: { label: string
       <span className="value">
         {value}
       </span>
+      {trend ? <span className="sub"><Trend t={trend} /></span> : null}
       {sub ? <span className="sub">{sub}</span> : null}
     </>
   );
@@ -70,6 +101,104 @@ export function Stat({ label, value, sub, onClick, tone, icon }: { label: string
     </button>
   ) : (
     <div className={`card stat ${tone ? `tone-${tone}` : ''}`}>{body}</div>
+  );
+}
+
+/** Featured metric: headline figure with a dimensional illustration beside it (never over the text). */
+export function FeaturedStat({ label, value, sub, art, onClick, trend }: { label: string; value: ReactNode; sub?: ReactNode; art: DimName; onClick?: () => void; trend?: TrendValue }) {
+  const body = (
+    <>
+      <div style={{ minWidth: 0 }}>
+        <div className="label">{label}</div>
+        <div className="metric-value">{value}</div>
+        {trend ? <div className="sub"><Trend t={trend} /></div> : null}
+        {sub ? <div className="sub">{sub}</div> : null}
+      </div>
+      <Dimensional name={art} size={104} />
+    </>
+  );
+  return onClick ? (
+    <button className="card metric-featured" onClick={onClick}>
+      {body}
+    </button>
+  ) : (
+    <div className="card metric-featured">{body}</div>
+  );
+}
+
+export type Severity = 'high' | 'medium' | 'low';
+export interface AttentionItemView {
+  key: string;
+  title: string;
+  count: number;
+  severity: Severity;
+  context?: ReactNode;
+  action?: { label: string; onClick?: () => void; disabledReason?: string };
+}
+
+/** Operational attention list: structured task rows, one clear next action each (no alert banners). */
+export function AttentionList({ items, empty }: { items: AttentionItemView[]; empty?: ReactNode }) {
+  if (!items.length) return <>{empty ?? <Empty title="Nothing needs attention" icon="checkCircle" />}</>;
+  const sevText: Record<Severity, string> = { high: 'High', medium: 'Medium', low: 'Low' };
+  return (
+    <div className="attn" role="list">
+      {items.map((a) => (
+        <div key={a.key} className="attn-row" role="listitem">
+          <span className="attn-count">{a.count.toLocaleString('en-NG')}</span>
+          <span className="attn-label">
+            <span className="title" style={{ display: 'block' }}>{a.title}</span>
+            <span className="ctx row" style={{ gap: 10, flexWrap: 'wrap' }}>
+              <span className={`sev ${a.severity}`}>{sevText[a.severity]} priority</span>
+              {a.context ? <span>{a.context}</span> : null}
+            </span>
+          </span>
+          {a.action ? (
+            <Button size="sm" variant="secondary" iconEnd="right" onClick={a.action.onClick} disabledReason={a.action.disabledReason}>
+              {a.action.label}
+            </Button>
+          ) : (
+            <span />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export interface FeedItem {
+  key: string;
+  at: number;
+  icon: IconName;
+  title: ReactNode;
+  detail?: ReactNode;
+  status?: { tone: Tone; text: string };
+}
+
+/** Recent activity feed with Lagos times and accessible status badges. */
+export function ActivityFeed({ items, now }: { items: FeedItem[]; now: number }) {
+  if (!items.length) return <Empty title="No recent activity" icon="history" />;
+  const rel = (at: number) => {
+    const m = Math.round((now - at) / 60_000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return `${m} min ago`;
+    const h = Math.round(m / 60);
+    if (h < 24) return `${h} h ago`;
+    return new Date(at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', timeZone: LAGOS });
+  };
+  return (
+    <ul className="feed">
+      {items.map((f) => (
+        <li key={f.key}>
+          <span className="f-ico"><Icon name={f.icon} size={16} /></span>
+          <span style={{ minWidth: 0 }}>
+            <span className="strong" style={{ display: 'block' }}>{f.title}</span>
+            {f.detail ? <span className="cell-sub" style={{ display: 'block' }}>{f.detail}</span> : null}
+            {f.status ? <span style={{ display: 'inline-block', marginTop: 4 }}><Pill tone={f.status.tone}>{f.status.text}</Pill></span> : null}
+          </span>
+          <time className="f-when" dateTime={new Date(f.at).toISOString()}>{rel(f.at)}</time>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -91,7 +220,7 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: () => void | Promise<unknown>;
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-soft';
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   icon?: IconName;
   /** Icon after the label (e.g. Next). */
   iconEnd?: IconName;
@@ -109,7 +238,7 @@ export function Button({ children, onClick, variant = 'secondary', size = 'md', 
   return (
     <button
       type={type}
-      className={`btn ${variant} ${size === 'sm' ? 'sm' : ''}`}
+      className={`btn ${variant} ${size === 'md' ? '' : size}`}
       disabled={off}
       title={disabledReason ?? title}
       aria-busy={busy || undefined}
@@ -152,11 +281,11 @@ export function Notice({ tone = 'info', children, icon }: { tone?: 'info' | 'war
   );
 }
 
-export function Empty({ title, children, icon = 'list', action, tone }: { title: string; children?: ReactNode; icon?: IconName; action?: ReactNode; tone?: 'success' | 'danger' }) {
+export function Empty({ title, children, icon = 'list', action, tone, art }: { title: string; children?: ReactNode; icon?: IconName; action?: ReactNode; tone?: 'success' | 'danger'; art?: DimName }) {
   const t = tone ?? (icon === 'checkCircle' ? 'success' : undefined);
   return (
     <div className={`empty ${t ? `tone-${t}` : ''}`}>
-      <div className="empty-ico"><Icon name={icon} size={24} /></div>
+      {art ? <Dimensional name={art} size={112} /> : <div className="empty-ico"><Icon name={icon} size={24} /></div>}
       <div className="title">{title}</div>
       {children ? <div>{children}</div> : null}
       {action}
@@ -326,10 +455,11 @@ export function SearchInput({ value, onChange, placeholder }: { value: string; o
   );
 }
 
-export function Select<V extends string>({ value, onChange, options, label }: { value: V; onChange: (v: V) => void; options: { value: V; label: string }[]; label: string }) {
+/** Select with a visible label above it (brief: no unexplained "All" dropdowns). `hideLabel` for tight toolbars. */
+export function Select<V extends string>({ value, onChange, options, label, hideLabel }: { value: V; onChange: (v: V) => void; options: { value: V; label: string }[]; label: string; hideLabel?: boolean }) {
   return (
-    <label>
-      <span className="sr">{label}</span>
+    <label className={hideLabel ? undefined : 'lsel'}>
+      <span className={hideLabel ? 'sr' : undefined}>{label}</span>
       <select className="select" value={value} onChange={(e) => onChange(e.target.value as V)} aria-label={label}>
         {options.map((o) => (
           <option key={o.value} value={o.value}>

@@ -35,6 +35,8 @@ export const NAV: NavGroup[] = [
     title: '',
     items: [
       { path: '/overview', label: 'Home', icon: 'home', anyOf: ['overview.view'], page: L(() => import('@/workspaces/overview/Overview')), keywords: 'overview dashboard business command centre' },
+      // Role-focused workspace for staff (owner brief §23). Shows only panels the role's permissions allow.
+      { path: '/workspace', label: 'My work', icon: 'layout', anyOf: ['live.view', 'drivers.verify', 'cases.view', 'safety.view', 'finance.view', 'integrations.view', 'comms.view', 'audit.view'], page: L(() => import('@/workspaces/home/Workspace')), keywords: 'my queue tasks assigned staff dashboard' },
       { path: '/approvals', label: 'Approvals', icon: 'checkCircle', anyOf: ['approvals.view'], page: L(() => import('@/workspaces/approvals/Approvals')), badge: (d) => d.approvals.filter((a) => a.status === 'pending').length, keywords: 'decisions two person maker checker' },
     ],
   },
@@ -65,6 +67,8 @@ export const NAV: NavGroup[] = [
     title: 'Finance',
     subnav: true,
     items: [
+      { path: '/finance', label: 'Money overview', icon: 'wallet', anyOf: ['finance.view'], page: L(() => import('@/workspaces/finance/MoneyOverview')), keywords: 'wallet dashboard funding withdrawals fee revenue transactions' },
+      { path: '/subscriptions', label: 'Driver subscriptions', icon: 'ticket', anyOf: ['finance.view', 'drivers.view'], page: L(() => import('@/workspaces/subscriptions/Subscriptions')), keywords: 'daily monthly pass access package revenue expiring' },
       { path: '/finance/collections', label: 'Collections', icon: 'exchange', anyOf: ['finance.view'], page: L(() => import('@/workspaces/finance/Collections')), keywords: 'payments received packages revenue' },
       { path: '/finance/wallets', label: 'Passenger wallets', icon: 'wallet', anyOf: ['finance.view'], page: L(() => import('@/workspaces/finance/Wallets')) },
       { path: '/finance/earnings', label: 'Driver earnings', icon: 'steering', anyOf: ['finance.view'], page: L(() => import('@/workspaces/finance/Earnings')) },
@@ -130,6 +134,18 @@ export const NAV: NavGroup[] = [
     ],
   },
   {
+    // Infrastructure and operating costs (D-057). Manual capture; no billing integration connected.
+    title: 'Infrastructure & costs',
+    subnav: true,
+    items: [
+      { path: '/costs', label: 'Cost dashboard', icon: 'chart', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/CostDashboard')), keywords: 'operating cost spend infrastructure budget' },
+      { path: '/costs/expenses', label: 'Expenses', icon: 'receipt', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Expenses')), badge: (d) => d.expenses.filter((e) => e.status === 'pending_approval').length, keywords: 'invoices bills capture approve' },
+      { path: '/costs/vendors', label: 'Vendors', icon: 'store', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Vendors')), keywords: 'vercel cloudflare providers plans' },
+      { path: '/costs/budgets', label: 'Budgets', icon: 'balance', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Budgets')), keywords: 'budget limits monthly' },
+      { path: '/costs/break-even', label: 'Break-even', icon: 'exchange', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/BreakEven')), keywords: 'break even subscriptions coverage' },
+    ],
+  },
+  {
     title: 'Technical',
     items: [
       { path: '/developer', label: 'Integrations', icon: 'plugin', anyOf: ['integrations.view'], page: L(() => import('@/workspaces/developer/Integrations')), badge: (d) => d.integrations.filter((i) => i.state === 'degraded').length },
@@ -149,12 +165,13 @@ export const groupOf = (path: string) => NAV.find((g) => g.items.some((i) => i.p
 export const ROLE_HOME: Record<StaffRole, string> = {
   owner: '/overview',
   admin: '/overview',
-  operations: '/live',
-  onboarding: '/drivers',
-  care: '/cases',
-  safety: '/safety',
-  finance: '/finance/collections',
+  // Staff land on their focused workspace (brief §23); it links on to their queues.
+  operations: '/workspace',
+  onboarding: '/workspace',
+  care: '/workspace',
+  safety: '/workspace',
+  finance: '/workspace',
   marketing: '/comms',
-  developer: '/developer',
+  developer: '/workspace',
   auditor: '/audit',
 };

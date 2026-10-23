@@ -88,6 +88,10 @@ export const PERMISSIONS = [
   'automation.view',
   'automation.configure',
   'automation.retry',
+  // Infrastructure and operating costs (D-057)
+  'costs.view',
+  'costs.manage',
+  'costs.approve',
   // Growth
   'comms.view',
   'comms.draft',
@@ -111,6 +115,7 @@ export const ROLE_PERMISSIONS: Record<StaffRole, readonly Permission[]> = {
     'config.publish',
     'refunds.approve',
     'comms.publish',
+    'costs.approve',
   ],
   admin: [
     'overview.view', 'passengers.view', 'passengers.restrict', 'drivers.view', 'drivers.verify', 'drivers.restrict', 'trips.view', 'live.view',
@@ -124,10 +129,10 @@ export const ROLE_PERMISSIONS: Record<StaffRole, readonly Permission[]> = {
   finance: [
     'overview.view', 'finance.view', 'ledger.view', 'ledger.adjust', 'refunds.request', 'refunds.approve', 'withdrawals.view', 'withdrawals.review', 'withdrawals.process',
     'reconciliation.work', 'reports.view', 'reports.export', 'trips.view', 'passengers.view', 'drivers.view', 'payments_setup.view', 'approvals.view', 'audit.view',
-    'fees.edit', 'automation.view', 'automation.retry',
+    'fees.edit', 'automation.view', 'automation.retry', 'costs.view', 'costs.manage', 'costs.approve',
   ],
   marketing: ['comms.view', 'comms.draft', 'comms.publish', 'promos.manage', 'referrals.manage', 'events.manage', 'reports.view', 'config.view'],
-  developer: ['integrations.view', 'integrations.configure', 'integrations.secrets', 'logs.view', 'payments_setup.view', 'audit.view', 'automation.view', 'automation.configure', 'automation.retry'],
+  developer: ['integrations.view', 'integrations.configure', 'integrations.secrets', 'logs.view', 'payments_setup.view', 'audit.view', 'automation.view', 'automation.configure', 'automation.retry', 'costs.view', 'costs.manage'],
   // Read only by construction: only `.view` permissions, never contact details or precise safety location.
   auditor: VIEW_ALL.filter((p) => p !== 'safety.view'),
 };

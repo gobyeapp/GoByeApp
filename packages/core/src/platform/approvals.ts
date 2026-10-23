@@ -17,6 +17,7 @@ export const APPROVAL_RULES: Record<ApprovalKind, { approverRoles: StaffRole[]; 
   staff_role: { approverRoles: ['owner'], note: 'Granting owner, finance or developer access' },
   fee_schedule: { approverRoles: ['owner'], note: 'A new wallet funding or withdrawal fee schedule (prepared by finance)' },
   gateway_switch: { approverRoles: ['owner'], note: 'Moving new payments to a different payment provider (money in flight finishes on the old one)' },
+  expense: { approverRoles: ['owner'], thresholdKobo: 5_000_000 as Kobo, note: 'Operating expenses of ₦50,000 or more (placeholder threshold); smaller ones finance approves' },
   automation_config: { approverRoles: ['owner', 'admin'], note: 'Changing an automation setting (timings, reminders, thresholds)' },
 };
 

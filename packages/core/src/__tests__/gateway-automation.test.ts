@@ -316,3 +316,58 @@ describe('automation registry and runs', () => {
     expect(d.feeSchedules.some((s) => s.approvedBy)).toBe(false);
   });
 });
+
+import { breakEven, budgetUtilisation, monthKey, monthSpend, perUnit, projectedMonthEnd, seedVendors, spendByCategory, validateExpense, OPERATING_CATEGORIES, type Expense } from '../index';
+
+describe('infrastructure costs (D-057)', () => {
+  const exp = (over: Partial<Expense>): Expense => ({ id: 'e', vendorId: 'ven-vercel', category: 'frontend_hosting', description: 'x', amount: N(10_000), month: '2026-10', incurredAt: NOW, status: 'approved', recurring: false, createdBy: fin, createdAt: NOW, reconciled: false, ...over });
+
+  it('seeds real plan status only: free plans and not-chosen services, no bills', () => {
+    const d = createPlatformDataset();
+    expect(d.expenses).toEqual([]);
+    expect(d.budgets).toEqual([]);
+    expect(seedVendors().every((v) => ['free_plan', 'not_chosen', 'proposed', 'trial'].includes(v.status))).toBe(true);
+  });
+
+  it('counts only approved or paid spend; marketing is outside operating categories', () => {
+    const xs = [exp({}), exp({ id: 'm', category: 'marketing', amount: N(50_000) }), exp({ id: 'd', status: 'draft', amount: N(999) })];
+    expect(monthSpend(xs, '2026-10')).toBe(N(60_000));
+    expect(monthSpend(xs, '2026-10', OPERATING_CATEGORIES)).toBe(N(10_000));
+    expect(spendByCategory(xs, '2026-10')[0]!.category).toBe('marketing');
+  });
+
+  it('never invents: no budget → no utilisation, no units → no per-unit cost, too early → no projection', () => {
+    expect(budgetUtilisation(N(10), undefined)).toBeNull();
+    expect(perUnit(N(10), 0)).toBeNull();
+    expect(projectedMonthEnd(0 as Kobo, NOW)).toBeNull();
+    expect(projectedMonthEnd(N(1_000), Date.UTC(2026, 9, 10, 12))).toBe(N(3_100));
+  });
+
+  it('break-even uses the confirmed pass prices', () => {
+    const b = breakEven({ operatingCost: N(120_000), subscriptionRevenue: N(60_000) });
+    expect(b.monthlyPassesNeeded).toBe(2);
+    expect(b.dailyPassesNeeded).toBe(60);
+    expect(b.coverage).toBe(0.5);
+    expect(b.gap).toBe(N(60_000));
+  });
+
+  it('validates expenses and keys months in Lagos time', () => {
+    expect(validateExpense({ vendorId: 'nope', description: '', amount: 0 as Kobo, month: 'x' }, seedVendors())).toHaveLength(4);
+    expect(monthKey(Date.UTC(2026, 9, 31, 23, 30))).toBe('2026-11');
+  });
+});
+
+describe('negotiation history on Negotiate trips', () => {
+  it('records the rider offer, driver responses and the selected fare', () => {
+    const d = createPlatformDataset();
+    const neg = d.trips.filter((t) => t.mode === 'negotiate');
+    expect(neg.length).toBeGreaterThan(10);
+    expect(neg.every((t) => t.negotiation && t.negotiation.events[0]!.kind === 'offer')).toBe(true);
+    expect(d.trips.filter((t) => t.mode === 'quick_match').every((t) => !t.negotiation)).toBe(true);
+    for (const t of neg.filter((x) => x.negotiation!.outcome === 'agreed')) {
+      const sel = t.negotiation!.events.find((e) => e.kind === 'select')!;
+      expect(sel.amount).toBe(t.agreedFare);
+      expect(sel.driverId).toBe(t.driverId);
+    }
+  });
+});

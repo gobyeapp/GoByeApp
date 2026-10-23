@@ -14,11 +14,31 @@ import { Icon, type IconName } from '@/ui/Icon';
  */
 interface Hit {
   id: string;
-  group: 'Pages' | 'Drivers' | 'Passengers' | 'Trips' | 'Cases';
+  group: 'Pages' | 'Drivers' | 'Passengers' | 'Trips' | 'Payments' | 'Cases' | 'Recent';
   title: string;
   sub: string;
   icon: IconName;
   run: () => void;
+}
+
+const RECENT_KEY = 'gobye.admin.recentSearches';
+/** Recent searches are a per-viewer convenience in this browser only. */
+function readRecent(): string[] {
+  try {
+    const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]');
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : [];
+  } catch {
+    return [];
+  }
+}
+function saveRecent(q: string) {
+  const t = q.trim();
+  if (t.length < 2) return;
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify([t, ...readRecent().filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, 5)));
+  } catch {
+    /* storage unavailable */
+  }
 }
 
 const norm = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N} #]/gu, '');
@@ -56,16 +76,19 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
 
   const hits = useMemo<Hit[]>(() => {
     const go = (path: string) => () => {
+      saveRecent(q);
       onClose();
       navigate(path);
     };
     const rec = (type: 'driver' | 'passenger' | 'trip', id: string) => () => {
+      saveRecent(q);
       onClose();
       openRecord({ type, id });
     };
     const pages = ALL_ITEMS.filter((i) => i.anyOf.some((p) => can(p)));
     if (!q.trim()) {
-      return pages.slice(0, 8).map((i) => ({ id: i.path, group: 'Pages' as const, title: i.label, sub: groupOf(i.path)?.title || 'Home', icon: i.icon, run: go(i.path) }));
+      const recent = readRecent().map((r) => ({ id: `recent-${r}`, group: 'Recent' as const, title: r, sub: 'Recent search', icon: 'history' as IconName, run: () => setQ(r) }));
+      return [...recent, ...pages.slice(0, 8).map((i) => ({ id: i.path, group: 'Pages' as const, title: i.label, sub: groupOf(i.path)?.title || 'Home', icon: i.icon, run: go(i.path) }))];
     }
     const scored: (Hit & { s: number })[] = [];
     for (const i of pages) {
@@ -90,13 +113,18 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
         const s = matchScore(q, x.ref, x.id, `${x.pickup} ${x.destination}`);
         if (s) scored.push({ s, id: x.id, group: 'Trips', title: x.ref, sub: `${x.pickup} → ${x.destination}`, icon: 'route', run: rec('trip', x.id) });
       }
+    if (can('finance.view') || can('payments_setup.view'))
+      for (const c of d.collections) {
+        const s = matchScore(q, c.reference, c.id, c.purpose.replace(/_/g, ' '));
+        if (s) scored.push({ s, id: c.id, group: 'Payments', title: c.reference, sub: `${c.purpose.replace(/_/g, ' ')} · ${c.status}`, icon: 'exchange', run: go('/payments/operations') });
+      }
     for (const x of d.cases) {
       const page = x.team === 'safety' ? '/safety' : '/cases';
       if (!inScope(x.city) || !can(x.team === 'safety' ? 'safety.view' : 'cases.view')) continue;
       const s = matchScore(q, x.ref, x.subject, x.id);
       if (s) scored.push({ s, id: x.id, group: 'Cases', title: `${x.ref} · ${x.subject}`, sub: x.team === 'safety' ? 'Safety case' : 'Support case', icon: x.team === 'safety' ? 'safeAlert' : 'headphone', run: go(`${page}?open=${encodeURIComponent(x.id)}`) });
     }
-    const order = ['Pages', 'Drivers', 'Passengers', 'Trips', 'Cases'];
+    const order = ['Pages', 'Drivers', 'Passengers', 'Trips', 'Payments', 'Cases'];
     // Best matches first within each group; at most 5 per record group so pages stay visible.
     const out: Hit[] = [];
     for (const g of order) out.push(...scored.filter((h) => h.group === g).sort((a, b) => b.s - a.s).slice(0, g === 'Pages' ? 6 : 5));
@@ -137,7 +165,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
             ref={input}
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search pages, drivers, passengers, trips, cases"
+            placeholder="Search rides, drivers, riders, payments..."
             role="combobox"
             aria-expanded="true"
             aria-controls="cmdk-list"
@@ -149,7 +177,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
         <div className="cmdk-list" id="cmdk-list" role="listbox" ref={listRef} aria-label="Results">
           {hits.length ? (
             hits.map((h, i) => {
-              const head = h.group !== last ? ((last = h.group), <div key={`g-${h.group}`} className="cmdk-group" role="presentation">{q.trim() || h.group !== 'Pages' ? h.group : 'Go to'}</div>) : null;
+              const head = h.group !== last ? ((last = h.group), <div key={`g-${h.group}`} className="cmdk-group" role="presentation">{h.group === 'Recent' ? 'Recent searches' : q.trim() || h.group !== 'Pages' ? h.group : 'Go to'}</div>) : null;
               return [
                 head,
                 <button key={`${h.group}-${h.id}`} id={`cmdk-${i}`} className="cmdk-item" role="option" aria-selected={i === sel} tabIndex={-1} onMouseMove={() => setSel(i)} onClick={h.run}>
