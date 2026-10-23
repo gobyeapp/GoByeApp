@@ -326,6 +326,7 @@ function Shell() {
             </Popover>
             <Popover
               label="Help"
+              className="help-pop"
               trigger={({ open, toggle, id }) => (
                 <button className="icon-btn" aria-label="Help" aria-expanded={open} aria-controls={id} onClick={toggle} title="Help">
                   <Icon name="question" size={19} />

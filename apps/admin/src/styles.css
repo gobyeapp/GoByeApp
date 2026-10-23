@@ -113,7 +113,7 @@ h1, h2, h3, h4, p { margin: 0; }
 
 /* ---------- Shell ---------- */
 .shell { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); min-height: 100%; transition: grid-template-columns var(--t-med) var(--ease); }
-.sidebar { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 20; }
+.sidebar { position: sticky; top: 0; height: 100vh; height: 100dvh; overflow: hidden; background: #ffffff; border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 20; }
 .side-head { display: flex; align-items: center; gap: 10px; height: var(--topbar); padding: 0 10px 0 18px; flex-shrink: 0; }
 .side-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 8px 10px 16px; display: flex; flex-direction: column; gap: 18px; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
 .side-foot { border-top: 1px solid var(--border); padding: 10px 12px; flex-shrink: 0; }
@@ -150,6 +150,7 @@ h1, h2, h3, h4, p { margin: 0; }
 
 .main { min-width: 0; display: flex; flex-direction: column; }
 .topbar { position: sticky; top: 0; z-index: 10; display: grid; grid-template-columns: minmax(200px, 1fr) minmax(200px, 400px) auto; align-items: center; gap: 16px; padding: 0 var(--pad); height: var(--topbar); border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.96); backdrop-filter: saturate(1.4) blur(6px); }
+.search-mobile { display: none !important; }
 .top-left, .top-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .top-right { justify-content: flex-end; }
 .crumbs { display: flex; align-items: center; min-width: 0; font-size: 13px; color: var(--text-3); }
@@ -167,7 +168,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .scope-chip:hover { border-color: var(--border-strong); color: var(--text); }
 .scope-chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tangerine); }
 .icon-dot { position: relative; }
-.icon-dot .dot { position: absolute; top: 2px; right: 0; min-width: 15px; height: 15px; padding: 0 4px; pointer-events: none; border-radius: var(--r-pill); background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; box-sizing: content-box; }
+.icon-dot .dot { position: absolute; top: 2px; left: calc(50% + 2px); right: auto; min-width: 15px; height: 15px; padding: 0 4px; pointer-events: none; border-radius: var(--r-pill); background: var(--danger); color: #fff; font-size: 10px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; box-sizing: content-box; }
 .who { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 6px 0 3px; border-radius: var(--r-pill); border: none; background: transparent; cursor: pointer; transition: background var(--t-fast); }
 .who:hover { background: var(--selected); }
 .who-text { display: flex; flex-direction: column; text-align: left; line-height: 1.2; white-space: nowrap; max-width: 170px; }
@@ -192,8 +193,18 @@ h1, h2, h3, h4, p { margin: 0; }
   .content { padding-top: 24px; }
   .crumbs .crumb-parent, .crumbs .crumb-sep { display: none; }
 }
-@media (max-width: 520px) { .scope-chip .scope-text { display: none; } }
-.search-mobile { display: none !important; }
+@media (max-width: 520px) {
+  .scope-chip .scope-text { display: none; }
+  /* Phone top bar: keep room for the page title. Help (keyboard shortcuts) is desktop-only; Find a page is the search button. */
+  .topbar { padding: 0 12px; gap: 4px; }
+  .top-left, .top-right { gap: 2px; }
+  .top-right .icon-dot { margin-right: 4px; }
+  .top-right .help-pop, .who > svg { display: none; }
+  .scope-chip { padding: 0; gap: 0; width: 34px; justify-content: center; }
+  .scope-chip > svg { display: none; }
+  .who { padding: 0 2px; }
+  .crumbs { font-size: 14px; }
+}
 @media (prefers-reduced-motion: reduce) { .shell, .sidebar, .nav-link, .search-trigger { transition: none; } }
 
 /* ---------- Prototype indicator (honest state, quiet) ---------- */
@@ -234,7 +245,7 @@ h1, h2, h3, h4, p { margin: 0; }
 .cmdk-foot { display: flex; gap: 14px; padding: 9px 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3); flex-wrap: wrap; }
 
 /* ---------- Secondary navigation ---------- */
-.subnav { display: flex; gap: 4px; overflow-x: auto; margin: -8px 0 28px; padding: 2px; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+.subnav { display: flex; gap: 4px; overflow-x: auto; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 28px !important; margin: -8px 0 28px; padding: 2px; scrollbar-width: none; border-bottom: 1px solid var(--border); }
 .subnav a { display: inline-flex; align-items: center; height: 38px; padding: 0 12px; text-decoration: none; font-weight: 500; font-size: 13px; color: var(--text-2); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -3px; transition: color var(--t-fast), border-color var(--t-fast); }
 .subnav a:hover { color: var(--text); }
 .subnav a.active { color: var(--ink); font-weight: 600; border-bottom-color: var(--jade); }
@@ -413,6 +424,7 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 
 /* ---------- Tabs ---------- */
 .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+@media (max-width: 640px) { .tabs { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); padding-right: 28px; } }
 .tabs button { border: none; background: none; padding: 10px 12px; font-weight: 600; color: var(--text-2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; transition: color var(--t-fast), border-color var(--t-fast); }
 .tabs button:hover { color: var(--text); }
 .tabs button[aria-selected='true'] { color: var(--ink); border-bottom-color: var(--jade); }
@@ -423,6 +435,8 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .kv { display: grid; grid-template-columns: minmax(110px, 160px) minmax(0, 1fr); gap: 10px 16px; }
 .kv dt { color: var(--text-2); }
 .kv dd { margin: 0; font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.kv dd .pill { max-width: 100%; white-space: normal; height: auto; min-height: 22px; padding-top: 2px; padding-bottom: 2px; }
+@media (max-width: 380px) { .kv { grid-template-columns: minmax(0, 1fr); gap: 2px; } .kv dd { margin-bottom: 10px; } }
 .timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .timeline li { position: relative; padding: 0 0 16px 24px; }
 .timeline li::before { content: ''; position: absolute; left: 4px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid var(--jade); box-sizing: border-box; }
@@ -433,11 +447,11 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 /* ---------- Overlays: side sheet, dialog ---------- */
 .scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 40; animation: fade var(--t-med); }
 .drawer { position: fixed; top: 8px; right: 8px; bottom: 8px; width: min(600px, calc(100vw - 16px)); background: #fff; z-index: 41; border: 1px solid var(--border); border-radius: 16px; display: flex; flex-direction: column; animation: slide var(--t-slow) var(--ease); box-shadow: var(--e4); overflow: hidden; }
-@media (max-width: 640px) { .drawer { inset: 0; width: 100vw; border-radius: 0; } }
+@media (max-width: 640px) { .drawer { inset: 0; width: 100vw; border-radius: 0; border: none; } .drawer-head, .drawer-body, .drawer-foot { padding-left: 16px; padding-right: 16px; } }
 .drawer-head { display: flex; align-items: center; gap: 10px; padding: 18px 22px; border-bottom: 1px solid var(--border); min-height: var(--topbar); }
 .drawer-head h2 { font-size: 18px; font-weight: 650; color: var(--ink); letter-spacing: -0.01em; }
 .drawer-body { flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 22px; }
-.drawer-foot { padding: 14px 22px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; background: #fff; }
+.drawer-foot { padding: 14px 22px calc(14px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; background: #fff; }
 .dialog { position: fixed; z-index: 42; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(480px, calc(100vw - 32px)); background: #fff; border-radius: 16px; border: 1px solid var(--border); padding: 24px; display: flex; flex-direction: column; gap: 14px; animation: dialog var(--t-med) var(--ease); box-shadow: var(--e4); }
 .dialog h2 { font-size: 18px; font-weight: 650; color: var(--ink); }
 @keyframes fade { from { opacity: 0; } }
@@ -502,3 +516,20 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .staff-option { display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--border); background: #fff; cursor: pointer; box-shadow: var(--e1); transition: border-color var(--t-fast), box-shadow var(--t-fast); }
 .staff-option:hover { border-color: var(--jade); box-shadow: var(--e2); }
 .avatar { width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 1px solid var(--border-strong); color: var(--ink); display: grid; place-items: center; font-weight: 700; font-size: 11.5px; flex-shrink: 0; }
+
+/* Phones: featured metric cards one per row so the figure, art and detail line all fit (kept last so it wins). */
+@media (max-width: 420px) { .grid.featured { grid-template-columns: minmax(0, 1fr); } .grid.featured > * { grid-column: auto !important; } }
+
+/* Phones: tables keep readable columns and scroll sideways inside their card, with an edge shadow showing there is more. */
+@media (max-width: 640px) {
+  .table th, .table td { padding: 11px 12px; }
+  .table td:first-child { min-width: 168px; }
+  .table td .pill, .table td .cell-sub, .table td.right, .table td .num { white-space: nowrap; }
+  .table-wrap {
+    background:
+      linear-gradient(to right, #fff 40%, rgba(255, 255, 255, 0)) left / 32px 100% no-repeat local,
+      linear-gradient(to left, #fff 40%, rgba(255, 255, 255, 0)) right / 32px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgba(23, 26, 31, 0.14), transparent) left / 12px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgba(23, 26, 31, 0.14), transparent) right / 12px 100% no-repeat scroll;
+  }
+}

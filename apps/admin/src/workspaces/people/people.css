@@ -4,8 +4,8 @@
 /* Side-sheet section: icon + heading, optional aside, then content. */
 .panel-section { display: flex; flex-direction: column; gap: 12px; }
 .panel-section + .panel-section { border-top: 1px solid var(--border); padding-top: 22px; }
-.panel-section-head { display: flex; align-items: center; gap: 8px; }
-.panel-section-head h3 { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; color: var(--ink); }
+.panel-section-head { display: flex; align-items: center; gap: 4px 8px; flex-wrap: wrap; }
+.panel-section-head h3 { font-size: 14px; font-weight: 600; flex: 1 1 auto; min-width: min(9em, 100%); color: var(--ink); }
 .panel-section-head > svg { color: var(--jade); flex-shrink: 0; }
 .panel-section-head .aside { font-size: 12.5px; color: var(--text-2); font-weight: 500; }
 .panel-section .kv { margin: 0; }

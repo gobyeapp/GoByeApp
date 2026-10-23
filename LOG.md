@@ -805,3 +805,30 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - **Change:** the owner account is now **Liquid (Owner)**, at the owner's request (id `stf-owner` unchanged).
 - **Checks:** typecheck 0 errors; core 265 and admin 405 tests pass; admin build OK.
+
+## 2026-10-23 — Admin on phones: nothing cut off
+
+- **Problems found at 320 to 390px:**
+  - The phone search button never showed: a later CSS rule overrode the one meant to show it.
+  - The notification count covered the bell.
+  - The top bar was so crowded that page titles were cut ("Driver subsc…").
+  - Two-up metric cards squeezed their text into one word per line.
+  - Side panel section headings overlapped their side note.
+  - Tab rows cut off with no hint that they scroll.
+  - Tables squashed their first column.
+  - Two pages (Payment providers, Traffic) scrolled sideways at 320px.
+  - The side menu used `100vh`, which hides its bottom behind the browser bar on real phones.
+- **Fixes:**
+  - Phone top bar: search shown; Help (keyboard shortcuts) hidden; compact city/date chip; badge on the bell's corner.
+  - Featured cards one per row under 420px.
+  - Headings wrap.
+  - Fading edge on scrollable tab rows.
+  - Tables keep a readable first column and show an edge shadow when they scroll.
+  - Key-value rows stack under 380px.
+  - Traffic cards use `min(320px, 100%)`.
+  - Menu uses `100dvh`; side panel footer clears the phone's home indicator (`viewport-fit=cover`).
+- **Checks:**
+  - All 49 pages at 320, 360 and 390px, plus 7 pages at 768, 1024 and 1440px: no sideways scroll, no page errors.
+  - Screenshots reviewed.
+  - Typecheck: 0 errors. Admin tests: 405 pass.
+  - Not checked on a physical phone.
