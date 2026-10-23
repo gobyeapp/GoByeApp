@@ -50,9 +50,10 @@ export function simulatedAutomationRuns(
   const push = (r: Omit<AutomationRun, 'id' | 'simulated'>) => runs.push({ ...r, id: id(), simulated: true });
 
   // Webhook intake and wallet credit / package activation, from collections.
-  for (const c of d.collections.slice(0, 40)) {
+  for (const [ci, c] of d.collections.entries()) {
     const at = c.createdAt + 2 * MIN;
-    c.events.forEach((e, i) =>
+    // Webhook intake runs for the most recent 40 payments only, to keep the history readable.
+    if (ci < 40) c.events.forEach((e, i) =>
       push({ automationId: 'payments.webhook.intake', triggeredBy: { kind: 'webhook', ref: `evt_${c.reference}_${i}` }, subject: { type: 'collection', id: c.id, label: c.reference }, idempotencyKey: `evt_${c.reference}_${i}`, status: 'succeeded', queuedAt: e.at, startedAt: e.at, finishedAt: e.at + 120, attempts: [{ ...ok(e.at, 120) }] }),
     );
     const autoId = c.purpose === 'package_purchase' ? 'subscription.activate' : c.purpose === 'wallet_funding' ? 'wallet.funding.credit' : null;

@@ -382,3 +382,31 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Why:** the owner's admin redesign brief names this palette. Staff work in the dashboard all day, so actions need one clear, recognisable colour.
 - **Scope:** admin web only. The mobile apps keep D-034 / D-050 (monochrome with brand accents, no gradients). Final brand colours are still Q-008. Every value is a token in `apps/admin/src/styles.css`, so changing the palette is one edit there.
 - **Contrast (checked):** white on jade 5.3:1; jade text on mint 5.8:1; secondary text 6.5:1; form-control borders 3.2:1; sidebar text 10.7:1. In dark mode jade lightens to `#3DCB97` (8.8:1 on the dark surface).
+
+## D-054 — Provider-independent payments with versioned fee schedules (2026-10-23, owner brief)
+
+- **Decision:**
+  - Payments go through a server-side `PaymentGatewayAdapter` (no provider hardcoded).
+  - Wallet funding and withdrawal fees come from versioned, effective-dated `FeeSchedule`s, prepared by finance and approved by the owner.
+  - An unset fee blocks the operation.
+  - Every payment is recorded as gross, provider charge, GoBye fee, wallet movement and settlement, with GoBye fees in a new `fee_income` account.
+  - Credits need a matching server lookup.
+  - Payouts are never resubmitted after an unknown outcome.
+  - Provider switches need the `gateway_switch` owner approval and drain in-flight money on the old provider.
+- **Confirmed pricing (owner, 2026-10-23):**
+  - daily package ₦2,000 for 24 hours from successful activation;
+  - monthly ₦60,000 for 30 consecutive days;
+  - 0% trip commission.
+  - Wallet and withdrawal fees are configurable and depend on the selected provider.
+- **Also:** fixed the ledger's provider-fee posting signs (costs now debit, clearing credit).
+- **Not done:** no real adapter (Q-042), no fee values (Q-073). See `PAYMENTS_AUTOMATION_ARCHITECTURE.md`.
+
+## D-055 — Automation Centre registry; server-side, idempotent, protected retries (2026-10-23, owner brief)
+
+- **Decision:** every background workflow is declared once in `AUTOMATIONS`, with:
+  - trigger, conditions and server action;
+  - idempotency key, retry policy, timeout and escalation;
+  - owner role, bounded settings and manual retry rule.
+- **Running:** only on the server.
+- **Retries:** only transient failures retry automatically. Possible-money-moved failures become `needs_lookup`. Successful runs are never replayed. Manual retries keep the idempotency key and need `automation.retry` and a reason. Setting changes need a second person (`automation_config`).
+- **Status:** registry and rules implemented and tested; run history in the admin is simulated; no runner (Q-074).

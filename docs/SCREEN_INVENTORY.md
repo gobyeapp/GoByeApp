@@ -98,3 +98,18 @@ Prototype on test data (D-053, `ADMIN_DASHBOARD_REDESIGN.md`). Every page uses t
 | Administration | `/staff`, `/audit` | Staff (people + roles and permissions matrix), activity (timeline / table) | Redesigned |
 | Technical | `/payments`, `/developer`, `/developer/events`, `/infrastructure/traffic` | Payments readiness, integrations by state, events log, traffic simulation | Redesigned |
 | Shell | all | Sidebar and rail, breadcrumb, Ctrl/Cmd+K search, notifications, account menu, Finance and Settings sub-navigation | New |
+
+### Payments and Automation Centre (admin, 2026-10-23, D-054 / D-055)
+
+| Group | Route | Screen | Status |
+|---|---|---|---|
+| Payments | `/payments` | Payment providers: readiness, adapter contract, capability coverage, safe provider switch, secrets notice | Built (test data) |
+| Payments | `/payments/fees` | Fee configuration: schedule in force, versions, finance draft editor, owner approval, customer disclosure preview, confirmed pricing | Built (no fee set) |
+| Payments | `/payments/health` | Gateway health: connection, webhooks, money in flight, reconciliation; monitoring not connected | Built (test data) |
+| Payments | `/payments/operations` | Payment operations: five money figures apart, stuck items, safety rule per row | Built (test data) |
+| Automation | `/automation` | Workflow registry (13 workflows) | Built (runner not connected) |
+| Automation | `/automation/schedules` | Scheduled jobs | Built (runner not connected) |
+| Automation | `/automation/runs` | Execution history | Built (simulated runs) |
+| Automation | `/automation/failed` | Failed jobs: Retry / Look up / Cancel with protected rules | Built (simulated runs) |
+| Automation | `/automation/settings` | Automation settings with approval | Built (placeholder values) |
+| Automation | `/automation/audit` | Audit history for automation, fee and provider changes | Built |

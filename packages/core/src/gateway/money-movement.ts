@@ -147,8 +147,8 @@ export interface SwitchReadiness {
  * required capability, and the switch is approved by the owner.
  */
 export function switchReadiness(p: {
-  target: { key: string; state: 'prototype' | 'configured' | 'tested' | 'live' | 'degraded'; missingCapabilities: string[] } | null;
-  current: { key: string; pendingCollections: number; processingTransfers: number; unreconciledDays: number } | null;
+  target: { key: string; name?: string; state: 'prototype' | 'configured' | 'tested' | 'live' | 'degraded'; missingCapabilities: string[] } | null;
+  current: { key: string; name?: string; pendingCollections: number; processingTransfers: number; unreconciledDays: number } | null;
   approved: boolean;
 }): SwitchReadiness {
   const blockers: string[] = [];
@@ -161,8 +161,9 @@ export function switchReadiness(p: {
   }
   if (p.current) {
     if (p.current.unreconciledDays > 0) blockers.push(`Reconcile the current provider first (${p.current.unreconciledDays} day(s) not reconciled).`);
-    if (p.current.pendingCollections) drain.push(`${p.current.pendingCollections} pending payment(s) finish on ${p.current.key}.`);
-    if (p.current.processingTransfers) drain.push(`${p.current.processingTransfers} payout(s) in progress finish on ${p.current.key}.`);
+    const old = p.current.name ?? p.current.key;
+    if (p.current.pendingCollections) drain.push(`${p.current.pendingCollections} pending payment(s) finish on ${old}.`);
+    if (p.current.processingTransfers) drain.push(`${p.current.processingTransfers} payout(s) in progress finish on ${old}.`);
   }
   if (!p.approved) blockers.push('The owner must approve the switch (a second person, not the requester).');
   return { canSwitch: blockers.length === 0, blockers, drain };

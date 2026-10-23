@@ -5,6 +5,7 @@ import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
 import { Button, Card, ConfirmDialog, Drawer, Empty, Field, KV, Meter, Notice, PageHead, Pill, Section, Stat, Table, type Column, type Tone } from '@/ui/kit';
 import { FlowSteps } from '../finance/parts';
+import { AdapterContract, SwitchProvider } from './ProviderExtras';
 import type { IconName } from '@/ui/Icon';
 import { STATE_META, nextApprovalId } from '../developer/logic';
 import { StatePill, ago } from '../developer/ui';
@@ -61,7 +62,7 @@ export default function PaymentsSetup() {
 
   return (
     <>
-      <PageHead eyebrow="Technical" title="Payments setup" sub="Choose the payment provider, check readiness and approve going live." meta={<Pill tone="warning" icon="info">Test mode only · no real money</Pill>} />
+      <PageHead eyebrow="Payments" title="Payments setup" sub="Choose the payment provider, check readiness and approve going live." meta={<Pill tone="warning" icon="info">Test mode only · no real money</Pill>} />
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
         <Stat icon="code" label="Test mode readiness" value={`${tp.done} of ${tp.total}`} sub="Required steps done" />
         <Stat icon="lock" label="Live readiness" value={`${lp.done} of ${lp.total}`} sub={liveGate(live).allowed ? 'Every live check passed' : 'Live stays off until every check passes'} tone={liveGate(live).allowed ? undefined : 'warning'} />
@@ -117,6 +118,8 @@ export default function PaymentsSetup() {
         </div>
       </Section>
 
+      <AdapterContract />
+
       <Section title="Connection status" desc="Each environment lists its required steps in order. A step marked Waiting depends on someone outside the dashboard.">
         <div className="grid cols-2">
           <EnvironmentCard title="Test mode" integ={test} steps={testSteps} now={t} />
@@ -125,6 +128,8 @@ export default function PaymentsSetup() {
       </Section>
 
       <LiveActivation live={live} />
+
+      <SwitchProvider />
 
       <Section title="Setup problems">
         <ProblemTable problems={problems} canOpen={can('integrations.view')} />

@@ -146,6 +146,9 @@ function approveEffect(draft: PlatformDataset, req: ApprovalRequest, ctx: { now:
       const by = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
       return approveFeeSchedule(draft.feeSchedules, req.target.id, by, ctx.now);
     }
+    case 'gateway_switch':
+      // Recorded only: routing new payments is a backend setting that doesn't exist yet (D-054).
+      return { ok: true };
     case 'automation_config': {
       const by = { id: 'id' in ctx.actor ? ctx.actor.id : ctx.actor.name, name: ctx.actor.name };
       return decideSettingChange(draft.automationChanges.find((c) => c.id === req.note), 'approved', by, ctx.now);
@@ -223,6 +226,8 @@ export function approvalEffectText(req: ApprovalRequest): string {
       return 'The requested roles are added to the staff member.';
     case 'fee_schedule':
       return 'The fee schedule is scheduled for its start date. Customers see the new fees before they confirm; nothing changes before that date.';
+    case 'gateway_switch':
+      return 'The switch is approved and recorded. The backend moves new payments to the new provider; payments already in flight finish on the old one. No backend is connected yet.';
     case 'automation_config':
       return 'The automation setting changes for runs that start after approval. Runs already in progress keep the old value.';
     case 'ledger_adjustment':

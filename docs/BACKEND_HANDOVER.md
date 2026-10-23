@@ -207,3 +207,15 @@ Swap plan:
 ## 16. Infrastructure contracts (D-051)
 
 The backend must: implement `GET /health/live` and `GET /health/ready` (readiness checks critical dependencies, 503 when it can't serve, no dependency details in public responses); reject requests without a valid `X-Gobye-Origin-Auth` (`infra/cloudflare/src/workers/api-gateway/originAuth.ts` is the reference verifier); authorise every request itself (the gateway only checks a bearer is present); honour `Idempotency-Key` and expose status lookups by key for bookings, offers and payments; mint short-lived `x-gobye-assertion` caller assertions for `/v1/files/*` (`infra/cloudflare/src/r2/assertion.ts`); store `FileRecord` metadata (`packages/core/src/files/types.ts`); and use the standard envelopes (`packages/core/src/infra/health.ts`). See `API_GATEWAY.md`, `R2_STORAGE_ARCHITECTURE.md`, `INFRASTRUCTURE_REPORT.md`.
+
+## 17. Payments and automation contracts (D-054, D-055)
+
+Full design: `PAYMENTS_AUTOMATION_ARCHITECTURE.md` §7. The backend must:
+
+- **Adapters.** Implement `PaymentGatewayAdapter` per provider, server side only, with keys from the secret store. It must pass the same behaviour tests as `createSimulatedGateway`: idempotent by reference, unknown outcomes discoverable by lookup, unsigned webhooks rejected.
+- **Quote endpoint.** Serve `FeeQuote`s from the approved `FeeSchedule` in force (`quoteFee`) and pin the quote id to the collection. Refuse when the fee is not set.
+- **Wallet credits.** Credit only via `decideFundingCredit` (lookup, then exact amount and currency match). Post `fundingJournalLines` in the same database transaction as the collection status, keyed by the provider reference.
+- **Payouts.** Submit only through `payoutGuard`, with the withdrawal id as the provider idempotency key. Treat a timeout after sending as `needs_lookup`.
+- **Job runner.** Run the `AUTOMATIONS` registry: runs table shaped like `AutomationRun`, retries per `afterFailure`, escalation per `shouldEscalate`, manual actions per `manualActionCheck` (enforced server side).
+- **Versioned settings.** Store fee schedules and automation setting changes as versioned rows, applied only after their approvals (`fee_schedule`, `automation_config`, `gateway_switch`).
+- **Permissions.** Enforce `fees.edit`, `automation.view`, `automation.configure` and `automation.retry` exactly as in `permissions.ts`.

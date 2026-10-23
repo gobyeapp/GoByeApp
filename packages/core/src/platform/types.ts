@@ -342,7 +342,7 @@ export interface Announcement {
   delivery: Record<Channel, { attempted: number; delivered: number; failed: number }>;
 }
 
-export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role' | 'fee_schedule' | 'automation_config';
+export type ApprovalKind = 'config_publish' | 'refund' | 'ledger_adjustment' | 'withdrawal' | 'payments_activation' | 'announcement' | 'staff_role' | 'fee_schedule' | 'automation_config' | 'gateway_switch';
 export interface ApprovalRequest {
   id: string;
   kind: ApprovalKind;

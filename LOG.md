@@ -654,3 +654,33 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - 256 captures (32 routes × 4 widths × 2 themes): no sideways scroll, no errors.
   - Not tested with a real screen reader or on devices.
 - **Next:** owner review of the palette (Q-008) and of the dashboard on a laptop. Backend items for real search, staff alerts and sign in stay pending.
+
+## 2026-10-23 — Payment configuration and Automation Centre (D-054, D-055)
+
+- **Brief:** "Payment Configuration and Automation Architecture Update". The backend and provider are not chosen, so the work covers contracts, rules and honest test-data screens only.
+- **Audit findings:**
+  - Package prices were still marked provisional.
+  - Fees were a single per-method placeholder.
+  - No adapter contract and no automation registry.
+  - **The ledger posted provider fees with reversed signs.** Fixed: costs are now debits and the provider clearing account is credited.
+- **Pricing:** the owner confirmed the daily package (₦2,000 for 24 hours from successful activation), the monthly package (₦60,000 for 30 days) and 0% commission. Updated in code (`provisional: false`), the driver app copy, BR-062 and Q-043.
+- **Core (`packages/core/src/gateway`, `src/automation`):**
+  - Gateway adapter contract plus a simulated adapter.
+  - Versioned fee schedules: "Not set" blocks charging; quote and disclosure; limits; exemptions; validation; owner approval; activation on date.
+  - Separate money figures and a balanced breakdown journal, with a new `fee_income` account.
+  - Guards: credit only after a matching lookup; no duplicate credit or payout; lookup before anything after an unknown outcome; safe provider switching that drains in-flight money on the old provider.
+  - Automation registry of 13 server-side workflows.
+  - Run model with failure classes, capped backoff, escalation and protected manual actions (successful runs never replayed).
+  - Bounded automation settings with approval.
+  - New permissions `fees.edit` and `automation.view` / `automation.configure` / `automation.retry`; approval kinds `fee_schedule`, `automation_config` and `gateway_switch`.
+- **Admin:**
+  - Payments group: providers, fee configuration, gateway health, payment operations.
+  - Automation group: registry, scheduled jobs, execution history, failed jobs, settings, audit history.
+  - Every screen is labelled test data, simulated or not connected.
+- **Docs:** `PAYMENTS_AUTOMATION_ARCHITECTURE.md` (new), DECISIONS D-054 and D-055, BUSINESS_RULES BR-062 and BR-130 to BR-136, OPEN_QUESTIONS Q-043 (prices resolved), Q-073 (fee values), Q-074 (job runner), IMPLEMENTATION_PLAN row 15, SCREEN_INVENTORY, BACKEND_HANDOVER §17, management/07, TEST_PLAN.
+- **Checks:**
+  - Typecheck: 0 errors.
+  - Tests: core 241, rider 36, driver 14, admin 326, infra 41, all pass.
+  - The driver app export builds.
+  - New pages checked at 4 widths in light and dark.
+- **Next:** choose the provider (Q-042) and write its adapter; the owner sets fee values (Q-073); choose the backend and job runner (Q-064, Q-074).

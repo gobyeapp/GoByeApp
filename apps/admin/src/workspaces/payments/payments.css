@@ -1,0 +1,15 @@
+/* Payments pages (D-054): fee editor grids, customer preview, health cards. Tokens only. */
+.fee-preview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 16px; align-items: start; }
+@media (max-width: 860px) { .fee-preview { grid-template-columns: minmax(0, 1fr); } }
+.fee-phone { border-radius: var(--r-lg); box-shadow: var(--shadow-2); }
+.fee-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px; }
+.fee-grid.four { grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); }
+.cap-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.cap-list li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.health-kv { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; }
+.health-kv dt { color: var(--text-2); }
+.health-kv dd { margin: 0; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.breakdown { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; }
+.breakdown dt { color: var(--text-2); }
+.breakdown dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.breakdown .total { border-top: 1px solid var(--border); padding-top: 8px; }

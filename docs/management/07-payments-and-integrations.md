@@ -313,3 +313,7 @@ Every row needs, before launch: a named human owner, both environments where app
 | P-2 | `IntegrationRecord` has no settlement destination, webhook URL or event history fields; the brief requires them. Proposed fields above. |
 | P-3 | The identity checks integration is owned by an onboarding user who has no `integrations.view`, so the owner cannot see their own record. |
 | P-4 | `ApprovalKind` covers `payments_activation` only; activating SMS or email to real users has no approval kind. Proposed: reuse `payments_activation` renamed `integration_activation`, or add a kind. |
+
+## Update 2026-10-23 (D-054, D-055)
+
+Payment providers now sit behind a provider-independent adapter. Wallet funding and withdrawal fees are versioned schedules, and the payments workspace has four screens (providers, fees, gateway health, payment operations). Background workflows live in the Automation Centre. See `docs/PAYMENTS_AUTOMATION_ARCHITECTURE.md`.

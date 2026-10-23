@@ -1,0 +1,20 @@
+/* Automation Centre (D-055). Uses shared tokens only. */
+.auto-top { display: flex; flex-direction: column; gap: 16px; margin-bottom: 8px; }
+.auto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr)); gap: 16px; }
+.auto-card { display: flex; flex-direction: column; gap: 10px; text-align: left; cursor: pointer; font: inherit; color: inherit; width: 100%; transition: border-color var(--t-fast), box-shadow var(--t-fast); }
+.auto-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-2); }
+.auto-card .auto-name { font-weight: 600; font-size: 15px; }
+.auto-card .auto-purpose { color: var(--text-2); font-size: 13px; }
+.auto-card .auto-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.auto-card .auto-foot { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12.5px; color: var(--text-2); border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; }
+.auto-steps ol { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+.auto-steps li { color: var(--text); }
+.auto-ico { width: 28px; height: 28px; border-radius: var(--r-sm); display: inline-grid; place-items: center; background: var(--primary-soft); color: var(--primary-ink); flex-shrink: 0; }
+.auto-param { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border); }
+.auto-param:first-of-type { border-top: none; }
+.auto-param .auto-value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .auto-param { grid-template-columns: minmax(0, 1fr); } }
+.auto-queue-head { display: flex; align-items: center; gap: 10px; margin: 24px 0 10px; }
+.auto-queue-head h2 { font-size: 15px; font-weight: 600; }
+.auto-cell-key { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
+.drawer code, .table code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--muted); border-radius: 4px; padding: 1px 4px; overflow-wrap: anywhere; }

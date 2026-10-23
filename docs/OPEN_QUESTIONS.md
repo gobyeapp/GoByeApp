@@ -329,7 +329,8 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Question:** How do drivers pay for packages (driver wallet, bank transfer, deduction from earnings)? Auto-renewal or manual? Grace period at expiry (especially mid-trip)? Refunds or pro-rating? Are ₦2,000 / ₦60,000 VAT-inclusive? Are packages configurable per city/category? Can a driver queue a package (the mock extends from current expiry)?
 - **Why:** BR-072; Driver app onboarding/go-online flow; tax; App Store (packages are paid by drivers for a real-world service, not digital content — confirm no IAP is required, see APP_STORE_COMPLIANCE).
 - **Owner:** Finance / Legal / Product · **Blocks:** 4, 6, BE
-- **Assumption:** Provisional prices; purchase while active extends from current expiry; no grace period; a trip already in progress at expiry may finish (assumption, not decided).
+- **Partly resolved 2026-10-23:** prices confirmed: ₦2,000 for 24 hours from successful activation, ₦60,000 for 30 days.
+- **Assumption:** Purchase while active extends from current expiry; no grace period; a trip already in progress at expiry may finish (assumption, not decided).
 
 ### Q-044 — Google Maps Platform cost projection & usage caps
 - **Question:** Projected monthly Maps SDK loads, Places (New) autocomplete/details sessions and Routes `computeRoutes` calls per trip at launch volumes; which SKUs/field masks; budget alerts and per-key quotas; caching rules allowed by the terms.
@@ -485,3 +486,15 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Question:** Who may approve production deployments, DNS changes and traffic switches (the second approver), and who is on call for alerts?
 - **Owner:** Owner · **Blocks:** production traffic switching and alert routing
 - **Assumption:** Owner approves everything until named.
+
+### Q-073 — Wallet funding and withdrawal fee values
+- **Question:** Does GoBye charge its own fee on wallet funding and withdrawals, and how much? Who pays the provider's charge (customer or GoBye), added on top or deducted? Limits (minimum, maximum, daily) and exemptions (e.g. first N withdrawals free each month)?
+- **Why:** BR-130; fee schedules start with every fee "Not set", which blocks charging. Depends on the provider's real prices (Q-042).
+- **Owner:** Owner / Finance · **Blocks:** live wallet funding and withdrawals
+- **Assumption:** None. Nothing is charged until a schedule is approved.
+
+### Q-074 — Job runner and scheduler
+- **Question:** Which durable queue and scheduler runs the Automation Centre workflows (follows the backend choice, Q-064)? Who is on call for escalations, and should the automation timings (placeholders in the registry) be confirmed as listed?
+- **Why:** D-055; nothing in the Automation Centre runs until a runner exists.
+- **Owner:** Owner / Engineering · **Blocks:** subscriptions, wallet credits, payouts, reconciliation, expiry jobs
+- **Assumption:** Timings in `AUTOMATIONS` are placeholders.
