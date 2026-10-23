@@ -108,7 +108,8 @@ function MessageList({ messages, empty }: { messages: CaseRecord['messages']; em
   return (
     <div className="stack">
       {messages.map((m) => (
-        <div key={m.id} className="card" style={{ padding: 12, boxShadow: 'none', background: m.author.kind === 'staff' ? 'var(--surface)' : 'var(--muted)' }}>
+        // Conversation layout on white: staff replies sit to the right with a thin jade edge, customers to the left.
+        <div key={m.id} className="card" style={m.author.kind === 'staff' ? { padding: 12, marginLeft: 32, boxShadow: 'inset 2px 0 0 var(--jade)' } : { padding: 12, marginRight: 32, boxShadow: 'var(--e1)' }}>
           <div className="row small" style={{ marginBottom: 4 }}>
             <span className="strong">{actorName(m.author)}</span>
             <span className="muted">{actorRole(m.author)}</span>

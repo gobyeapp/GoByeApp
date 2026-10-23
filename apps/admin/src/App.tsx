@@ -242,7 +242,7 @@ function Shell() {
             </span>
             <nav className="crumbs" aria-label="Breadcrumb">
               <ol>
-                <li className="crumb-parent">GoBye</li>
+                <li className="crumb-root">GoBye</li>
                 <li className="crumb-sep" aria-hidden><Icon name="right" size={14} /></li>
                 {group?.title ? (
                   <>

@@ -250,9 +250,20 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
   activeDrivers.forEach((d, i) => {
     const n = int(1, 6);
     for (let k = 0; k < n; k++) {
-      const monthly = r() < 0.3;
+      let monthly = r() < 0.3;
+      let at = now - int(0, 30) * DAY - int(0, 20) * HOUR;
+      // Keep passes consistent with each driver's access: the latest purchase is the pass in force (24 hours or
+      // 30 days from verification); earlier ones, and every purchase by a driver without access, have ended.
+      if (k === n - 1 && d.access) {
+        monthly = d.access.packageId === 'monthly';
+        const span = (monthly ? 30 : 1) * DAY;
+        at = Math.min(d.access.expiresAt - span - 30_000, now - 60_000);
+        d.access.expiresAt = at + 30_000 + span;
+      } else {
+        const span = (monthly ? 30 : 1) * DAY;
+        if (at + 30_000 + span > now) at = now - span - (k + 1) * 2 * HOUR;
+      }
       const amount = naira(monthly ? 60000 : 2000);
-      const at = now - int(0, 30) * DAY - int(0, 20) * HOUR;
       const reference = `GB-PKG-${i}-${k}`;
       collections.push({ id: `col-p-${i}-${k}`, purpose: 'package_purchase', payerType: 'driver', payerId: d.id, amount, fee: Math.round(amount * 0.015) as Kobo, provider: PROVIDER, reference, status: 'successful', createdAt: at, verifiedAt: at + 30_000, events: [{ at: at + 30_000, event: 'charge.success' }] });
       post(postJournal(ledger, { lines: [{ account: { kind: 'company_revenue' }, amount }, { account: { kind: 'provider_clearing', provider: PROVIDER }, amount: -amount as Kobo }], kind: 'package_purchase', description: `${monthly ? 'Monthly' : 'Daily'} access package`, by: { kind: 'provider', name: PROVIDER }, now: at, reference, provider: PROVIDER }));

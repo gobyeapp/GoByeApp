@@ -23,7 +23,7 @@ export default function Referrals() {
 
   return (
     <>
-      <PageHead title="Rewards and referrals" sub="A passenger earns a wallet reward when a friend they invited completes a first paid trip. Signing up alone earns nothing." />
+      <PageHead eyebrow="Settings" title="Rewards and referrals" sub="A passenger earns a wallet reward when a friend they invited completes a first paid trip. Signing up alone earns nothing." />
       {showMoney ? (
         <div className="grid cols-4" style={{ marginBottom: 20 }}>
           <Stat label="Spent" value={money(spend.spentKobo)} sub={`of ${nairaText(current.budget)} budget`} tone={used >= 0.9 ? 'warning' : undefined} />

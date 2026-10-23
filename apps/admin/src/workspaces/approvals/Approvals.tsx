@@ -100,9 +100,9 @@ function PendingCard({ a, now, onOpen }: { a: ApprovalRequest; now: number; onOp
   const block = staff ? decideBlockReason(a, staff) : 'Not signed in';
   const failing = failingChecks(d, a) ?? [];
   return (
-    <div className="card" style={{ padding: 16 }}>
+    <div className="card compact">
       <div className="row wrap" style={{ alignItems: 'flex-start', gap: 14 }}>
-        <span className="kpi-ico" style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', display: 'grid', placeItems: 'center', background: 'var(--warning-bg)', color: 'var(--warning)', flexShrink: 0 }}>
+        <span className="kpi-ico" style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', display: 'grid', placeItems: 'center', background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--e2)', color: 'var(--warning)', flexShrink: 0 }}>
           <Icon name="time" size={18} />
         </span>
         <div className="stack tight" style={{ flex: 1, minWidth: 220 }}>
@@ -123,7 +123,7 @@ function PendingCard({ a, now, onOpen }: { a: ApprovalRequest; now: number; onOp
           ) : null}
         </div>
         <div className="stack tight" style={{ alignItems: 'flex-end' }}>
-          <Button size="sm" variant={block ? 'secondary' : 'primary'} icon="right" onClick={onOpen}>
+          <Button size="sm" variant={block ? 'secondary' : 'primary'} iconEnd="right" onClick={onOpen}>
             {block ? 'View' : 'Review'}
           </Button>
           {block ? <span className="small muted" style={{ maxWidth: 220, textAlign: 'right' }}>{block}</span> : null}

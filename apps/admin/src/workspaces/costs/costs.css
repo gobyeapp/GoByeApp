@@ -1,0 +1,32 @@
+/* Infrastructure and costs (D-057). White surfaces only; figures carry the hierarchy. */
+.cost-form { display: flex; flex-direction: column; gap: 16px; }
+.cost-form .lsel, .cost-form .lsel .select { width: 100%; }
+.cost-form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end; }
+.cost-total { display: flex; align-items: baseline; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px; }
+.cost-total .num { font-size: 22px; color: var(--ink); }
+.cost-amount { font-size: 32px; line-height: 38px; font-weight: 650; letter-spacing: -0.03em; color: var(--ink); }
+.cost-intro { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; }
+.cost-intro h2 { font-size: 20px; line-height: 28px; font-weight: 650; color: var(--ink); letter-spacing: -0.015em; }
+.cost-intro p { color: var(--text-2); margin-top: 6px; max-width: 560px; }
+.cost-intro .art { display: flex; align-items: flex-end; }
+.cost-intro .art .dim + .dim { margin-left: -18px; }
+@media (max-width: 640px) { .cost-intro { grid-template-columns: minmax(0, 1fr); } .cost-intro .art { display: none; } }
+.cost-big { font-size: 36px; line-height: 42px; font-weight: 650; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.vendor-list { list-style: none; margin: 0; padding: 0; }
+.vendor-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 12px 0; border-top: 1px solid var(--border); align-items: center; }
+.vendor-list li:first-child { border-top: none; padding-top: 0; }
+.spend-bar { height: 6px; border-radius: 999px; background: #edf0ef; overflow: hidden; }
+.spend-bar > span { display: block; height: 100%; background: var(--jade); border-radius: 999px; }
+.spend-rows { display: flex; flex-direction: column; gap: 14px; }
+.spend-row { display: grid; grid-template-columns: minmax(0, 180px) minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+@media (max-width: 640px) { .spend-row { grid-template-columns: minmax(0, 1fr) auto; } .spend-row .spend-bar { grid-column: 1 / -1; grid-row: 2; } }
+.be-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 16px; }
+.be-scale { position: relative; height: 10px; border-radius: 999px; background: #edf0ef; overflow: hidden; }
+.be-scale > span { position: absolute; left: 0; top: 0; bottom: 0; background: var(--jade); border-radius: 999px; }
+.be-legend { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--text-2); margin-top: 8px; font-variant-numeric: tabular-nums; }
+.month-bars { display: flex; align-items: flex-end; gap: 10px; height: 140px; border-bottom: 1px solid var(--border-strong); background-image: linear-gradient(var(--border) 1px, transparent 1px); background-size: 100% 25%; }
+.month-bars .mb { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; }
+.month-bars .mb span { width: 100%; max-width: 44px; background: var(--jade); border-radius: 4px 4px 0 0; min-height: 2px; }
+.month-axis { display: flex; gap: 10px; margin-top: 6px; }
+.month-axis span { flex: 1; text-align: center; font-size: 12px; color: var(--text-3); }
+.stat-text { font-size: 17px; line-height: 34px; font-weight: 600; color: var(--text-2); letter-spacing: -0.01em; }

@@ -684,3 +684,43 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - The driver app export builds.
   - New pages checked at 4 widths in light and dark.
 - **Next:** choose the provider (Q-042) and write its adapter; the owner sets fee values (Q-073); choose the backend and job runner (Q-064, Q-074).
+
+## 2026-10-23 — Premium white admin redesign, 3D icons, subscriptions, staff workspaces, infrastructure costs (D-056, D-057)
+
+- **Briefs:** "Premium Admin & Staff Dashboard Redesign" and "Mandatory White Background Design Rule". The white rule supersedes phase 1's aubergine sidebar and dark theme.
+- **Audit:** 15 gaps found (`ADMIN_DASHBOARD_REDESIGN.md` §10.1).
+- **Foundation:**
+  - White-only tokens and elevation e0 to e4.
+  - Raised inputs with a jade focus ring; button sizes and visible disabled states.
+  - Labelled selects.
+  - New top bar: breadcrumbs, centred search with recent searches and payments results, scope chip, help, account.
+  - White sign-in screen with 3D art.
+  - Dark theme removed.
+- **3D icons:** 23 dimensional assets rendered in-repo with Blender's Python module (`tools/3d/render.py`, `DIMENSIONAL_ASSETS.md`, contact sheet in `docs/assets/3d/`), used only in featured cards, empty states and introductions.
+- **Core:**
+  - Negotiation history on Negotiate trips.
+  - Infrastructure costs module, with permissions and the `expense` approval.
+  - `costs.sync` automation (not connected).
+  - Driver passes in the test data are now consistent with each driver's access.
+- **Pages:**
+  - Home is a command centre: platform activity, ride activity chart, attention, activity feed; no staff name, because sign in is simulated.
+  - My work for each staff role.
+  - Live operations with an honest schematic map.
+  - Ride management tabs and negotiation timeline.
+  - Drivers: tabbed profile and document review with honest file placeholders.
+  - Riders.
+  - Driver subscriptions.
+  - Money overview.
+  - Infrastructure & costs: dashboard, expenses, vendors, budgets, break-even (marketing excluded).
+  - Automation overview and workflow cards.
+  - Support and Safety.
+  - White-rule pass on every other page.
+- **Checks:**
+  - Typecheck: 0 errors.
+  - Tests: core 247, rider 36, driver 14, admin 403, infra 41, all pass.
+  - 49 routes at 4 widths: no sideways scroll, no errors.
+  - Not tested on devices or with a screen reader.
+- **Next:**
+  - Owner reviews the 3D icon family (`docs/assets/3d/contact-sheet.png`) and the white dashboard.
+  - Decide pass stacking (Q-043).
+  - Choose map, billing and backend providers.

@@ -196,3 +196,69 @@ infrastructure control plane. These stay labelled "Simulated" / "Test data" / "N
 - Exports beyond the loaded rows.
 - The infrastructure control plane.
 - Device and screen-reader testing on real hardware has not been done.
+
+---
+
+## 10. Phase 2: premium white redesign (owner briefs 2026-10-23, D-056, D-057)
+
+Briefs: "Premium Admin & Staff Dashboard Redesign" and "Mandatory White Background Design Rule". The
+white rule supersedes the dark theme and the aubergine sidebar from phase 1 (D-053).
+
+### 10.1 Audit against the new briefs (before phase 2)
+
+| # | Issue in the phase 1 build | Fix |
+|---|---|---|
+| B1 | Aubergine sidebar, grey canvas `#F6F7F6`, grey table heads: a two-tone layout | All surfaces `#FFFFFF`; separation by 1px borders and elevation |
+| B2 | Dark theme and theme switcher | Removed; a saved dark choice from older builds is cleared |
+| B3 | Mint-filled selected states (sub-navigation pills, palette rows, KPI icon chips) | Thin jade indicator, stronger type, jade icon; white chips |
+| B4 | Tinted notice and prototype banners | White notices with a 3px accent line; quiet white prototype bar |
+| B5 | One flat elevation; default-looking inputs and buttons | Elevation tokens e0 to e4; raised white inputs with a jade focus ring; button sizes sm/md/lg with all states; visible disabled style |
+| B6 | No dimensional icons | 23 rendered 3D assets (`DIMENSIONAL_ASSETS.md`) used in featured cards, empty states and intros only |
+| B7 | City and date selects crowd the top bar; search on the right | Breadcrumbs left, wide search centre ("Search rides, drivers, riders, payments..."), scope chip, notifications, help and account right |
+| B8 | Unlabelled "All" dropdowns | `Select` shows its label above the control everywhere |
+| B9 | Equal-weight KPI cards | Standard, featured (with 3D art) and attention variants; trends only from a real earlier period |
+| B10 | Home repeated figures; no activity feed or ride chart | Command centre: platform activity, ride activity chart, attention list, recent activity |
+| B11 | No negotiation history; one trips list | `TripRecord.negotiation`; ride tabs (requests, Quick Match, negotiations, cancelled, issues) and a negotiation timeline |
+| B12 | No staff workspaces; staff landed on lists | `/workspace` "My work" by permission |
+| B13 | No driver subscriptions or infrastructure cost modules | `/subscriptions`; Infrastructure & costs (dashboard, expenses, vendors, budgets, break-even) |
+| B14 | Map shown nowhere; live ops a list only | Honest schematic map panel ("Simulated positions · map provider not chosen") with a ride side sheet |
+| B15 | Test data passes did not match drivers' access | The generator now keeps each driver's latest pass consistent with their access |
+
+### 10.2 What was built
+
+- **Foundation**:
+  - `styles.css` rewritten under the white rule.
+  - `ui/Dimensional.tsx`.
+  - Kit components `FeaturedStat`, `Trend`, `AttentionList` and `ActivityFeed`; labelled `Select`; button sizes.
+  - New shell: centred search with recent searches and payments results, a scope popover, help and account menus, and rail tooltips.
+- **Core**:
+  - Negotiation history on Negotiate trips.
+  - `packages/core/src/costs`: vendors, expenses, budgets, spend, projection, budget use, per-unit cost, break-even excluding marketing, validation.
+  - Permissions `costs.view`, `costs.manage` and `costs.approve`.
+  - Approval kind `expense`.
+  - Automation `costs.sync` (not connected).
+- **Pages**: every workspace was redone under the white rule. New pages: My work, Money overview, Driver subscriptions, Cost dashboard, Expenses, Vendors, Budgets and Break-even.
+
+### 10.3 Honesty rules kept
+
+- No staff name in the greeting: sign in is simulated, not an authenticated profile.
+- Trends appear only when an earlier equal period has enough real records.
+- Costs start empty: the services in use are on free plans, and the rest are not chosen.
+- Fee revenue is ₦0 because no fee schedule is approved.
+- The map is a labelled schematic.
+- Document previews say the files are stored privately once the backend exists.
+- Renewal is manual (Q-043).
+
+### 10.4 Checklist
+
+- [x] Audit and gap list (10.1)
+- [x] Tokens, elevation, typography (28/18/15/14/12.5 px, 36 px featured metric), spacing (32/24/16 page padding)
+- [x] 3D icon family (23 assets) and placeholder fallback
+- [x] Shell: white sidebar 240/64 with rail tooltips, top bar layout, global search, notifications, help, account
+- [x] Components: cards, metric variants, inputs, buttons, selects, tables, filters, sheets, dialogs, badges, notices, empty and loading states
+- [x] Home, My work, Live operations, Rides, Drivers, Riders, Subscriptions, Money overview, Payments, Costs, Automation, Support, Safety, Staff, Settings, Audit, Approvals, Growth, Technical
+- [x] QA: 49 routes × 1440/1024/768/375: no sideways scroll, no page errors
+- [x] Tests: core 247, admin 403
+- [ ] Production art direction review of the 3D assets (they are in-repo procedural renders)
+- [ ] Real map provider, live locations, real billing integrations, real sign in (backend)
+- [ ] Screen-reader and device testing on real hardware

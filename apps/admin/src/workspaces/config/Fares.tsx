@@ -21,7 +21,7 @@ export default function Fares() {
   const [tab, setTab] = useState<'fares' | 'cancellation'>('fares');
   return (
     <>
-      <PageHead title="Fare settings" sub="Suggested fare rules, waiting and cancellation. Passengers may still negotiate around the suggested fare." />
+      <PageHead eyebrow="Settings" title="Fare settings" sub="Suggested fare rules, waiting and cancellation. Passengers may still negotiate around the suggested fare." />
       <Tabs
         value={tab}
         onChange={setTab}

@@ -410,3 +410,23 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Running:** only on the server.
 - **Retries:** only transient failures retry automatically. Possible-money-moved failures become `needs_lookup`. Successful runs are never replayed. Manual retries keep the idempotency key and need `automation.retry` and a reason. Setting changes need a second person (`automation_config`).
 - **Status:** registry and rules implemented and tested; run history in the admin is simulated; no runner (Q-074).
+
+## D-056 — Admin dashboard is white-only with dimensional icons (2026-10-23, owner briefs; supersedes D-053's sidebar and dark theme)
+
+- **Decision:**
+  - Every admin surface is white; no dark theme.
+  - Jade marks actions and selection with a thin indicator, never a fill. Aubergine is used for high-emphasis type.
+  - Elevation tokens e0 to e4.
+  - A family of 23 rendered 3D icons is used only in featured metrics, empty states and introductions.
+- **Why:** the owner's "Mandatory White Background Design Rule" and the premium redesign brief.
+- **Asset note:** the 3D icons are procedural renders produced in the repo (`tools/3d/render.py`, Blender as a Python module), not commissioned brand art. They can be replaced file for file.
+
+## D-057 — Infrastructure and operating costs are captured manually until billing APIs exist (2026-10-23, owner brief)
+
+- **Decision:** costs come from expenses staff record with an invoice.
+  - Below ₦50,000 (placeholder threshold), a finance person other than the creator approves.
+  - At or above it, the owner approves.
+- **Budgets and break-even:** budgets are set per month. Break-even compares operating cost, **excluding marketing**, with verified driver-pass revenue at the confirmed prices.
+- **Seeds:** honest only: Vercel, Cloudflare, R2 and Supabase are on free plans; backend, SMS, email, monitoring and maps are not chosen or only proposed; Paystack is in test mode. No bill is invented.
+- **Automation:** `costs.sync` is defined but not connected.
+- **Open:** invoice files need the backend and private R2 to store them.

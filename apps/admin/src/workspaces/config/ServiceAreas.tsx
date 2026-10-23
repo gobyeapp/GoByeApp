@@ -28,7 +28,7 @@ export default function ServiceAreas() {
 
   return (
     <>
-      <PageHead title="Service areas" sub="Cities, operating zones and when GoBye takes bookings in each." />
+      <PageHead eyebrow="Settings" title="Service areas" sub="Cities, operating zones and when GoBye takes bookings in each." />
       <div className="grid cols-4" style={{ marginBottom: 20 }}>
         {stats.map(({ c, online, trips }) => (
           <Stat

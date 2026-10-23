@@ -151,7 +151,7 @@ export default function Cases() {
   return (
     <>
       <PageHead
-        eyebrow="Care"
+        eyebrow="Care and safety"
         title="Support cases"
         sub="Passenger and driver issues, each linked to its trip, people and payment. Test data."
         actions={
@@ -288,7 +288,7 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
   };
 
   const header = (
-    <div className="card muted-card stack" style={{ padding: 16 }}>
+    <div className="card compact stack">
       <div className="row wrap">
         <PriorityPill p={c.priority} />
         <StatusPill s={c.status} />

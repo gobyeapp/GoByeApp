@@ -375,6 +375,7 @@ export default function Announcements() {
   return (
     <>
       <PageHead
+        eyebrow="Growth"
         title="Announcements"
         sub="Messages to passengers or drivers through the app inbox, push, email or SMS."
         actions={

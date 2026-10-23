@@ -307,6 +307,7 @@ export default function Promotions() {
   return (
     <>
       <PageHead
+        eyebrow="Growth"
         title="Promotions"
         sub="Cards in the passenger Home and Wallet carousels."
         actions={

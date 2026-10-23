@@ -246,4 +246,62 @@ export function relevantApprovals(d: Pick<PlatformDataset, 'approvals'>): Approv
   return d.approvals.filter((a) => a.kind === 'automation_config' || a.kind === 'fee_schedule' || a.kind === 'payments_activation').sort((a, b) => b.requestedAt - a.requestedAt);
 }
 
+/* ---------- Overview ---------- */
+
+const OPEN_FAILURE: RunStatus[] = ['failed', 'needs_lookup'];
+
+/** A run still waiting for a person: failed or unknown result, not yet handled. */
+export const isOpenFailure = (r: Pick<AutomationRun, 'status' | 'handledBy'>) => OPEN_FAILURE.includes(r.status) && !r.handledBy;
+
+export type Health = 'healthy' | 'failing' | 'retrying' | 'no_runs';
+
+/** Health of one workflow from its (simulated) runs: healthy = last run succeeded and nothing left open. */
+export function workflowHealth(runs: readonly AutomationRun[], automationId: string): Health {
+  const mine = runsFor(runs, automationId);
+  if (mine.some(isOpenFailure)) return 'failing';
+  if (mine.some((r) => r.status === 'retry_scheduled')) return 'retrying';
+  const last = lastRun(runs, automationId);
+  if (!last) return 'no_runs';
+  return last.status === 'succeeded' ? 'healthy' : last.status === 'cancelled' ? 'no_runs' : 'failing';
+}
+
+export const HEALTH_META: Record<Health, { tone: Tone; text: string; icon: IconName }> = {
+  healthy: { tone: 'success', text: 'Healthy', icon: 'checkCircle' },
+  failing: { tone: 'danger', text: 'Needs attention', icon: 'alert' },
+  retrying: { tone: 'warning', text: 'Retrying', icon: 'refresh' },
+  no_runs: { tone: 'neutral', text: 'No runs yet', icon: 'time' },
+};
+
+/** Counts for the Automation Centre overview, all computed from the run history. */
+export function overviewCounts(runs: readonly AutomationRun[]) {
+  return {
+    total: AUTOMATIONS.length,
+    healthy: AUTOMATIONS.filter((a) => workflowHealth(runs, a.id) === 'healthy').length,
+    failed: runs.filter(isOpenFailure).length,
+    pending: runs.filter((r) => r.status === 'queued' || r.status === 'running' || r.status === 'retry_scheduled').length,
+    upcoming: runs.filter((r) => r.status === 'queued').length,
+  };
+}
+
+/** Financial and safety-critical workflows: controls are restricted to roles with automation retry access. */
+export const isRestricted = (def: Pick<AutomationDefinition, 'financial' | 'area'>) => def.financial || def.area === 'safety';
+
+export const AREA_ICON: Record<AutomationDefinition['area'], IconName> = {
+  subscriptions: 'ticket',
+  wallet: 'wallet',
+  payments: 'exchange',
+  reconciliation: 'balance',
+  drivers: 'fileCheck',
+  bookings: 'route',
+  support: 'headphone',
+  safety: 'safeAlert',
+  infrastructure: 'server',
+};
+
+/** Audit entries about one workflow: its settings and its runs. */
+export function auditForAutomation(d: Pick<PlatformDataset, 'audit' | 'automationRuns'>, automationId: string): AuditEvent[] {
+  const runIds = new Set(runsFor(d.automationRuns, automationId).map((r) => r.id));
+  return d.audit.filter((e) => (e.target.type === 'automation' && e.target.id === automationId) || (e.target.type === 'automation_run' && runIds.has(e.target.id))).sort((a, b) => b.at - a.at);
+}
+
 export const AUTOMATION_OPTIONS = AUTOMATIONS.map((a) => ({ value: a.id, label: a.name }));

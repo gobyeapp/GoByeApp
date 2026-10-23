@@ -98,7 +98,7 @@ export default function Integrations() {
 
   return (
     <>
-      <PageHead title="Integrations" sub="Every outside service GoBye depends on, with its owner, state, tests, failures and dependencies." />
+      <PageHead eyebrow="Technical" title="Integrations" sub="Every outside service GoBye depends on, with its owner, state, tests, failures and dependencies." />
       <Notice tone="warning" icon="info">
         Prototype on test data. Nothing here is connected to a real provider, and nothing is live. States show how far each connection has got: Prototype, Configured, Tested, Live or Degraded.
       </Notice>

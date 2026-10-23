@@ -178,31 +178,44 @@ Rules: brand colours only as accents (logo, illustrations, route lines, rating s
 - **Skeletons:** blocks use `secondary` (light) / `surfaceSelected` (dark), 900 ms in-out pulse to 55% opacity, one pulse per `SkeletonGroup`; rows mirror `iconBox` 40 + two text lines + trailing value.
 - **Wallet benchmark:** profile header (avatar 44, name, bell), panel radius 32 on `surfaceMuted`, centred 40 pt balance with `textSecondary` kobo, three equal tiles (radius 18, min height 72), history card radius 24 with written, coloured statuses.
 
-## 13. Management platform (admin web) — 2026-10-23, D-053
+## 13. Management platform (admin web): white-first system, 2026-10-23, D-056 (supersedes the D-053 palette roles)
 
-The admin web has its own tokens in `apps/admin/src/styles.css`. Screens never use raw colours.
+- **White rule.** Sidebar, top bar, canvas, cards, tables, forms, sheets and popovers are all `#FFFFFF`. Hierarchy comes from spacing, type, 1px neutral lines (`--border #E6E9E8`) and elevation. There are no coloured or grey sections, no dark theme, no gradients and no glass.
+- **Colour roles.**
+  - Jade `#0B7A5B`: primary actions, the selected-navigation indicator and icon, focus, chart data.
+  - Aubergine `#251632` (`--ink`): page titles and headline figures.
+  - Tangerine `#FF8A3D`: rare details (count badges, the scope dot, chart highlight).
+  - Semantic colours: small badges and icons only, always with text.
+- **Elevation.** e0 flat · e1 raised card · e2 active control (inset highlight) · e3 popover · e4 modal or sheet.
+- **Type.** Inter.
+  - Page title 28/36 (aubergine).
+  - Section 18/26.
+  - Card heading 15.
+  - Body 14.
+  - Support 12.5.
+  - Featured metric 36/42; standard metric 28/34.
+  - Tabular numbers on every figure.
+- **Spacing.** 4 px steps: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64.
+  - Page padding 32 / 24 / 16 (desktop / tablet / mobile).
+  - Card padding 24 (compact 20).
+  - Section gap 40.
+  - Content max width 1280.
+- **Controls.**
+  - Inputs: white, `--input-border` (3.2:1), soft inset, 10 px radius, jade focus ring, dashed when disabled.
+  - Buttons: primary, secondary, ghost, danger and danger-soft, in sizes 32 / 38 / 44 px. Each has hover, active, focus, loading and a visible disabled state, with the reason in a tooltip.
+  - `Select` always shows its label.
+- **Navigation.**
+  - Sidebar 240 px, or a 64 px rail with tooltips; the collapse control sits in the header.
+  - Selected item: stronger type, filled jade MingCute icon and a 2.5 px jade bar, with no fill.
+  - Top bar: breadcrumbs, centred search (Ctrl/Cmd K), scope chip, notifications, help, account.
+- **Metrics.**
+  - `Stat` (standard; trend only from a real earlier period).
+  - `FeaturedStat` (headline figure with a 3D asset beside it, never over text).
+  - `AttentionList` (severity task rows, one action each).
+  - `ActivityFeed`.
+- **Page pattern.** Page header, status tabs, filter bar, table, pagination (no pagination when empty).
+- **Motion.** 140 / 220 / 280 ms with a soft ease-out; reduced motion respected.
 
-- **Brand:** `--jade #0B7A5B` (actions), `--aubergine #251632` (sidebar, toasts), `--tangerine #FF8A3D` (count badges, highlighted bar), `--mint #E7F5ED` (selected and soft states).
-- **Surfaces:**
-  - Light: canvas `#F6F7F6`, cards `#FFFFFF`, sunken `#F1F3F2`.
-  - Dark: canvas `#0F0C13`, cards `#18141D`.
-  - Text: `#141A17`, with `#56605B` for secondary text.
-- **Status pairs:** success, warning, danger, info and neutral, each a text colour on a tinted background, all 4.5:1 or better. Always shown with an icon or a word.
-- **Scale:**
-  - Spacing on a 4px step: `--s1` to `--s10`.
-  - Radii 8 / 12 / 16 plus pill.
-  - Sidebar 240px, or a 64px rail. Topbar 60px. Content up to 1280px.
-  - Motion 120 / 200 ms, switched off under reduced motion.
-- **Type:** Inter in sizes 12 / 13 / 14 / 16 / 20 / 24 / 26. Every figure uses tabular numbers.
-- **Shell:**
-  - Sidebar grouped as Home, Operations, People, Care and safety, Finance, Growth, Insights, Settings, Administration and Technical.
-  - The selected page uses the MingCute **Core Filled** icon, a mint accent bar and white text.
-  - Collapse control in the sidebar header. The choice is remembered; with no saved choice it starts as a rail below 1200px.
-  - Topbar: breadcrumb, city and date scope, search (Ctrl/Cmd+K), notifications and the account menu (theme, prototype tools, sign out).
-  - Finance and Settings pages show their sibling pages as a pill bar.
-- **Components** (`src/ui/kit.tsx`):
-  - `PageHead` (eyebrow, meta pills), `Section` (description), `Card` (title + actions).
-  - `Stat` as a KPI card (icon; tone on the icon and edge, never on the figure; whole card links to the detail page).
-  - `FilterBar`; `Table` (sticky header, sortable columns via `sortValue`, paging via `pageSize`, "1 to 25 of N").
-  - `Tabs` (arrow keys, count pills); `Drawer` side sheet (focus moves in, Tab stays inside, focus returns on close); `Empty` with a tinted icon.
-- **Time:** every date and time shows in Africa/Lagos (`format.ts`, `TZ`, `lagosDay`), whatever the viewer's computer is set to.
+## 14. Dimensional icons (admin), 2026-10-23
+
+23 rendered assets in `apps/admin/src/assets/3d` with one camera, light and material language. Use them through `<Dimensional name>`, in featured metrics, empty and success states, and introductions only; never in table rows. Spec and how to regenerate: `DIMENSIONAL_ASSETS.md`. They are in-repo procedural renders, not final brand art.

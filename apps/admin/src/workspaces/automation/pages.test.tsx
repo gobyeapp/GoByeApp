@@ -12,7 +12,8 @@ import Registry from './Registry';
 import Runs from './Runs';
 import Schedules from './Schedules';
 import Settings from './Settings';
-import { applyManualAction, failedQueue, isAutomationAudit, proposeSettingChange } from './logic';
+import { AUTOMATIONS } from '@gobye/core';
+import { applyManualAction, failedQueue, isAutomationAudit, isRestricted, overviewCounts, proposeSettingChange, workflowHealth } from './logic';
 
 function mount(Page: ComponentType, staffId: string) {
   const s = TEST_STAFF.find((x) => x.id === staffId)!;
@@ -147,5 +148,48 @@ describe('settings proposals', () => {
     expect(isAutomationAudit({ action: 'automation.run_retried', target: { type: 'automation_run', id: 'r', label: 'r' } })).toBe(true);
     expect(isAutomationAudit({ action: 'integration.credential_rotated', target: { type: 'integration', id: 'i', label: 'i' } })).toBe(true);
     expect(isAutomationAudit({ action: 'driver.rejected', target: { type: 'driver', id: 'd', label: 'd' } })).toBe(false);
+  });
+});
+
+describe('Automation overview', () => {
+  it('counts healthy, failed and pending from the run history', () => {
+    const d = createPlatformDataset();
+    const c = overviewCounts(d.automationRuns);
+    expect(c.total).toBe(AUTOMATIONS.length);
+    expect(c.failed).toBe(d.automationRuns.filter((r) => (r.status === 'failed' || r.status === 'needs_lookup') && !r.handledBy).length);
+    expect(c.pending).toBe(d.automationRuns.filter((r) => ['queued', 'running', 'retry_scheduled'].includes(r.status)).length);
+    expect(c.upcoming).toBe(d.automationRuns.filter((r) => r.status === 'queued').length);
+    expect(c.healthy).toBe(AUTOMATIONS.filter((a) => workflowHealth(d.automationRuns, a.id) === 'healthy').length);
+    // A workflow with an open failure is never counted healthy.
+    expect(workflowHealth(d.automationRuns, 'wallet.withdrawal.payout')).toBe('failing');
+  });
+
+  it('shows the overview figures on the registry', () => {
+    mount(Registry, 'stf-dev');
+    const c = overviewCounts(createPlatformDataset().automationRuns);
+    expect(screen.getByText('Configured workflows')).toBeTruthy();
+    expect(screen.getByText('Failed executions').closest('.stat')?.textContent).toContain(String(c.failed));
+    expect(screen.getByText('Pending jobs').closest('.stat')?.textContent).toContain(String(c.pending));
+  });
+
+  it('financial and safety workflows show restricted controls; view only without retry access', () => {
+    const restricted = AUTOMATIONS.filter(isRestricted);
+    expect(restricted.some((a) => a.area === 'safety')).toBe(true);
+    expect(restricted.every((a) => a.financial || a.area === 'safety')).toBe(true);
+    mount(Registry, 'stf-ops');
+    const cards = screen.getAllByRole('article');
+    for (const def of restricted) {
+      const card = cards.find((c) => c.getAttribute('aria-label') === def.name)!;
+      expect(card.textContent).toMatch(/Restricted: finance and developer roles \(view only for you\)/);
+    }
+    const open = cards.find((c) => c.getAttribute('aria-label') === AUTOMATIONS.find((a) => !isRestricted(a))!.name)!;
+    expect(open.textContent).not.toMatch(/Restricted/);
+  });
+
+  it('roles with retry access see restricted controls without the view only note', () => {
+    mount(Registry, 'stf-fin');
+    const card = screen.getAllByRole('article').find((c) => c.getAttribute('aria-label') === 'Send driver withdrawal')!;
+    expect(card.textContent).toMatch(/Restricted/);
+    expect(card.textContent).not.toMatch(/view only/);
   });
 });

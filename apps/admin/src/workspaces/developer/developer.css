@@ -1,5 +1,5 @@
-/* Technical pages — health strip on the shared tokens. */
-.health-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+/* Technical pages: health strip on the shared tokens. */
+.health-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: #fff; box-shadow: var(--e1); }
 .health-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 3px; border-radius: var(--r-pill); border: 1px solid transparent; background: transparent; cursor: pointer; color: var(--text); }
-.health-chip:hover { background: var(--muted); }
-.health-chip[aria-pressed='true'] { border-color: var(--primary); background: var(--primary-soft); }
+.health-chip:hover { background: var(--selected); }
+.health-chip[aria-pressed='true'] { border-color: var(--jade); background: #fff; box-shadow: var(--e2); font-weight: 600; }

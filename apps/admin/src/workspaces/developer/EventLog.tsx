@@ -99,7 +99,7 @@ export default function EventLog() {
 
   return (
     <>
-      <PageHead title="Events and failures" sub="Webhook and job history built from the shared records. Test data; no provider sends events to this prototype." />
+      <PageHead eyebrow="Technical" title="Events and failures" sub="Webhook and job history built from the shared records. Test data; no provider sends events to this prototype." />
 
       <div className="grid cols-4">
         <Stat icon="webhook" label="Events" value={all.length} sub="Webhooks, jobs and checks" />

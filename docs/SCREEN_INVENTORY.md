@@ -113,3 +113,19 @@ Prototype on test data (D-053, `ADMIN_DASHBOARD_REDESIGN.md`). Every page uses t
 | Automation | `/automation/failed` | Failed jobs: Retry / Look up / Cancel with protected rules | Built (simulated runs) |
 | Automation | `/automation/settings` | Automation settings with approval | Built (placeholder values) |
 | Automation | `/automation/audit` | Audit history for automation, fee and provider changes | Built |
+
+### Phase 2 additions (2026-10-23, D-056 / D-057)
+
+| Group | Route | Screen | Status |
+|---|---|---|---|
+| Home | `/workspace` | My work: focused staff workspace by permission (operations, verification, support, safety, finance, technical) | Built |
+| Finance | `/finance` | Money overview: wallet volume, funding, withdrawals, pending, failed, fee revenue (₦0, no schedule), subscription revenue | Built (test data) |
+| Finance | `/subscriptions` | Driver subscriptions: active daily and monthly, expiring, revenue, payment issues, records and eligibility | Built (test data) |
+| Infrastructure & costs | `/costs` | Cost dashboard (operating cost excl. marketing, budget use, projection, per-unit costs) | Built (no costs recorded yet) |
+| Infrastructure & costs | `/costs/expenses` | Expense capture, approval (finance below ₦50,000, owner at or above), paid, reconciled | Built (manual entry) |
+| Infrastructure & costs | `/costs/vendors` | Vendors and plans (real plan status) | Built |
+| Infrastructure & costs | `/costs/budgets` | Monthly budgets by category and operating total | Built |
+| Infrastructure & costs | `/costs/break-even` | Operating cost vs driver-pass revenue; passes needed | Built |
+| Operations | `/trips` | Ride management tabs + fare negotiation timeline | Redesigned |
+| Operations | `/live` | Live operations with schematic map (simulated) and ride side sheet | Redesigned |
+| All | all | White-only shell and pages, 3D assets in featured cards and empty states | Redesigned |

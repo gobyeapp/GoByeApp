@@ -140,6 +140,7 @@ export default function Events() {
   return (
     <>
       <PageHead
+        eyebrow="Growth"
         title="Events and partners"
         sub="Event partnerships with pickup zones at the venue, sponsorship and results."
         actions={canManage ? <Button variant="primary" icon="add" onClick={startNew}>New event</Button> : <Button icon="add" disabledReason="Needs events access">New event</Button>}

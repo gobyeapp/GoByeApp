@@ -84,7 +84,7 @@ export default function Traffic() {
 
   return (
     <div className="stack" style={{ gap: 20 }}>
-      <PageHead title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only." meta={<><Pill tone="warning" icon="info">Simulation</Pill><Pill tone="neutral" icon="server">Backend provider pending</Pill></>} />
+      <PageHead eyebrow="Technical" title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only." meta={<><Pill tone="warning" icon="info">Simulation</Pill><Pill tone="neutral" icon="server">Backend provider pending</Pill></>} />
       <Notice tone="warning" icon="alert">
         <strong>Simulation. No production traffic is changed.</strong> There is no backend origin and no connection to a live control plane yet
         (backend provider pending). Changes here run in this browser tab only, to rehearse the approval and rollback flow.

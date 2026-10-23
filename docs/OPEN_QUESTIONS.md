@@ -330,6 +330,7 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Why:** BR-072; Driver app onboarding/go-online flow; tax; App Store (packages are paid by drivers for a real-world service, not digital content — confirm no IAP is required, see APP_STORE_COMPLIANCE).
 - **Owner:** Finance / Legal / Product · **Blocks:** 4, 6, BE
 - **Partly resolved 2026-10-23:** prices confirmed: ₦2,000 for 24 hours from successful activation, ₦60,000 for 30 days.
+- **To decide (stacking):** the driver app extends a pass bought while one is active from the current expiry (`subscribe`). The admin subscriptions view counts each pass from its own verified activation. Pick one rule and apply it to both.
 - **Assumption:** Purchase while active extends from current expiry; no grace period; a trip already in progress at expiry may finish (assumption, not decided).
 
 ### Q-044 — Google Maps Platform cost projection & usage caps

@@ -148,3 +148,20 @@ export function liftRestriction(p: PassengerRecord | undefined): Result {
   p.restriction = undefined;
   return { ok: true };
 }
+
+/* ---------- Driver subscription state (for filters) ---------- */
+export type SubscriptionState = 'active_daily' | 'active_monthly' | 'expired' | 'none';
+export const SUBSCRIPTION_STATE_LABEL: Record<SubscriptionState, string> = {
+  active_daily: 'Active daily pass',
+  active_monthly: 'Active monthly pass',
+  expired: 'Pass expired',
+  none: 'No pass bought',
+};
+export function subscriptionState(driver: Pick<DriverRecord, 'access'>, now: number): SubscriptionState {
+  if (!driver.access) return 'none';
+  if (driver.access.expiresAt <= now) return 'expired';
+  return driver.access.packageId === 'daily' ? 'active_daily' : 'active_monthly';
+}
+
+/** Vehicle category label for the admin (one category at launch). */
+export const categoryLabel = (c: string) => (c === 'go' ? 'GoBye Car' : c.charAt(0).toUpperCase() + c.slice(1).replace(/_/g, ' '));

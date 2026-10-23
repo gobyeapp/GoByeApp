@@ -1,11 +1,13 @@
 import { useState, type ReactNode } from 'react';
 import { CITY_LABELS, type CityId, type TripRecord } from '@gobye/core';
 import { count, when } from '@/data/format';
-import { TRIP_STATUS, useOpenRecord } from '@/data/records';
+import { TRIP_STATUS } from '@/data/records';
 import { useFilters, useScopedFilter, useSession } from '@/data/session';
 import { useAction, useData, usePlatform } from '@/data/store';
-import { Icon, type IconName } from '@/ui/Icon';
-import { Button, Card, ConfirmDialog, Empty, Field, Meter, Notice, PageHead, Pill, Section, Stat, Table, type Column } from '@/ui/kit';
+import { Icon } from '@/ui/Icon';
+import { Button, Card, ConfirmDialog, Empty, Field, Meter, Notice, PageHead, Pill, Section, Segmented, Stat } from '@/ui/kit';
+import { LiveMap } from './LiveMap';
+import { TripSheet } from './TripSheet';
 import './operations.css';
 import { ACTIVE_STATUSES, CANCELLABLE, PROBLEM_LABELS, cancelForPassenger, detectProblems, dismissedFromAudit, driverAvailability, elapsedLabel, type Keep, type Problem } from './logic';
 
@@ -18,11 +20,12 @@ export default function Live() {
   const { can, inScope } = useSession();
   const { city } = useFilters();
   const keepRow = useScopedFilter();
-  const openRecord = useOpenRecord();
   const act = useAction();
   const [contact, setContact] = useState<Contact | null>(null);
   const [cancelling, setCancelling] = useState<TripRecord | null>(null);
   const [showAllPast, setShowAllPast] = useState(false);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [mapCity, setMapCity] = useState<CityId | undefined>(undefined);
   const t = now();
   const keep: Keep = (c, at) => keepRow(c, at, t);
   const canAct = can('live.dispatch') || can('trips.intervene');
@@ -71,9 +74,17 @@ export default function Live() {
     if (r.ok) setCancelling(null);
   };
 
+  const sheetActions = (trip: TripRecord) => (
+    <>
+      {trip.driverId ? <Button variant="ghost" icon="phone" onClick={() => setContact({ trip, who: 'driver' })}>Contact driver</Button> : null}
+      <Button variant="ghost" icon="chat" onClick={() => setContact({ trip, who: 'passenger' })}>Contact passenger</Button>
+      {CANCELLABLE.includes(trip.status) ? <Button variant="danger-soft" icon="close" onClick={() => setCancelling(trip)}>Cancel for passenger</Button> : null}
+    </>
+  );
+
   const actions = (trip: TripRecord, p?: Problem) => (
     <div className="row wrap" style={{ gap: 6 }}>
-      <Button size="sm" variant="ghost" icon="eye" onClick={() => openRecord({ type: 'trip', id: trip.id })}>Open trip</Button>
+      <Button size="sm" variant="ghost" icon="eye" onClick={() => { setSelected(trip.id); setMapCity(trip.city); }}>Open ride</Button>
       {canAct ? (
         <>
           {trip.driverId ? <Button size="sm" variant="ghost" icon="phone" onClick={() => setContact({ trip, who: 'driver' })}>Contact driver</Button> : null}
@@ -85,20 +96,19 @@ export default function Live() {
     </div>
   );
 
-  const columns: Column<TripRecord>[] = [
-    { key: 'ref', label: 'Trip', sortValue: (x) => x.ref, render: (x) => (<><div className="cell-title">{x.ref}</div><div className="cell-sub">{CITY_LABELS[x.city]} · {x.mode === 'negotiate' ? 'Negotiated' : 'Quick Match'}</div></>) },
-    { key: 'status', label: 'Status', sortValue: (x) => TRIP_STATUS[x.status].text, render: (x) => <Pill tone={TRIP_STATUS[x.status].tone}>{TRIP_STATUS[x.status].text}</Pill> },
-    { key: 'pas', label: 'Passenger', render: (x) => d.passengers.find((p) => p.id === x.passengerId)?.name ?? 'Unknown' },
-    { key: 'drv', label: 'Driver', render: (x) => (x.driverId ? d.drivers.find((r) => r.id === x.driverId)?.name : <span className="muted">Not assigned</span>) },
-    { key: 'route', label: 'Route', render: (x) => <span className="small">{x.pickup} to {x.destination}</span> },
-    { key: 'elapsed', label: 'Elapsed', align: 'right', sortValue: (x) => -x.requestedAt, render: (x) => <span className="num">{elapsedLabel(x.requestedAt, t)}</span> },
-  ];
+  const mapCities = cities.length ? cities : [];
+  const shownCity: CityId | undefined = mapCity && mapCities.includes(mapCity) ? mapCity : mapCities[0];
+  const selectedTrip = selected ? d.trips.find((x) => x.id === selected) : undefined;
+  const busy = new Set(d.trips.filter((x) => x.driverId && ['matched', 'en_route', 'arrived', 'in_progress'].includes(x.status)).map((x) => x.driverId!));
+  const freeDrivers = d.drivers.filter((x) => x.city === shownCity && x.verification === 'approved' && x.online && x.access && x.access.expiresAt > t && !busy.has(x.id));
+  const dot = (x: TripRecord) => (x.status === 'searching' ? 'searching' : x.status === 'en_route' && (x.pickupDelaySeconds ?? 0) > 300 ? 'late' : 'moving');
 
   return (
     <>
       <PageHead
+        eyebrow="Operations"
         title="Live operations"
-        sub="Problems that need action come first. Driver locations and timings are simulated."
+        sub="Active rides, problems that need action and driver availability. Locations and timings are simulated."
         meta={
           <>
             <Pill tone="warning" icon="radar">Simulated locations and timings</Pill>
@@ -106,43 +116,88 @@ export default function Live() {
           </>
         }
       />
-      {!canAct ? <Notice icon="lock">View only. Contacting people and cancelling trips needs dispatch access.</Notice> : null}
+      {!canAct ? <div style={{ marginBottom: 16 }}><Notice icon="lock">View only. Contacting people and cancelling trips needs dispatch access.</Notice></div> : null}
 
-      <div className="grid cols-4" style={{ marginTop: canAct ? 0 : 16 }}>
+      <div className="grid cols-4">
         <Stat label="Needs action now" value={count(live.length)} icon="alert" tone={live.length ? 'danger' : undefined} sub={live.length ? 'Delayed pickups, long searches, stuck payments' : 'Nothing waiting'} />
-        <Stat label="Active journeys" value={count(active.length)} icon="route" sub="Searching, on the way or on trip" />
+        <Stat label="Active rides" value={count(active.length)} icon="route" sub="Searching, on the way or on trip" />
         <Stat label="Drivers available" value={count(availability.reduce((s, a) => s + a.available, 0))} icon="steering" sub={`${count(availability.reduce((s, a) => s + a.busy, 0))} on a trip`} />
         <Stat label="Failures and cancellations" value={count(past.length)} icon="close" tone={past.length ? 'warning' : undefined} sub="In the selected dates" />
       </div>
 
-      <Section title={`Needs action now${live.length ? ` (${live.length})` : ''}`}>
-        {live.length ? (
-          <div className="stack">
-            {live.map((p) => (
-              <ProblemCard key={p.key} p={p} now={t}>{actions(tripOf(p.tripId), p)}</ProblemCard>
-            ))}
+      <div className="live-grid section">
+        <Card flush>
+          <div className="map-head">
+            <h3 style={{ flex: 1 }}>Active rides</h3>
+            <span className="small muted num">{count(active.length)}</span>
           </div>
-        ) : (
-          <Card><Empty title="No live problems" icon="checkCircle">No delayed pickups, long searches or stuck payments right now.</Empty></Card>
-        )}
+          {active.length ? (
+            <ul className="ride-list">
+              {active.map((x) => (
+                <li key={x.id}>
+                  <button className="ride-item" aria-pressed={selected === x.id} onClick={() => { setSelected(x.id); setMapCity(x.city); }}>
+                    <span className={`st ${dot(x)}`} aria-hidden />
+                    <span style={{ minWidth: 0 }}>
+                      <span className="strong" style={{ display: 'block' }}>{x.ref} · {TRIP_STATUS[x.status].text}</span>
+                      <span className="cell-sub" style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{x.pickup} to {x.destination}</span>
+                    </span>
+                    <span style={{ textAlign: 'right' }}>
+                      <span className="num small strong" style={{ display: 'block' }}>{elapsedLabel(x.requestedAt, t)}</span>
+                      <span className="cell-sub">{x.mode === 'negotiate' ? 'Negotiated' : 'Quick Match'}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty title="No active rides" art="activeTrips">Rides being searched, on the way or in progress appear here.</Empty>
+          )}
+        </Card>
+        <Card flush className="map-panel">
+          <div className="map-head">
+            <h3 style={{ flex: 1 }}>{shownCity ? CITY_LABELS[shownCity] : 'Map'}</h3>
+            {mapCities.length > 1 ? (
+              <Segmented<CityId> label="City on the map" value={shownCity!} onChange={setMapCity} options={mapCities.map((c) => ({ value: c, label: CITY_LABELS[c] }))} />
+            ) : null}
+          </div>
+          {shownCity ? (
+            <LiveMap city={shownCity} rides={active.filter((x) => x.city === shownCity)} drivers={freeDrivers} selected={selected ?? undefined} onSelect={setSelected} />
+          ) : (
+            <Empty title="No cities in your scope" icon="mapPin" />
+          )}
+          <div className="map-legend" aria-hidden>
+            <span><i style={{ border: '2px solid var(--ink)', background: '#fff' }} />Pickup</span>
+            <span><i style={{ background: 'var(--jade)' }} />Driver on a ride</span>
+            <span><i style={{ border: '2px solid var(--warning)', background: '#fff' }} />Searching</span>
+            <span><i style={{ border: '2px solid #8a938e', background: '#fff' }} />Available driver</span>
+          </div>
+        </Card>
+      </div>
+
+      <Section title={`Needs action now${live.length ? ` (${live.length})` : ''}`}>
+        <Card flush>
+          {live.length ? (
+            live.map((p) => <ProblemRow key={p.key} p={p} now={t}>{actions(tripOf(p.tripId), p)}</ProblemRow>)
+          ) : (
+            <Empty title="No live problems" art="completedTrips">No delayed pickups, long searches or stuck payments right now.</Empty>
+          )}
+        </Card>
       </Section>
 
       <Section
         title={`Matching failures and cancellations${past.length ? ` (${past.length})` : ''}`}
         actions={past.length > 6 ? <Button size="sm" variant="ghost" onClick={() => setShowAllPast((v) => !v)}>{showAllPast ? 'Show fewer' : `Show all ${past.length}`}</Button> : null}
       >
-        {past.length ? (
-          <div className="stack">
-            {(showAllPast ? past : past.slice(0, 6)).map((p) => (
-              <ProblemCard key={p.key} p={p} now={t}>{actions(tripOf(p.tripId), p)}</ProblemCard>
-            ))}
-          </div>
-        ) : (
-          <Card><Empty title="None in this period" icon="checkCircle">Trips that found no driver or were cancelled in the date range appear here.</Empty></Card>
-        )}
+        <Card flush>
+          {past.length ? (
+            (showAllPast ? past : past.slice(0, 6)).map((p) => <ProblemRow key={p.key} p={p} now={t}>{actions(tripOf(p.tripId), p)}</ProblemRow>)
+          ) : (
+            <Empty title="None in this period" icon="checkCircle">Trips that found no driver or were cancelled in the date range appear here.</Empty>
+          )}
+        </Card>
       </Section>
 
-      <Section title="Driver availability">
+      <Section title="Driver availability" desc="Online out of drivers with active access. Going online needs approval and an active driver pass.">
         {availability.length ? (
           <div className="grid cols-2">
             {availability.map((a) => (
@@ -153,9 +208,8 @@ export default function Live() {
                   <Metric label="With access" value={a.withAccess} />
                   <Metric label="Approved" value={a.approved} />
                 </div>
-                <div style={{ marginTop: 14 }}>
+                <div style={{ marginTop: 16 }}>
                   <Meter value={a.withAccess ? (a.available + a.busy) / a.withAccess : 0} label={`${CITY_LABELS[a.city]}: drivers online out of those with access`} />
-                  <div className="small muted" style={{ marginTop: 6 }}>Online out of drivers with active access. Going online needs approval and an active access package.</div>
                 </div>
               </Card>
             ))}
@@ -165,20 +219,7 @@ export default function Live() {
         )}
       </Section>
 
-      <Section title={`Active journeys (${active.length})`} desc="Oldest request first. Click a heading to sort.">
-        <Card flush>
-        <Table
-          rows={active}
-          columns={columns}
-          rowKey={(x) => x.id}
-          pageSize={25}
-          caption="Active journeys"
-          onRowClick={(x) => openRecord({ type: 'trip', id: x.id })}
-          empty={<Empty title="No active journeys" icon="route">Trips being searched, on the way or in progress appear here.</Empty>}
-        />
-        </Card>
-      </Section>
-
+      {selectedTrip ? <TripSheet trip={selectedTrip} onClose={() => setSelected(null)} actions={canAct ? sheetActions(selectedTrip) : null} /> : null}
       {contact ? <ContactDialog c={contact} onClose={() => setContact(null)} /> : null}
       {cancelling ? (
         <ConfirmDialog
@@ -197,31 +238,27 @@ export default function Live() {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="stat">
-      <span className="label">{label}</span>
-      <span className="value">{count(value)}</span>
+    <div>
+      <div className="k">{label}</div>
+      <div className="v">{count(value)}</div>
     </div>
   );
 }
 
-const PROBLEM_ICON: Record<Problem['kind'], IconName> = { delayed_pickup: 'time', searching_long: 'radar', payment_stuck: 'wallet', no_driver: 'alert', cancelled: 'close' };
 
-function ProblemCard({ p, now, children }: { p: Problem; now: number; children: ReactNode }) {
+function ProblemRow({ p, now, children }: { p: Problem; now: number; children: ReactNode }) {
   return (
-    <Card>
-      <div className="problem">
-        <span className={`ico ${p.severity}`}><Icon name={PROBLEM_ICON[p.kind]} size={18} /></span>
-        <div className="body">
-          <div className="row wrap" style={{ gap: 8 }}>
-            <span className="strong">Trip {p.ref}</span>
-            <Pill tone={p.severity} icon={null}>{PROBLEM_LABELS[p.kind]}</Pill>
-          </div>
-          <div className="small muted" style={{ marginTop: 2 }}>{CITY_LABELS[p.city]} · {when(p.at, now)}</div>
-          <div className="small" style={{ marginTop: 6 }}>{p.detail}</div>
+    <div className="problem-row">
+      <div style={{ minWidth: 0 }}>
+        <div className="row wrap" style={{ gap: 8 }}>
+          <span className={`sev ${p.severity === 'danger' ? 'high' : p.severity === 'warning' ? 'medium' : 'low'}`}>{PROBLEM_LABELS[p.kind]}</span>
+          <span className="strong">Ride {p.ref}</span>
+          <span className="small muted">{CITY_LABELS[p.city]} · {when(p.at, now)}</span>
         </div>
-        <div className="acts">{children}</div>
+        <div className="small" style={{ marginTop: 4 }}>{p.detail}</div>
       </div>
-    </Card>
+      <div>{children}</div>
+    </div>
   );
 }
 

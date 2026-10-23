@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import { balanceOf, withdrawable, type DriverRecord, type PassengerRecord, type TripRecord } from '@gobye/core';
 import { Icon } from '@/ui/Icon';
-import { Button, Drawer, KV, Notice, Pill, Timeline, type Tone } from '@/ui/kit';
+import { Button, Drawer, KV, Notice, Pill, Tabs, Timeline, type Tone } from '@/ui/kit';
 import type { IconName } from '@/ui/Icon';
 import '@/workspaces/people/people.css';
+import { eligibility } from '@/workspaces/subscriptions/logic';
 import { city, date, label, money, when } from './format';
 import { useSession } from './session';
 import { usePlatform, useData } from './store';
@@ -153,6 +154,26 @@ function TripPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?
         ) : null}
       </PanelSection>
 
+      {t.negotiation ? (
+        <PanelSection title="Fare negotiation" icon="exchange" aside={t.negotiation.outcome === 'agreed' ? 'Agreed' : t.negotiation.outcome === 'expired' ? 'Expired' : 'Open'}>
+          <KV
+            items={[
+              ['Suggested fare', <span className="num">{money(t.suggestedFare)}</span>],
+              ['Rider offer', <span className="num">{money(t.negotiation.riderOffer)}</span>],
+              ['Final agreed fare', t.agreedFare && t.negotiation.outcome === 'agreed' ? <span className="num strong">{money(t.agreedFare)}</span> : 'None'],
+              ['Offer open until', when(t.negotiation.expiresAt)],
+            ]}
+          />
+          <Timeline
+            items={t.negotiation.events.map((e) => ({
+              at: e.at,
+              title: e.kind === 'offer' ? `Rider offered ${money(e.amount)}` : e.kind === 'accept' ? `${e.driverName ?? 'A driver'} accepted ${money(e.amount)}` : e.kind === 'counter' ? `${e.driverName ?? 'A driver'} countered ${money(e.amount)}` : e.kind === 'select' ? `Rider chose ${e.driverName ?? 'a driver'} at ${money(e.amount)}` : 'Offer expired with no agreement',
+            }))}
+          />
+          <span className="small muted">Fares belong to the driver. GoBye takes 0% commission, so none of this is GoBye revenue.</span>
+        </PanelSection>
+      ) : null}
+
       <PanelSection title="People" icon="group">
         <KV
           items={[
@@ -200,69 +221,146 @@ function TripPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?
   );
 }
 
+type PassengerView = 'overview' | 'rides' | 'payments' | 'support' | 'safety';
+
 function PassengerPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?: string }) {
   const d = useData();
   const { can } = useSession();
+  const { now } = usePlatform();
   const open = useOpenRecord();
+  const [view, setView] = useState<PassengerView>('overview');
   const p: PassengerRecord | undefined = d.passengers.find((x) => x.id === id);
   const trips = useMemo(() => d.trips.filter((t) => t.passengerId === id).sort((a, b) => b.requestedAt - a.requestedAt), [d.trips, id]);
   if (!p) return <Drawer title="Passenger not found" onClose={onClose}>Not in the test data.</Drawer>;
+  const t = now();
+  const seeMoney = can('finance.view') || can('ledger.view');
   const wallet = balanceOf(d.ledger, { kind: 'passenger_wallet', ownerId: p.id });
-  const cases = d.cases.filter((c) => c.links.passengerId === p.id && c.team === 'care');
+  const payments = d.collections.filter((c) => c.payerType === 'passenger' && c.payerId === p.id).sort((a, b) => b.createdAt - a.createdAt);
+  const careCases = d.cases.filter((c) => c.links.passengerId === p.id && c.team === 'care');
+  const safetyCases = d.cases.filter((c) => c.links.passengerId === p.id && c.team === 'safety');
+  const contact = can('passengers.contact_details');
+  const views: { value: PassengerView; label: string; count?: number }[] = [
+    { value: 'overview', label: 'Overview' },
+    { value: 'rides', label: 'Rides', count: trips.length },
+    { value: 'payments', label: 'Payments', count: seeMoney ? payments.length : undefined },
+    { value: 'support', label: 'Support', count: can('cases.view') ? careCases.length : undefined },
+    { value: 'safety', label: 'Safety', count: can('safety.view') ? safetyCases.length : undefined },
+  ];
+  const caseList = (xs: typeof careCases) => (
+    <div className="panel-list">
+      {xs.map((c) => (
+        <div key={c.id} className="panel-list-row">
+          <Pill tone={c.team === 'safety' ? 'danger' : 'neutral'} icon={c.team === 'safety' ? 'safeAlert' : 'headphone'}>{c.ref}</Pill>
+          <span className="grow">
+            <span style={{ display: 'block' }}>{c.subject}</span>
+            <span className="cell-sub">Opened {when(c.openedAt, t)} · {label(c.priority)} priority</span>
+          </span>
+          <span className="muted small">{label(c.status)}</span>
+        </div>
+      ))}
+    </div>
+  );
   return (
-    <Drawer title={p.name} sub={sub ?? `Passenger · ${city(p.city)} · joined ${date(p.joinedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
+    <Drawer title={p.name} sub={sub ?? `Rider · ${city(p.city)} · registered ${date(p.joinedAt)}`} onClose={onClose} footer={<Button onClick={onClose}>Close</Button>}>
       <div className="panel-pills">
         <Pill tone={p.status === 'active' ? 'success' : p.status === 'restricted' ? 'danger' : 'neutral'} icon={p.status === 'restricted' ? 'userForbid' : undefined}>{label(p.status)}</Pill>
         <Pill tone="neutral" icon="star">{p.rating.toFixed(1)}</Pill>
         <Pill tone="neutral" icon="route">{p.trips} trips</Pill>
       </div>
-      {p.restriction ? (
-        <Notice tone="danger" icon="userForbid">
-          <div className="strong">Restricted: can’t book trips</div>
-          <div className="restrict-note">
-            {p.restriction.reason} · by {p.restriction.by}
-            {p.restriction.until ? ` · until ${date(p.restriction.until)}` : ' · no end date'}
-          </div>
-        </Notice>
+      <div className="sheet-tabs"><Tabs value={view} onChange={setView} tabs={views} /></div>
+      {view === 'overview' ? (
+        <>
+          {p.restriction ? (
+            <Notice tone="danger" icon="userForbid">
+              <div className="strong">Restricted: can’t book trips</div>
+              <div className="restrict-note">
+                {p.restriction.reason} · by {p.restriction.by}
+                {p.restriction.until ? ` · until ${date(p.restriction.until)}` : ' · no end date'}
+              </div>
+            </Notice>
+          ) : null}
+          <PanelSection title="Account" icon="user" aside={contact ? undefined : 'Contact details hidden for your role'}>
+            <KV
+              items={[
+                ['Rider ID', p.id],
+                ['City', city(p.city)],
+                ['Registered', date(p.joinedAt)],
+                ['Status', label(p.status)],
+                ['Phone', <Masked allowed={contact} value={p.phone} />],
+                ['Email', <Masked allowed={contact} value={p.email} />],
+              ]}
+            />
+          </PanelSection>
+          <PanelSection title="Activity" icon="chart">
+            <KV
+              items={[
+                ['Trips', String(p.trips)],
+                ['Last trip', when(p.lastTripAt, t)],
+                ['Wallet balance', seeMoney ? <span className="num">{money(wallet)}</span> : <Masked allowed={false} value="x" />],
+                ['Support cases', can('cases.view') ? String(careCases.length) : <Masked allowed={false} value="x" />],
+              ]}
+            />
+          </PanelSection>
+        </>
       ) : null}
-      <PanelSection title="Account" icon="user">
-        <KV
-          items={[
-            ['Passenger ID', p.id],
-            ['City', city(p.city)],
-            ['Joined', date(p.joinedAt)],
-            ['Phone', <Masked allowed={can('passengers.contact_details')} value={p.phone} />],
-            ['Email', <Masked allowed={can('passengers.contact_details')} value={p.email} />],
-          ]}
-        />
-      </PanelSection>
-      <PanelSection title="Activity and money" icon="wallet">
-        <KV
-          items={[
-            ['Trips', String(p.trips)],
-            ['Last trip', when(p.lastTripAt)],
-            ['Wallet balance', can('finance.view') || can('ledger.view') ? <span className="num">{money(wallet)}</span> : <Masked allowed={false} value="x" />],
-            ['Support cases', String(cases.length)],
-          ]}
-        />
-      </PanelSection>
-      <PanelSection title="Recent trips" icon="route" aside={trips.length > 8 ? `8 of ${trips.length}` : undefined}>
-        {trips.length ? (
-          <div className="panel-list">
-            {trips.slice(0, 8).map((t) => (
-              <button key={t.id} className="panel-list-row" onClick={() => open({ type: 'trip', id: t.id })}>
-                <span className="grow">
-                  <span className="strong" style={{ display: 'block' }}>{t.ref}</span>
-                  <span className="cell-sub" style={{ display: 'block' }}>{t.pickup} to {t.destination}</span>
-                </span>
-                <Pill tone={TRIP_STATUS[t.status].tone}>{TRIP_STATUS[t.status].text}</Pill>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <span className="muted">No trips yet</span>
-        )}
-      </PanelSection>
+      {view === 'rides' ? (
+        <PanelSection title="Ride history" icon="route" aside={trips.length > 12 ? `12 of ${trips.length}` : undefined}>
+          {trips.length ? (
+            <div className="panel-list">
+              {trips.slice(0, 12).map((tr) => (
+                <button key={tr.id} className="panel-list-row" onClick={() => open({ type: 'trip', id: tr.id })}>
+                  <span className="grow">
+                    <span className="strong" style={{ display: 'block' }}>{tr.ref} · {tr.mode === 'negotiate' ? 'Negotiated' : 'Quick Match'}</span>
+                    <span className="cell-sub">{tr.pickup} to {tr.destination} · {when(tr.requestedAt, t)}</span>
+                  </span>
+                  {tr.agreedFare ? <span className="num small">{money(tr.agreedFare)}</span> : null}
+                  <Pill tone={TRIP_STATUS[tr.status].tone}>{TRIP_STATUS[tr.status].text}</Pill>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span className="small muted">No rides yet.</span>
+          )}
+        </PanelSection>
+      ) : null}
+      {view === 'payments' ? (
+        <PanelSection title="Payment activity" icon="wallet" aside={seeMoney ? `Wallet ${money(wallet)}` : undefined}>
+          {!seeMoney ? (
+            <span className="small muted row" style={{ gap: 6 }}><Icon name="lock" size={14} /> Payment activity needs finance access.</span>
+          ) : payments.length ? (
+            <div className="panel-list">
+              {payments.slice(0, 12).map((c) => (
+                <div key={c.id} className="panel-list-row">
+                  <span className="grow">
+                    <span style={{ display: 'block' }}>{c.purpose === 'wallet_funding' ? 'Wallet funding' : c.purpose === 'trip_payment' ? 'Trip payment by transfer' : label(c.purpose)}</span>
+                    <span className="cell-sub">{c.provider} · {when(c.createdAt, t)}</span>
+                  </span>
+                  <span className="num strong small">{money(c.amount)}</span>
+                  <Pill tone={c.status === 'successful' ? 'success' : c.status === 'pending' || c.status === 'initiated' ? 'warning' : c.status === 'failed' ? 'danger' : 'neutral'}>{label(c.status)}</Pill>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span className="small muted">No payments recorded. Wallet trips are charged inside GoBye and appear on each ride.</span>
+          )}
+        </PanelSection>
+      ) : null}
+      {view === 'support' ? (
+        <PanelSection title="Support history" icon="headphone">
+          {!can('cases.view') ? <span className="small muted">Support history needs care access.</span> : careCases.length ? caseList(careCases) : <span className="small muted">No support cases.</span>}
+        </PanelSection>
+      ) : null}
+      {view === 'safety' ? (
+        <PanelSection title="Safety records" icon="shield">
+          {!can('safety.view') ? (
+            <span className="small muted row" style={{ gap: 6 }}><Icon name="lock" size={14} /> Safety records are restricted to the safety team.</span>
+          ) : safetyCases.length ? (
+            caseList(safetyCases)
+          ) : (
+            <span className="small muted">No safety reports involve this rider.</span>
+          )}
+        </PanelSection>
+      ) : null}
     </Drawer>
   );
 }
@@ -281,7 +379,8 @@ function DriverPanel({ id, onClose, sub }: { id: string; onClose: () => void; su
       <div className="panel-pills">
         <Pill tone={dr.verification === 'approved' ? 'success' : dr.verification === 'rejected' || dr.verification === 'suspended' ? 'danger' : 'warning'}>{label(dr.verification)}</Pill>
         <Pill tone={accessActive ? 'success' : 'neutral'} icon="ticket">{accessActive ? `${label(dr.access!.packageId)} access` : 'No active access'}</Pill>
-        <Pill tone={dr.online ? 'success' : 'neutral'} icon="radar">{dr.online ? 'Online' : 'Offline'}</Pill>
+        <Pill tone="neutral" icon="radar">{dr.online ? 'Online' : 'Offline'}</Pill>
+        {(() => { const e = eligibility(dr, t); return <Pill tone={e.eligible ? 'success' : 'neutral'} icon={e.eligible ? 'checkCircle' : 'lock'}>{e.eligible ? 'Can accept rides' : e.reason}</Pill>; })()}
       </div>
       <PanelSection title="Driver" icon="steering">
         <KV
@@ -303,10 +402,10 @@ function DriverPanel({ id, onClose, sub }: { id: string; onClose: () => void; su
           ]}
         />
       </PanelSection>
-      <PanelSection title="Access and payouts" icon="ticket">
+      <PanelSection title="Subscription and payouts" icon="ticket">
         <KV
           items={[
-            ['Access until', dr.access ? when(dr.access.expiresAt) : 'No package'],
+            ['Subscription', dr.access ? `${dr.access.packageId === 'daily' ? 'Daily' : 'Monthly'} pass ${accessActive ? 'until' : 'ended'} ${when(dr.access.expiresAt, t)}` : 'No pass bought'],
             ['Withdrawable', can('finance.view') ? <span className="num">{money(withdrawable(d.ledger, dr.id))}</span> : <Masked allowed={false} value="x" />],
             ['Payout account', dr.bankAccount ? (can('finance.view') || can('drivers.verify') ? `${dr.bankAccount.bankName} ${dr.bankAccount.accountNumberMasked}${dr.bankAccount.verified ? '' : ' (not verified)'}` : <Masked allowed={false} value="x" />) : 'Not added'],
           ]}

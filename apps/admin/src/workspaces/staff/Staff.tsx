@@ -70,6 +70,7 @@ export default function Staff() {
   return (
     <>
       <PageHead
+        eyebrow="Administration"
         title="Staff and access"
         sub="Who can sign in, what each person can see and change, and in which cities."
         actions={manage ? <Button variant="primary" icon="userAdd" onClick={() => setInviting(true)}>Invite staff</Button> : null}

@@ -30,7 +30,7 @@ export default function Packages() {
 
   return (
     <>
-      <PageHead title="Driver packages" sub="Access passes approved drivers buy to go online. GoBye takes no commission per trip." />
+      <PageHead eyebrow="Settings" title="Driver packages" sub="Access passes approved drivers buy to go online. GoBye takes no commission per trip." />
       <div className="grid cols-4" style={{ marginBottom: 20 }}>
         <Stat label="Active daily passes" value={count(active('daily'))} />
         <Stat label="Active monthly passes" value={count(active('monthly'))} />

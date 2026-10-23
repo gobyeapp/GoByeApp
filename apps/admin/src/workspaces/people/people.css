@@ -1,47 +1,67 @@
-/* People workspace and shared record panels (drivers, passengers, trips). Uses the global tokens only. */
+/* People workspace and shared record panels (drivers, passengers, trips, subscriptions).
+   White rule: no tinted panels. Hierarchy from borders, spacing and type; colour only in small status icons. */
 
-/* Side-sheet section: icon + heading, optional count/aside, then content. */
+/* Side-sheet section: icon + heading, optional aside, then content. */
 .panel-section { display: flex; flex-direction: column; gap: 12px; }
-.panel-section + .panel-section { border-top: 1px solid var(--border); padding-top: 20px; }
+.panel-section + .panel-section { border-top: 1px solid var(--border); padding-top: 22px; }
 .panel-section-head { display: flex; align-items: center; gap: 8px; }
-.panel-section-head h3 { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; }
-.panel-section-head > svg { color: var(--text-2); flex-shrink: 0; }
+.panel-section-head h3 { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; color: var(--ink); }
+.panel-section-head > svg { color: var(--jade); flex-shrink: 0; }
 .panel-section-head .aside { font-size: 12.5px; color: var(--text-2); font-weight: 500; }
 .panel-section .kv { margin: 0; }
 .panel-pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 
-/* Document checklist */
+/* Tabs inside a side sheet sit flush under the pills. */
+.sheet-tabs .tabs { margin-bottom: 0; }
+.sheet-figures { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.sheet-figure { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--r-md); box-shadow: var(--e1); background: #fff; min-width: 0; }
+.sheet-figure-value { font-size: 22px; line-height: 28px; font-weight: 650; letter-spacing: -0.02em; color: var(--ink); overflow-wrap: anywhere; }
+
+/* Document review cards */
+.doc-cards { display: flex; flex-direction: column; gap: 12px; }
+.doc-card { border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #fff; box-shadow: var(--e1); }
+.doc-card-head { display: flex; align-items: center; gap: 12px; }
+.doc-ico { width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; border: 1px solid var(--border); background: #fff; color: var(--text-3); flex-shrink: 0; box-shadow: var(--e2); }
+.doc-card.ok .doc-ico, .doc-row.ok .doc-ico { color: var(--success); }
+.doc-card.bad .doc-ico, .doc-row.bad .doc-ico { color: var(--danger); }
+.doc-card.wait .doc-ico, .doc-row.wait .doc-ico { color: var(--warning); }
+/* Honest file placeholder: no file exists in the prototype. */
+.doc-preview { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 12px 14px; border: 1px dashed var(--border-strong); border-radius: var(--r-md); color: var(--text-2); font-size: 12.5px; background: #fff; }
+.doc-preview svg { color: var(--text-3); flex-shrink: 0; }
+.doc-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; margin: 0; }
+.doc-meta div { min-width: 0; }
+.doc-meta dt { font-size: 12px; color: var(--text-3); }
+.doc-meta dd { margin: 2px 0 0; font-size: 13px; font-weight: 500; overflow-wrap: anywhere; }
+.doc-card .doc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Legacy compact document rows (still used by the shared driver panel) */
 .doc-list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
 .doc-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
 .doc-row:first-child { border-top: none; }
-.doc-row .doc-ico { width: 32px; height: 32px; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--muted); color: var(--text-2); flex-shrink: 0; }
-.doc-row.ok .doc-ico { background: var(--success-bg); color: var(--success); }
-.doc-row.bad .doc-ico { background: var(--danger-bg); color: var(--danger); }
-.doc-row.wait .doc-ico { background: var(--warning-bg); color: var(--warning); }
 .doc-row .doc-body { flex: 1; min-width: 150px; }
-.doc-row .doc-actions { display: flex; gap: 4px; margin-left: auto; }
 
 /* Documents progress cell */
 .doc-progress { display: flex; flex-direction: column; gap: 6px; min-width: 110px; }
-.doc-progress .meter { height: 6px; }
+.doc-progress .meter { height: 5px; }
 
-/* Compact list rows inside panels (trips, ledger lines, cases) */
-.panel-list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
-.panel-list-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: none; border-top: 1px solid var(--border); background: var(--surface); text-align: left; width: 100%; color: var(--text); min-width: 0; font-size: 13px; }
+/* Compact list rows inside panels (trips, ledger lines, cases, payments) */
+.panel-list { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; background: #fff; }
+.panel-list-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: none; border-top: 1px solid var(--border); background: #fff; text-align: left; width: 100%; color: var(--text); min-width: 0; font-size: 13px; }
 .panel-list-row:first-child { border-top: none; }
-button.panel-list-row { cursor: pointer; }
-button.panel-list-row:hover { background: var(--muted); }
+button.panel-list-row { cursor: pointer; transition: background var(--t-fast); }
+button.panel-list-row:hover { background: var(--selected); }
 .panel-list-row .grow { flex: 1; min-width: 0; }
-.panel-list-row .grow .cell-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-list-row .grow .cell-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 
 /* Route block in the trip panel */
 .route { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 2px 10px; align-items: start; }
 .route .dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; justify-self: center; }
-.route .dot.from { background: var(--primary); }
-.route .dot.to { background: var(--surface); border: 2px solid var(--text); box-sizing: border-box; }
+.route .dot.from { background: var(--jade); }
+.route .dot.to { background: #fff; border: 2px solid var(--ink); box-sizing: border-box; }
 .route .line { width: 2px; height: 14px; background: var(--border-strong); justify-self: center; }
 
-.link-btn { border: none; background: none; padding: 0; font-weight: 600; color: var(--primary-ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.link-btn { border: none; background: none; padding: 0; font-weight: 600; color: var(--primary-ink); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-align: left; font-size: inherit; }
+.link-btn:hover { color: var(--jade); }
 
-/* Restriction banner on passenger rows/panels */
+/* Restriction note on passenger panels */
 .restrict-note { font-size: 12.5px; }

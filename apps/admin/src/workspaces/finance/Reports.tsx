@@ -95,7 +95,7 @@ export default function Reports() {
           ).map(([title, what, rows, icon]) => (
             <Card key={title}>
               <div className="row" style={{ alignItems: 'flex-start' }}>
-                <span aria-hidden style={{ width: 34, height: 34, borderRadius: 8, display: "grid", placeItems: "center", background: "var(--primary-soft)", color: "var(--primary-ink)", flexShrink: 0 }}><Icon name={icon} size={18} /></span>
+                <span aria-hidden style={{ width: 34, height: 34, borderRadius: 8, display: "grid", placeItems: "center", background: "#fff", border: "1px solid var(--border)", boxShadow: "var(--e2)", color: "var(--jade)", flexShrink: 0 }}><Icon name={icon} size={18} /></span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span className="strong" style={{ display: 'block' }}>{title}</span>
                   <span className="cell-sub">{what}</span>

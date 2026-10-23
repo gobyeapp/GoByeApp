@@ -153,12 +153,29 @@ function AckLine({ c, now }: { c: CaseRecord; now: number }) {
   );
 }
 
+/** Incident severity from case priority (safety cases start urgent). */
+const SEVERITY: Record<CaseRecord['priority'], { cls: 'high' | 'medium' | 'low'; text: string }> = {
+  urgent: { cls: 'high', text: 'Critical severity' },
+  high: { cls: 'medium', text: 'High severity' },
+  normal: { cls: 'low', text: 'Moderate severity' },
+  low: { cls: 'low', text: 'Low severity' },
+};
+/** Where the investigation stands, in plain words. */
+const INVESTIGATION: Record<CaseRecord['status'], string> = {
+  new: 'Investigation not started',
+  in_progress: 'Investigating',
+  waiting: 'Waiting for information',
+  escalated: 'With the safety lead',
+  resolved: 'Concluded',
+  closed: 'Closed',
+};
+
 function QueueItem({ c, now, meId, canWork, onOpen, onAck }: { c: CaseRecord; now: number; meId?: string; canWork: boolean; onOpen: () => void; onAck: () => Promise<unknown> }) {
   const d = useData();
   const owner = c.ownerId ? d.staff.find((s) => s.id === c.ownerId) : undefined;
   const trip = c.links.tripId ? d.trips.find((x) => x.id === c.links.tripId) : undefined;
   return (
-    <div className="card" style={!c.ownerId ? { borderColor: 'color-mix(in srgb, var(--danger) 45%, var(--border))', boxShadow: 'inset 4px 0 0 var(--danger)' } : undefined}>
+    <div className="card compact" style={!c.ownerId ? { borderColor: 'color-mix(in srgb, var(--danger) 40%, var(--border))', boxShadow: 'inset 3px 0 0 var(--danger), var(--e1)' } : undefined}>
       <div className="row wrap" style={{ alignItems: 'flex-start' }}>
         <Icon name="safeAlert" size={22} style={{ color: !c.ownerId ? 'var(--danger)' : 'var(--text-2)', marginTop: 2 }} />
         <div className="stack tight" style={{ flex: 1, minWidth: 220 }}>
@@ -169,6 +186,11 @@ function QueueItem({ c, now, meId, canWork, onOpen, onAck }: { c: CaseRecord; no
           <div className="small muted">
             Raised {formatAge(now - c.openedAt)} ago · {city(c.city)}
             {trip ? ` · trip ${trip.ref}, ${TRIP_STATUS[trip.status].text.toLowerCase()}` : ''}
+          </div>
+          <div className="row wrap small" style={{ gap: 14, marginTop: 2 }}>
+            <span className={`sev ${SEVERITY[c.priority].cls}`}>{SEVERITY[c.priority].text}</span>
+            <span className="muted">Response team: Safety{owner ? `, led by ${owner.id === meId ? 'you' : owner.name}` : ', nobody assigned yet'}</span>
+            <span className="muted">{INVESTIGATION[c.status]}</span>
           </div>
           <div className="row wrap" style={{ gap: 6, marginTop: 4 }}>
             <StatusPill s={c.status} />
@@ -186,7 +208,7 @@ function QueueItem({ c, now, meId, canWork, onOpen, onAck }: { c: CaseRecord; no
               {c.ownerId ? 'Take over' : 'Acknowledge'}
             </Button>
           ) : null}
-          <Button size="sm" icon="right" onClick={onOpen}>
+          <Button size="sm" variant="secondary" iconEnd="right" onClick={onOpen}>
             Open
           </Button>
         </div>

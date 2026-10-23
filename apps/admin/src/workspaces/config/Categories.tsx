@@ -9,7 +9,7 @@ import { VersionedSettings } from './VersionedSettings';
 export default function Categories() {
   return (
     <>
-      <PageHead title="Vehicle categories" sub="What passengers can choose on the booking screen. GoBye launches with one car category." />
+      <PageHead eyebrow="Settings" title="Vehicle categories" sub="What passengers can choose on the booking screen. GoBye launches with one car category." />
       <VersionedSettings<Cats>
         configKey="categories"
         name="Categories"
