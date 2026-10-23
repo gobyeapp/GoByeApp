@@ -107,24 +107,43 @@ async function main() {
     return;
   }
   const zones = (await cf('GET', `/zones?name=${ZONE}`)).result;
-  if (!zones.length) {
-    step('Zone gobye.app', 'fail', 'Not found in this account, or the token has no Zone:Read for it. Add gobye.app to Cloudflare first.');
-    return;
+  const zone = zones[0] || null;
+  let accountId;
+  let dns = [];
+  if (!zone) {
+    // Tell apart "gobye.app isn't on Cloudflare" from "the token can't see it".
+    const visible = (await cf('GET', '/zones?per_page=50').catch(() => ({ result: [] }))).result.map((z) => `${z.name} (${z.status})`);
+    const accounts = (await cf('GET', '/accounts').catch(() => ({ result: [] }))).result;
+    report.visibleZones = visible;
+    report.accounts = accounts.map((a) => a.name);
+    step(
+      'Zone gobye.app',
+      'warn',
+      visible.length
+        ? `not visible to this token. Zones it can see: ${visible.join(', ')}. Edit the token: Zone Resources → Include → Specific zone → gobye.app.`
+        : 'this token sees no zones at all: either gobye.app has not been added to Cloudflare yet (Add a site), or the token has no Zone Resources. Buckets will still be made; the api/media addresses wait for the zone.',
+    );
+    if (!accounts.length) {
+      step('Account', 'fail', 'the token can\'t read the account either. Add Account Settings: Read and pick your account under Account Resources.');
+      return finish();
+    }
+    accountId = accounts[0].id;
+    report.account = accounts[0].name;
+    step('Account', 'ok', `${accounts[0].name}${accounts.length > 1 ? ` (first of ${accounts.length}; using this one)` : ''}`);
+  } else {
+    accountId = zone.account.id;
+    report.account = zone.account.name;
+    step('Zone gobye.app', 'ok', `status ${zone.status}, plan ${zone.plan?.name || 'unknown'}, nameservers ${(zone.name_servers || []).join(', ')}`);
+    if (zone.status !== 'active') step('Zone status', 'warn', 'The zone is not active yet: point your registrar to the nameservers above. Custom domains will wait until it is active.');
+    dns = (await cf('GET', `/zones/${zone.id}/dns_records?per_page=1000`)).result;
+    const backup = `cloudflare-dns-backup-${report.ranAt.replace(/[:.]/g, '-')}.json`;
+    writeFileSync(join(root, backup), JSON.stringify(dns, null, 2));
+    step('DNS backup', 'ok', `${dns.length} records saved to ${backup}`);
+    report.dns = dns.map((r) => ({ name: r.name, type: r.type, proxied: r.proxied })); // names/types only
+    const web = dns.filter((r) => r.name === ZONE || r.name === `www.${ZONE}`);
+    step('Website records (untouched)', 'ok', web.map((r) => `${r.name} ${r.type} ${r.proxied ? 'proxied' : 'DNS only'}`).join('; ') || 'none found');
+    if (web.some((r) => r.proxied)) step('Website proxy', 'warn', 'gobye.app/www are proxied (orange cloud). Vercel recommends DNS only. Not changed by this script.');
   }
-  const zone = zones[0];
-  const accountId = zone.account.id;
-  report.account = zone.account.name;
-  step('Zone gobye.app', 'ok', `status ${zone.status}, plan ${zone.plan?.name || 'unknown'}, nameservers ${(zone.name_servers || []).join(', ')}`);
-  if (zone.status !== 'active') step('Zone status', 'warn', 'The zone is not active yet: point your registrar to the nameservers above. Custom domains will wait until it is active.');
-
-  const dns = (await cf('GET', `/zones/${zone.id}/dns_records?per_page=1000`)).result;
-  const backup = `cloudflare-dns-backup-${report.ranAt.replace(/[:.]/g, '-')}.json`;
-  writeFileSync(join(root, backup), JSON.stringify(dns, null, 2));
-  step('DNS backup', 'ok', `${dns.length} records saved to ${backup}`);
-  report.dns = dns.map((r) => ({ name: r.name, type: r.type, proxied: r.proxied })); // names/types only
-  const web = dns.filter((r) => r.name === ZONE || r.name === `www.${ZONE}`);
-  step('Website records (untouched)', 'ok', web.map((r) => `${r.name} ${r.type} ${r.proxied ? 'proxied' : 'DNS only'}`).join('; ') || 'none found');
-  if (web.some((r) => r.proxied)) step('Website proxy', 'warn', 'gobye.app/www are proxied (orange cloud). Vercel recommends DNS only. Not changed by this script.');
 
   // 2 + 3. Buckets and CORS
   let existing = [];
@@ -158,7 +177,11 @@ async function main() {
     }
   }
 
-  // 4. Workers on custom domains
+  // 4. Workers on custom domains (only once gobye.app is in this account)
+  if (!zone) {
+    step('Workers on api/media addresses', 'skip', 'waiting for gobye.app to be added to Cloudflare and visible to the token');
+    return finish();
+  }
   let bound = [];
   try {
     bound = (await cf('GET', `/accounts/${accountId}/workers/domains`)).result || [];
