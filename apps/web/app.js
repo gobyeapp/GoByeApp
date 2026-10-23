@@ -339,27 +339,15 @@
     go(0, false);
   }
 
-  /* ---------- Hero video: pause control, reduced motion, blocked autoplay ---------- */
-  function heroVideo() {
-    var v = document.getElementById('hero-video');
-    if (!v) return;
-    // Reduced motion: show the still poster instead of playing.
-    if (reduce()) { v.removeAttribute('autoplay'); v.pause(); return; }
-    var p = v.play();
-    if (p && typeof p.catch === 'function') p.catch(function () { /* autoplay blocked: the poster stays */ });
-  }
 
 
-  /* Hero media: riders see the phone video, drivers a photograph of a driver in his car. */
+  /* Hero media: riders see a rider photograph, drivers a photograph of a driver in his car (owner, 2026-10-23). */
   function setHeroMedia(a) {
-    var v = document.getElementById('hero-video'), pic = document.getElementById('hero-photo');
-    if (!v || !pic) return;
-    var photo = !!(a.hero && a.hero.photo);
-    pic.hidden = !photo;
-    v.hidden = photo;
-    v.closest('.hero-video').classList.toggle('is-photo', photo);
-    if (photo) v.pause();
-    else if (!reduce()) { var p = v.play(); if (p && typeof p.catch === 'function') p.catch(function () { /* autoplay blocked: the poster stays */ }); }
+    var rider = document.getElementById('hero-photo-rider'), driver = document.getElementById('hero-photo');
+    if (!rider || !driver) return;
+    var isDriver = !!(a.hero && a.hero.photo);
+    driver.hidden = !isDriver;
+    rider.hidden = isDriver;
   }
 
   /* ---------- Audience: riders or drivers ---------- */
@@ -719,7 +707,6 @@
     var trust = document.getElementById('trust-content');
     if (trust && !trust.hasAttribute('data-rendered')) renderTrust(trust);
     if (document.getElementById('waitlist')) setupWaitlist();
-    heroVideo();
     if (document.getElementById('cta-waitlist')) renderLaunch();
     setupReveal();
     setupAudience();

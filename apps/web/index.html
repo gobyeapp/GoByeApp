@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" />
-<link rel="preload" as="image" href="assets/hero-poster.jpg" />
+<link rel="preload" as="image" type="image/webp" imagesrcset="assets/hero-rider-900.webp 900w, assets/hero-rider-1600.webp 1600w" imagesizes="(max-width: 760px) 100vw, 1120px" />
 <link rel="stylesheet" href="styles.css?v=2026102301" />
 </head>
 <body>
@@ -43,12 +43,12 @@
     <p class="cities reveal d2"><span class="icon" data-icon="mapPin" aria-hidden="true"></span><span data-text="hero.cityLine">Coming to Nigeria.</span></p>
   </div>
 
-  <figure class="hero-video reveal-media">
-    <video id="hero-video" autoplay muted loop playsinline preload="auto" poster="assets/hero-poster.jpg" aria-label="A hand holding a phone showing the GoBYE passenger app on a Lagos roadside at sunset.">
-      <source src="assets/hero.mp4" type="video/mp4" />
-      <source src="assets/hero.webm" type="video/webm" />
-    </video>
-    <picture class="hero-photo" id="hero-photo" hidden>
+  <figure class="hero-video is-photo reveal-media">
+    <picture class="hero-photo rider" id="hero-photo-rider">
+      <source type="image/webp" srcset="assets/hero-rider-900.webp 900w, assets/hero-rider-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 1120px" />
+      <img src="assets/hero-rider-1600.jpg" srcset="assets/hero-rider-900.jpg 900w, assets/hero-rider-1600.jpg 1600w" sizes="(max-width: 760px) 100vw, 1120px" width="1600" height="900" alt="A smiling woman in a cream suit holds her phone outside a city office building, a dark car waiting behind her." fetchpriority="high" decoding="async" />
+    </picture>
+    <picture class="hero-photo driver" id="hero-photo" hidden>
       <source type="image/webp" srcset="assets/hero-driver-900.webp 900w, assets/hero-driver-1600.webp 1600w" sizes="(max-width: 760px) 100vw, 1120px" />
       <img src="assets/hero-driver-1600.jpg" srcset="assets/hero-driver-900.jpg 900w, assets/hero-driver-1600.jpg 1600w" sizes="(max-width: 760px) 100vw, 1120px" width="1600" height="900" alt="A GoBYE driver in his car on a Lagos street, checking a trip request on his phone." decoding="async" />
     </picture>

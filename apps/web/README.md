@@ -1,6 +1,6 @@
 # GoBYE website (`apps/web`)
 
-Static landing page: hero video, sticky navbar with a riders/drivers toggle, pinned step cards,
+Static landing page: hero photo (riders and drivers each have their own), sticky navbar with a riders/drivers toggle, pinned step cards,
 feature carousel, social proof (verified only), scroll-fill statement, comparison, final banner and footer. No build step: open `index.html` from any static host.
 
 ```bash
@@ -15,11 +15,11 @@ cd apps/web && python3 -m http.server 8130   # then open http://localhost:8130
 | `styles.css` | Styles. DM Sans below the hero (the hero keeps Plus Jakarta Sans), white and #F4F4F4 sections, aubergine/tangerine brand gradient. |
 | `icons.js` | MingCute Core icons (Apache-2.0), generated from `@mingcute/icons`. |
 | `components.html` | Internal preview of the verified social-proof components with labelled placeholders. `noindex`; not linked from the page. |
-| `assets/` | Hero video (`hero.mp4`, `hero.webm`, poster), working logo marks, `ui/` app crops and 3D renders for the steps and features. |
+| `assets/` | Hero photos (`hero-rider-*`, `hero-driver-*`), the old hero video (now only on `preview.html`), working logo marks, `ui/` app crops and 3D renders for the steps and features. |
 
 ## Before publishing
 
-1. **Hero video.** `assets/hero.mp4` is the owner's uploaded video, used unchanged (Q-062 for final footage).
+1. **Hero photos.** The rider hero is the owner's uploaded photo (`assets/hero-rider-*`, 2026-10-23), replacing the video; the driver hero is `assets/hero-driver-*`.
 8. **Rider/driver content.** `audiences.rider` and `audiences.driver` hold the steps, features, statement, comparison and banner. Driver steps have no screenshots until the driver app exists.
 9. **Founder and footer.** Fill `founder` (name, title, approved photo) to show the founder card; fill `footer` links and socials to show them. Empty fields stay hidden.
 2. **Waitlist.** Sign ups go to Supabase (`waitlist.supabase`, anon key only). Run `supabase/migrations/20261022_waitlist.sql` once in the Supabase SQL Editor. Read sign ups in Table Editor → waitlist. Never put the service_role key in this folder.

@@ -856,3 +856,12 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Waitlist:** the city step still offers Lagos, Abuja and "Another city", so sign-ups say where people are. The tiles now read "Lagos State" and "FCT" instead of "Launching first".
 - **Unchanged:** operating cities in the apps and admin (Lagos, Abuja). Photo descriptions of Lagos scenes were kept, as they describe the photos.
 - **Checks:** iPhone-size render in Chromium; no Lagos/Abuja text left on the page; no errors.
+
+## 2026-10-23 — Website rider hero is now a photo
+
+- **Change:** the rider hero shows the owner's new photo (a woman with her phone outside an office, car behind) instead of the video.
+  - Served as WebP with a JPEG fallback (900 and 1600 px, 36 to 139 KB) and preloaded.
+  - Phones crop to 4:5 around her and her phone.
+  - The driver hero is unchanged.
+  - The video code was removed from the page; the video files are kept for `preview.html`.
+- **Checks:** Chromium at iPhone size and 1440 px, for both riders and drivers. The only console errors were Google Fonts being unreachable from the build workspace.

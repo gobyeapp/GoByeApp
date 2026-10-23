@@ -46,6 +46,7 @@ Before release (Phase 9) every PREVIEW row must become APPROVED (vector masters,
 
 | Asset | File | Status | Source | Notes |
 |---|---|---|---|---|
-| Hero video | `hero.mp4` (owner's uploaded video, H.264 1024×576, 4 s, frames unchanged; re-wrapped for fast start, audio removed; 680 KB) and `hero.webm` (VP9 re-encode of the same video for browsers without H.264) | OWNER SUPPLIED | Owner upload, 2026-10-22 | Plays muted and looped in the hero video box. Its phone screen is the video's own rendering of the app |
+| Hero video | `hero.mp4` (owner's uploaded video, H.264 1024×576, 4 s, frames unchanged; re-wrapped for fast start, audio removed; 680 KB) and `hero.webm` (VP9 re-encode of the same video for browsers without H.264) | OWNER SUPPLIED | Owner upload, 2026-10-22 | **No longer on the landing page** (2026-10-23: rider hero is now the photo below); files kept for `preview.html`. Its phone screen is the video's own rendering of the app |
+| Rider hero photo | `hero-rider-900/1600.jpg` and `.webp` (owner's uploaded image, cropped to 16:9 and resized; 36 to 139 KB) | OWNER SUPPLIED | Owner upload, 2026-10-23 | Rider hero on the landing page. Phones crop to 4:5 around her and her phone |
 | Hero poster | `hero-poster.jpg` | OWNER SUPPLIED | First frame of the video | Shown before playback and for reduced motion |
 | Logo mark | `logo-mark-inverse.png` | PREVIEW | Copy of `packages/ui/assets/brand/mark-inverse.png` | Working concept; vector master pending |
