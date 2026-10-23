@@ -43,6 +43,10 @@ export const OTP_LIMIT = { requests: 5, windowSeconds: 300 };
 const SEGMENT: Record<string, RouteClass | ((method: string, rest: string[]) => RouteClass)> = {
   auth: 'auth',
   users: 'users',
+  // The API's own account and staff routes (apps/api, D-059) share the account class's limits.
+  me: 'users',
+  costs: 'users',
+  ops: 'users',
   drivers: 'drivers',
   // POST /v1/rides creates a booking; anything on /v1/rides/{id}/... is an existing ride (status, cancel, PIN, location).
   rides: (method, rest) => (rest.length === 0 && method === 'POST' ? 'rides_create' : 'rides_active'),

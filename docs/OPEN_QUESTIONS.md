@@ -446,11 +446,13 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Assumption:** The form stays in demo mode (nothing saved) until both exist.
 
 ### Q-064 — Backend and database provider
+- **Decided 2026-10-23 (D-059):** NestJS API, Supabase PostgreSQL, StackShift as the initial hosting candidate (not production until tested, Q-075). Region still open (Q-076).
 - **Question:** Which backend runtime/host and database will GoBye use (and in which region)? Needed for gateway origins, file metadata, idempotency records, backups and NDPA data location.
 - **Owner:** Owner / Engineering · **Blocks:** staging deployment of the API gateway and upload signer (D-051)
 - **Assumption:** None chosen; everything is behind provider-independent interfaces.
 
 ### Q-065 — Authentication provider and staff MFA
+- **Partly decided 2026-10-23 (D-061):** Supabase Auth (sessions, Apple/Google, email codes, phone OTP, TOTP MFA for staff). Still open: the SMS provider behind phone OTP and its cost, and the access-token lifetime (15 min proposed).
 - **Question:** Which service issues sessions, sends OTPs, and provides staff MFA? It must also mint the short-lived gateway assertions the upload signer trusts.
 - **Owner:** Engineering · **Blocks:** real sign-in, file uploads, admin with real data
 - **Assumption:** Simulated auth; admin MFA is a simulated step.
@@ -471,6 +473,7 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Assumption:** Load Balancing not activated until a second origin exists.
 
 ### Q-069 — `/v1/rides` or `/bookings`
+- **Resolved 2026-10-23 (D-059):** `/v1/rides`, matching the gateway route map.
 - **Question:** The API contracts name booking endpoints `/bookings…`; the gateway's route map uses `/v1/rides`. Which name does the backend use?
 - **Owner:** Engineering · **Blocks:** backend routes
 - **Assumption:** Gateway map `/v1/rides` (POST = new booking).
@@ -495,7 +498,21 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Assumption:** None. Nothing is charged until a schedule is approved.
 
 ### Q-074 — Job runner and scheduler
+- **Decided 2026-10-23 (D-060):** a PostgreSQL job queue in the API image (worker service), no Redis. Still open: who is on call for escalations, and confirming the automation timings.
 - **Question:** Which durable queue and scheduler runs the Automation Centre workflows (follows the backend choice, Q-064)? Who is on call for escalations, and should the automation timings (placeholders in the registry) be confirmed as listed?
 - **Why:** D-055; nothing in the Automation Centre runs until a runner exists.
 - **Owner:** Owner / Engineering · **Blocks:** subscriptions, wallet credits, payouts, reconciliation, expiry jobs
 - **Assumption:** Timings in `AUTOMATIONS` are placeholders.
+
+### Q-075 — StackShift suitability, region, price and SLA
+- **Question:** Where does StackShift run our containers (region and data centre)? What do the plans cost? What are the bandwidth limits and the uptime commitment below Enterprise? Can it build `apps/api/Dockerfile` with the repository root as context?
+- **Why:** the public pages don't say (checked 2026-10-23). Production is blocked until `DEPLOYMENT_STACKSHIFT.md` §4 passes (deployment, latency from Lagos, bandwidth, 14-day reliability, load, origin lockdown).
+- **Owner:** Owner / Engineering · **Blocks:** staging deployment, the cost estimate, production
+- **Assumption:** Staging only, on a paid plan with two services (API + worker).
+
+### Q-076 — Supabase region, plan and backups
+- **Question:** Which region for the staging and production Supabase projects (closest to Lagos, and acceptable under the NDPA for personal data)? Pro plan for both? Point-in-time recovery for production (extra cost)?
+- **Why:** latency (the API host should be in or near the same region) and data-location obligations.
+- **Owner:** Owner / Legal · **Blocks:** creating the projects and running migrations
+- **Assumption:** Pro organisation; production on Small compute with daily backups; PITR not yet bought.
+

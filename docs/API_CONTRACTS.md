@@ -39,7 +39,7 @@ The API gateway Worker (`infra/cloudflare/src/workers/api-gateway`, see `API_GAT
 
 **Naming to reconcile (Q-069):** this document's booking endpoints are written as `/bookings…`; the gateway's map uses `/v1/rides`. The backend picks one before implementation.
 
-**Envelopes:** success `{ "data": …, "requestId": "…" }`; error `{ "error": { "code", "message", "requestId", "retryAfterSeconds"?, "details"? } }` (`packages/core/src/infra/health.ts`). Gateway-generated codes are lowercase (`rate_limited`, `backend_not_configured`, …); the domain codes below are upper case. The API client maps both by HTTP status (`infra/errors.ts`).
+**Envelopes:** success `{ "data": …, "meta": { "requestId": "…" } }` from the backend (`{ "data", "requestId" }` from gateway-generated replies; clients read `data` and the `x-request-id` header); error `{ "error": { "code", "message", "requestId", "retryAfterSeconds"?, "details"? } }` (`packages/core/src/infra/health.ts`). Gateway-generated codes are lowercase (`rate_limited`, `backend_not_configured`, …); the domain codes below are upper case. The API client maps both by HTTP status (`infra/errors.ts`).
 
 **Request ids:** the gateway always generates `X-Request-Id`; a well-formed client id is passed on as `X-Client-Request-Id`.
 
@@ -66,7 +66,7 @@ The API gateway Worker (`infra/cloudflare/src/workers/api-gateway`, see `API_GAT
 
 | HTTP | Codes (examples) |
 |---|---|
-| 400 | `VALIDATION_FAILED`, `INVALID_PHONE`, `OFFER_NOT_ON_STEP` |
+| 400 | `INVALID_PHONE`, `OFFER_NOT_ON_STEP`, `unsupported_api_version`. **Validation failures are `422 validation_failed`** (D-059: matches the gateway and `packages/core` `ERROR_STATUS`; clients treat 400 and 422 alike) |
 | 401 | `UNAUTHENTICATED`, `TOKEN_EXPIRED`, `OTP_INVALID`, `OTP_EXPIRED` |
 | 403 | `FORBIDDEN`, `DRIVER_NOT_APPROVED`, `ACCOUNT_SUSPENDED`, `NO_ACTIVE_ACCESS` (driver has no active access package, BR-072), `PRECISE_LOCATION_REQUIRED` (BR-073) |
 | 404 | `NOT_FOUND` |
@@ -387,3 +387,23 @@ Envelope:
 | `driver.matching_paused` / `driver.matching_resumed` | `{ issues: ["stale_position" \| "approximate_only" \| "permission_missing" \| "session_interrupted" \| "low_accuracy"] }` (D-026) |
 | `driver.access_expiring` | `{ expiresAt }` (reminder before package expiry; timing Q-043) |
 | `driver.verification_changed` | `{ verification, rejectionReason }` |
+
+---
+
+## 10. Implemented in Phase 1 (`apps/api`, D-059)
+
+These endpoints exist and are covered by automated tests (`apps/api/test`). They run behind the gateway; nothing is deployed yet. Conventions are in `BACKEND_ARCHITECTURE.md` §12.
+
+| Method | Path | Auth | Request | Response `data` | Errors |
+|---|---|---|---|---|---|
+| GET | `/health/live` | none (no gateway signature needed) | — | (raw) `{ status: "ok", version }` | — |
+| GET | `/health/ready` | none | — | (raw) `{ status: "ok" \| "degraded" \| "unavailable", version }`; 503 when unavailable (database down or schema behind) | — |
+| GET | `/v1/ops/health` | staff `logs.view` + MFA | — | `{ status, version, checks: { database, schema, auth_keys }, timingsMs, environment }` | 401, 403 `MFA_REQUIRED` / `forbidden` |
+| GET | `/v1/me` | any valid session | — | `{ userId, signupComplete, status, rider, driver: { city, verification } \| null, staff: { roles, cities, status, mfaRequired, permissions[] } \| null, session: { aal } }` | 401 `unauthenticated` / `TOKEN_EXPIRED`, 403 `ACCOUNT_SUSPENDED` |
+| GET | `/v1/drivers/{driverId}/subscription` | the driver themself, or staff `drivers.view` + MFA within their cities | path `driverId` (UUID) | `SubscriptionTimelineResponse` (D-058, `packages/core/src/subscriptions`) | 404 when not yours and no permission; 403 outside city scope; 422 bad id |
+| POST | `/v1/costs/expenses` | staff `costs.manage` + MFA | Headers: `Idempotency-Key`. Body (strict): `{ vendorId, description, amountKobo (int > 0), month "YYYY-MM", incurredAt ISO-8601 with offset, recurring?, original?: { currency: "USD", cents, fxRate }, note? }` | `201 { id, vendorId, category, description, amountKobo, month, status: "pending_approval", recurring, incurredAt, createdAt }`; a replay returns the same body with `idempotent-replayed: true` | 422 `validation_failed` (`details` per field, missing key), 409 `idempotency_conflict`, 403 |
+| GET | `/v1/costs/expenses?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ items: Expense[] }` | 422, 403 |
+| GET | `/v1/costs/break-even?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ month, operatingCost, subscriptionRevenue, coverage, gap, monthlyPassesNeeded, dailyPassesNeeded, passesSold, excluded: { marketingCostKobo, pendingApprovalKobo }, rules }` (all money in kobo; marketing and unapproved costs excluded; refunded or reversed passes excluded; months in Lagos time) | 422, 403 |
+
+Not exposed over HTTP on purpose: recording verified pass payments and voids (`apps/api/src/subscriptions/subscriptions.repository.ts`). The payment verification job will call it once a provider is connected; clients and webhooks never can.
+

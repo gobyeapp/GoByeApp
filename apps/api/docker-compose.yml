@@ -1,0 +1,35 @@
+# Local development only: PostgreSQL 16 plus the API built from this repository.
+#   cd apps/api && docker compose up --build
+# Then: docker compose run --rm api node apps/api/dist/apps/api/src/migrate.js up
+# Not for staging or production (those use Supabase and StackShift).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gobye
+      POSTGRES_PASSWORD: gobye_local_only
+      POSTGRES_DB: gobye_dev
+    ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gobye -d gobye_dev"]
+      interval: 5s
+      retries: 10
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+      args: { APP_VERSION: local }
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgres://gobye:gobye_local_only@db:5432/gobye_dev
+      DATABASE_SSL: disable
+      ORIGIN_AUTH_REQUIRED: "false"
+      STAFF_REQUIRE_MFA: "false"
+      PAYMENTS_PROVIDER: simulated
+      MAPS_PROVIDER: fake
+      NOTIFICATIONS_PROVIDER: log
+      STORAGE_PROVIDER: memory
+      WORKER_ENABLED: "true"
+    ports: ["127.0.0.1:8080:8080"]

@@ -441,3 +441,54 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 **Decision.** `packages/core/src/subscriptions` is the only calculation. It is a deterministic fold over verified payments ordered by (confirmation time, payment reference): `startsAt = max(confirmedAt, end of the last access given)`, `endsAt = startsAt + 24 h | 30 × 24 h`. Cancellations, refunds and reversals are stored as separate void records: they cut `accessEndsAt` at the void time (never before the start, never later than the scheduled end), never delete the pass, and later passes move up. Status (`scheduled → active → expired`) is derived from the clock, so queued passes take over without a job. Writes are idempotent by payment reference and checked with `expectedVersion`. `SubscriptionTimelineResponse` is the one API shape (`GET /v1/drivers/{id}/subscription`) rendered by both the Driver App and the admin. Prices unchanged: ₦2,000 / 24 hours, ₦60,000 / 30 days, 0% commission.
 
 **Consequences.** `subscribe` / `hasActiveAccess` are deprecated. The Driver App migrates an old stored pass once (`subscriptionStateFromLegacy`). Admin can cancel or refund a pass (permission `refunds.approve`, reason required, audited). Rules BR-062, BR-072, BR-137 to BR-139. Supersedes the "extends from the current expiry" note under D-024 and assumption A-20.
+
+## D-059 — Backend Phase 1: NestJS on Fastify in `apps/api`, Supabase PostgreSQL, StackShift as candidate host (2026-10-23, owner brief)
+
+- **Decision (owner):**
+  - Expo apps, Vercel web and admin;
+  - **NestJS** API;
+  - **StackShift** as the initial hosting candidate;
+  - **Supabase PostgreSQL and Auth**;
+  - **Cloudflare R2**.
+- **Engineering choices:**
+  - **Fastify adapter:** speed, pino logs, in-process test requests.
+  - **Hand-written SQL migrations** with a checksummed, forward-only runner, rather than an ORM.
+  - **zod for validation** of config and requests.
+  - **`@gobye/core` compiled into the API**, so the server and the apps share one implementation of every rule.
+  - **Backend tables live in schemas `app` and `ops`**, not exposed through the Data API, with client roles revoked.
+  - **`/v1/rides`** for bookings (Q-069 settled).
+- **Conventions:**
+  - URI versioning;
+  - `{ data, meta }` envelope;
+  - lower-case generic error codes, upper-case domain codes;
+  - `422 validation_failed`;
+  - request ids;
+  - idempotency records written in the same transaction as the change;
+  - gateway signature required in staging and production.
+- **Restrictions kept:**
+  - no real-money wallet, ledger, payouts or webhook endpoint until the ledger, reconciliation, provider and security reviews;
+  - no Redis, ClickHouse, Kubernetes or new paid services;
+  - StackShift not production until `DEPLOYMENT_STACKSHIFT.md` §4 passes.
+- **Docs:** `BACKEND_AUDIT.md`, `BACKEND_ARCHITECTURE.md`, `DATABASE_MIGRATIONS.md`, `AUTHENTICATION_PLAN.md`, `DEPLOYMENT_STACKSHIFT.md`.
+
+## D-060 — Durable jobs on PostgreSQL, no Redis (2026-10-23)
+
+- **Decision:** the Automation Centre runner (D-055, Q-074) uses `ops.jobs` and `ops.job_schedules`:
+  - `FOR UPDATE SKIP LOCKED` claims with a lease;
+  - business idempotency keys (unique);
+  - exponential backoff with jitter, then `failed` for a protected manual retry;
+  - schedules that insert exactly one job per slot whatever the number of instances.
+- **Why:** launch volume is far below what a Postgres queue handles. Jobs are transactional with the data they change, survive restarts, and are backed up with everything else. No new service to run or pay for.
+- **Revisit when measured:** queue wait p95 > 5 s, > ~200 jobs/s sustained, or lock contention. Try `LISTEN/NOTIFY` and partitioning before a new service.
+- **Scope today:** housekeeping only. Financial workflows stay `not_connected` (D-059).
+
+## D-061 — Supabase Auth issues sessions; the API verifies tokens and owns permissions (2026-10-23)
+
+- **Decision:**
+  - The API verifies Supabase access tokens against the project's JWKS (ES256/RS256, cached ≤ 10 min). It checks issuer, audience, expiry, a UUID subject and `role = authenticated`.
+  - Anonymous, service-role, `alg: none` and foreign-key tokens are refused.
+  - HS256 (legacy shared secret) is allowed only in development and test.
+  - Identity facts and permissions come from `app.users`, `app.drivers`, `app.riders` and `app.staff_members` on every request, never from token metadata.
+  - Staff permissions (`permissionsOf`, the admin's table) require `aal2` when `STAFF_REQUIRE_MFA` is on (mandatory in production).
+- **Resolves (partly) Q-065:** Supabase Auth is the auth provider; the SMS provider for phone OTP is still open.
+- **Plan:** `AUTHENTICATION_PLAN.md`.

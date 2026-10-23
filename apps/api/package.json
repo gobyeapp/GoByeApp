@@ -1,0 +1,36 @@
+{
+  "name": "@gobye/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GoBye backend API (NestJS on Fastify). Phase 1 foundation: health, config, auth, permissions, database, migrations, jobs, provider interfaces.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node --env-file-if-exists=.env dist/apps/api/src/main.js",
+    "start:worker": "node --env-file-if-exists=.env dist/apps/api/src/worker.js",
+    "migrate": "node --env-file-if-exists=.env dist/apps/api/src/migrate.js",
+    "dev": "npm run build && node --enable-source-maps --env-file-if-exists=.env dist/apps/api/src/main.js",
+    "test": "rm -rf dist-test && tsc -p tsconfig.test.json && tsc-alias -p tsconfig.test.json && node --test --test-reporter=spec --test-concurrency=1 'dist-test/apps/api/test/**/*.test.js'",
+    "health-check": "node scripts/health-check.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "tsc-alias": "^1.9.9",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.2.0",
+    "@nestjs/core": "^12.2.0",
+    "@nestjs/platform-fastify": "^12.2.0",
+    "fastify": "^5.12.7",
+    "jose": "^6.2.13",
+    "pg": "^8.23.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^4.6.7"
+  }
+}

@@ -1,0 +1,19 @@
+# Only what apps/api/Dockerfile needs reaches the build (no .env files, no apps, no node_modules, no git).
+**
+!package.json
+!package-lock.json
+!apps/admin/package.json
+!apps/api/package.json
+!apps/driver/package.json
+!apps/rider/package.json
+!packages/core/package.json
+!packages/ui/package.json
+!infra/cloudflare/package.json
+!apps/api/src/**
+!apps/api/migrations/**
+!apps/api/tsconfig.json
+!apps/api/tsconfig.build.json
+!apps/api/scripts/health-check.mjs
+!packages/core/src/**
+packages/core/src/__tests__/**
+!infra/cloudflare/src/r2/sigv4.ts

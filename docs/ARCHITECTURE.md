@@ -8,7 +8,10 @@ GoBye is an npm-workspaces monorepo containing two separately distributable Expo
 gobye/
 ├── apps/
 │   ├── rider/            GoBye (passenger app)      bundle id: app.gobye.rider (proposed)
-│   └── driver/           GoBye Driver               bundle id: app.gobye.driver (proposed)
+│   ├── driver/           GoBye Driver               bundle id: app.gobye.driver (proposed)
+│   ├── admin/            GoBye Management (Vite SPA, Vercel)
+│   ├── web/              Website (static, Vercel)
+│   └── api/              Backend API (NestJS + Fastify, Supabase Postgres/Auth; BACKEND_ARCHITECTURE.md)
 ├── packages/
 │   ├── core/             @gobye/core — pure TypeScript domain layer (no React Native imports)
 │   └── ui/               @gobye/ui   — design tokens, <Icon>, shared RN components
@@ -116,3 +119,7 @@ See `INFRASTRUCTURE_ARCHITECTURE.md` for the diagram and status per component.
 
 - Development: Expo Go (SDK 57) for the Rider app; Driver background location needs a development build (`eas build --profile development`).
 - Release: EAS Build + EAS Submit, separate `eas.json` per app, separate bundle identifiers / package names. Nothing is submitted without explicit authorisation.
+
+### 9.2 Backend API (D-059)
+
+`apps/api` is the GoBye backend: NestJS on Fastify, Supabase PostgreSQL and Auth, compiled together with `@gobye/core` so server and apps share every rule. Phase 1 is built and tested locally, not deployed. See `BACKEND_ARCHITECTURE.md` (design, status, checklist), `AUTHENTICATION_PLAN.md`, `DATABASE_MIGRATIONS.md` and `DEPLOYMENT_STACKSHIFT.md`.

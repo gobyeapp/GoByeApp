@@ -167,7 +167,7 @@ export function createGateway(deps: GatewayDeps = {}) {
           requestId,
           clientIp: ip,
           routeClass: rule.routeClass,
-          originAuth: env.ORIGIN_AUTH_SECRET ? await signOriginRequest(env.ORIGIN_AUTH_SECRET, requestId, now) : 'unsigned',
+          originAuth: env.ORIGIN_AUTH_SECRET ? await signOriginRequest(env.ORIGIN_AUTH_SECRET, requestId, now, method, target.pathname + target.search) : 'unsigned',
           host: env.PUBLIC_HOST ?? 'api.gobye.app',
         });
         const upstream = await fetchOrigin(new Request(target.toString(), { method, headers, body: body && body.byteLength ? body : undefined, signal: ctrl.signal, redirect: 'manual' }));

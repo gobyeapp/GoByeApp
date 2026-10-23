@@ -106,6 +106,6 @@ Staging and production never share buckets, secrets or origins. Hostnames are pr
 | DNS records | Proposed | — | Pending approval | Pending approval |
 | Load balancer | Proposed templates | — | — | Future enhancement (paid, needs second origin) |
 | Vercel headers (web, admin) | Configured | Yes (Chromium with headers applied) | Pending deployment | Pending deployment |
-| Backend, database, auth | — | — | Pending provider selection | — |
+| Backend API, database, auth (D-059) | Implemented (`apps/api`, NestJS + Supabase Postgres/Auth) | Yes (72 tests, local Postgres) | Pending: Supabase project, StackShift tests (Q-075, Q-076) | — |
 
 Nothing is "verified in production". Tests here prove logic against fakes, not real Cloudflare behaviour.

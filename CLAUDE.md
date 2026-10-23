@@ -60,6 +60,16 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Nothing is deployed, no DNS record changed and no paid service (e.g. Load Balancing) activated without explicit owner approval. Simulations (admin traffic page) must say so.
 - Docs: `docs/INFRASTRUCTURE_*.md`, `API_GATEWAY.md`, `R2_STORAGE_ARCHITECTURE.md`, `DEPLOYMENT_RUNBOOK.md`.
 
+## Backend API (D-059 to D-061)
+
+- `apps/api`: NestJS on Fastify, Supabase PostgreSQL and Auth, StackShift as candidate host. Read `docs/BACKEND_ARCHITECTURE.md` first.
+- Business rules come from `@gobye/core` (compiled into the API). Never re-implement them in the API.
+- Migrations: forward-only SQL in `apps/api/migrations`. Never edit one after it is applied (`docs/DATABASE_MIGRATIONS.md`).
+- Every write that creates or changes something takes an `Idempotency-Key` (`withIdempotency`) and writes its audit row in the same transaction.
+- No real-money wallet, ledger, payouts or webhook endpoints until the reviews in `BACKEND_ARCHITECTURE.md` §9 are done.
+- No Redis, ClickHouse, Kubernetes or new paid services without a measured need.
+- Run `npm test -w apps/api` with PostgreSQL available. The database tests skip without it, so a pass without Postgres proves little.
+
 ## Documentation maintenance
 
 At the end of each meaningful session: append to `LOG.md`; update `docs/IMPLEMENTATION_PLAN.md`, `docs/SCREEN_INVENTORY.md` statuses, `docs/DECISIONS.md`, `docs/TEST_PLAN.md` (tests actually run), `docs/OPEN_QUESTIONS.md`, `docs/BACKEND_HANDOVER.md` if contracts changed; state the next task. Code and docs must never disagree.

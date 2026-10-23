@@ -13,6 +13,7 @@ This repository contains two native apps built with React Native + Expo:
 |---|---|---|---|---|
 | Rider | `apps/rider` | GoBye | `app.gobye.rider` | Full booking journey built on **simulated services** |
 | Driver | `apps/driver` | GoBye Driver | `app.gobye.driver` | Configured shell — Phase 4 next |
+| Backend API | `apps/api` | GoBye API | — | NestJS foundation (health, auth, permissions, database, migrations, jobs); tested locally, not deployed. [`apps/api/README.md`](apps/api/README.md) |
 
 > ⚠️ **Preview build.** Drivers, ETAs, routes, payments, verification and safety features are simulated and labelled as such in the UI. Nothing here is a live transport or payment service.
 

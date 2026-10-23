@@ -870,3 +870,33 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - **Change:** CSS and JS links moved to `?v=2026102302`, so returning visitors load the new styles and scripts (the waitlist fix, Nigeria wording and rider photo).
 - **Finding:** the live site at gobyeapp.vercel.app was still serving an older build ("Coming to Lagos and Abuja") although GitHub `main` had every commit. The landing page project on Vercel is not deploying from GitHub; the owner needs to connect it or redeploy.
+
+## 2026-10-23 — Backend foundation, Phase 1 (D-059 to D-061)
+
+- **Audit:** `docs/BACKEND_AUDIT.md`. The apps, admin and website ran entirely on simulated services. The rules the server needs already existed in `packages/core`. The audit found six inconsistencies (validation status code, envelope, `/bookings` vs `/v1/rides`, error code case, schema exposure, unrotated credentials), all settled.
+- **Built:** `apps/api`, NestJS 12 on Fastify 5, Node 22, compiled together with `@gobye/core`.
+  - Config validation that refuses unsafe staging and production settings.
+  - `/health/live`, `/health/ready` and the staff `/v1/ops/health`.
+  - URI versioning, `{ data, meta }` and error envelopes, request ids, zod validation, security headers, structured logs with redaction.
+  - Gateway signature check, bound to method and path, with a replay cache.
+  - Supabase JWT verification (JWKS) and principals from the database, with staff permissions, MFA, city scope and suspension.
+  - PostgreSQL layer: pooler and direct connections, TLS, timeouts.
+  - Forward-only migration runner: lock, checksums, rollback, production flag. Five migrations: ops, identity, driver passes, rides, costs, config, files.
+  - Idempotent writes in the same transaction as the change.
+  - Postgres job queue and schedules (no Redis).
+  - Provider ports for payments, maps, notifications and storage (R2 presigning).
+  - Endpoints: `GET /v1/me`, `GET /v1/drivers/{id}/subscription`, `POST/GET /v1/costs/expenses`, `GET /v1/costs/break-even` (marketing excluded).
+  - Deployment: Dockerfile, `.dockerignore`, local docker-compose, env templates for development, staging and production, post-deploy health check script, CI template.
+- **Not built, on purpose:** wallet, ledger, payouts and webhooks (pending the reviews); real provider adapters; rides, matching, pricing and files endpoints (Phase 2).
+- **Gateway:** routes `/v1/me`, `/v1/costs`, `/v1/ops`; signatures cover method and path.
+- **Core:** legacy pass references include the driver id.
+- **Checks:**
+  - 72 API tests pass against local PostgreSQL 16 (database tests skip, with the reason printed, when no Postgres is reachable).
+  - The full repository passes typecheck and tests: core 265, rider 36, driver 14, admin 405, infra 41.
+  - An independent review found 12 issues (1 high, 6 medium, 5 low); all fixed with regression tests (`BACKEND_ARCHITECTURE.md` §15).
+  - The Docker image was **not** built: Docker Hub is blocked from the build workspace. Every stage was rehearsed with the same file allowlist. This found and fixed a missing `apps/api/node_modules` copy, and the runtime layout passed all 11 deploy checks.
+  - Role SQL checked on plain Postgres.
+  - Nothing deployed. No Supabase or StackShift resource created. No cost incurred.
+- **Next:**
+  - Owner: rotate credentials; choose the Supabase region and plan (Q-076); create a StackShift account and run the staging tests (Q-075); move the CI template into `.github/workflows/`.
+  - Then Phase 2 endpoints (`BACKEND_ARCHITECTURE.md` §14).

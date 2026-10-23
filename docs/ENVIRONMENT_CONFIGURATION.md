@@ -74,3 +74,34 @@ placeholders only; `.env.local` is git-ignored.
 
 `packages/core/src/__tests__/infra-env-http.test.ts`: defaults, production config, every problem listed,
 secret detection by name and value, mocks refused in production.
+
+## Server: the GoBye API (D-059)
+
+Validated at start-up by `apps/api/src/config/config.ts`. Templates are in `apps/api/env/` (development, staging, production; no values). Set the values as StackShift project variables per environment. Locally, put them in `apps/api/.env` (git-ignored). Every problem is reported by name, never by value, and the process exits with code 78.
+
+| Variable | Meaning | Staging / production rule |
+|---|---|---|
+| `APP_ENV` | development, test, staging, production | Required |
+| `APP_VERSION` | Git SHA of the deployed build | Shown by `/health/*`; checked by the deploy script |
+| `PORT`, `HOST` | Listen address (8080, 0.0.0.0) | — |
+| `LOG_LEVEL` | fatal … trace, silent | debug and trace refused |
+| `TRUST_PROXY_HOPS` | Proxies in front (gateway + host) | 2 behind Cloudflare + StackShift |
+| `BODY_LIMIT_BYTES` | Request body limit (256 KB) | — |
+| `CORS_ORIGINS` | Comma-separated https origins (admin) | https only, no wildcard |
+| `DATABASE_URL` | **secret** Runtime connection (Supabase pooler) | Required |
+| `DATABASE_MIGRATION_URL` | **secret** Direct or session connection for migrations | — |
+| `DATABASE_SSL`, `DATABASE_CA_CERT` | TLS mode and the Supabase root CA | `verify-full` with the CA required |
+| `DATABASE_POOL_MAX`, `DATABASE_STATEMENT_TIMEOUT_MS` | Pool size, per-transaction timeout | — |
+| `SUPABASE_URL` | Project URL (JWKS and issuer come from it) | https, required |
+| `SUPABASE_JWT_AUDIENCE` | `authenticated` | — |
+| `SUPABASE_JWT_SECRET`, `SUPABASE_ALLOW_HS256` | **secret** Legacy shared secret, dev only | Refused |
+| `STAFF_REQUIRE_MFA` | Staff permissions need `aal2` | Must be true in production |
+| `ORIGIN_AUTH_REQUIRED`, `ORIGIN_AUTH_SECRET` | **secret** Gateway signature (same value as the gateway Worker's secret) | Required, 32+ characters |
+| `PAYMENTS_PROVIDER` | none, simulated | Production refuses simulated |
+| `MAPS_PROVIDER` | none, fake | Production refuses fake |
+| `NOTIFICATIONS_PROVIDER` | none, log | Production refuses log |
+| `STORAGE_PROVIDER` + `R2_*` | none, memory, r2 (`R2_SECRET_ACCESS_KEY` is a **secret**) | Production refuses memory |
+| `WORKER_ENABLED`, `WORKER_POLL_MS`, `WORKER_CONCURRENCY` | In-process job worker | Off in the API; run the worker service |
+
+The API never needs the Supabase **service-role** key.
+

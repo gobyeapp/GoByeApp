@@ -102,3 +102,24 @@ Inter is reused from `@expo-google-fonts/inter` (SIL OFL 1.1) and bundled by Vit
 | `bpy` (Blender as a Python module) 5.2 | `tools/3d/render.py` renders the admin's 3D icons | GPL-3.0 (the tool); rendered images are the project's own output | Not a project dependency; install with `pip install bpy pillow` only to regenerate assets |
 | Pillow | Downsamples renders to WebP | HPND | Same as above |
 | Inter 4 weights as WOFF2 (`apps/admin/src/assets/fonts`) | Admin web font, bundled so the Vercel build doesn't depend on the mobile apps' packages | SIL OFL 1.1 (`OFL.txt` alongside) | Converted from `@expo-google-fonts/inter` with fontTools |
+
+## Backend API (`apps/api`, D-059, added 2026-10-23)
+
+| Package | Version | Licence | Purpose | Notes |
+|---|---|---|---|---|
+| @nestjs/common, @nestjs/core | 12.2.0 | MIT | Application framework (modules, DI, guards, pipes, filters) | |
+| @nestjs/platform-fastify | 12.2.0 | MIT | Fastify HTTP adapter | |
+| fastify | 5.12.7 | MIT | HTTP server, pino logging, request injection for tests | Direct dependency because the code imports its types |
+| jose | 6.2.13 | MIT | Supabase JWT verification (remote JWKS, ES256/RS256) | |
+| pg | 8.23.1 | MIT | PostgreSQL client (Supabase) | |
+| zod | 4.6.7 | MIT | Config and request validation | Installed under `apps/api` (other workspaces use zod 3.25 through Expo); the Dockerfile copies `apps/api/node_modules` |
+| reflect-metadata | 0.2.2 | Apache-2.0 | Decorator metadata for Nest | |
+| rxjs | 7.8.2 | Apache-2.0 | Nest interceptors | |
+| typescript (dev) | 6.0.3 | Apache-2.0 | Compiler (same version as the rest of the repo) | |
+| tsc-alias (dev) | 1.9.9 | MIT | Rewrites `@gobye/core` imports to the compiled copy | |
+| @types/node (dev) | 22.20.5 | MIT | Node 22 types (the runtime version) | |
+| @types/pg (dev) | 8.23.1 | MIT | | |
+
+Tests use Node's built-in `node:test`; no test framework dependency.
+
+**Base image:** `node:22.22.0-bookworm-slim`. Pin it by digest once the first image is built by CI (Docker Hub is not reachable from the build workspace).

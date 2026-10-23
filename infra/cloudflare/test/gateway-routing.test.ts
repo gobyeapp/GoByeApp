@@ -33,6 +33,8 @@ describe('API gateway: routing', () => {
     expect(matchRoute('POST', '/v1/rides/bk-1/cancel')).toMatchObject({ kind: 'api', rule: { routeClass: 'rides_active' } });
     expect(matchRoute('POST', '/v1/auth/otp')).toMatchObject({ kind: 'api', isOtp: true });
     for (const a of ['users', 'drivers', 'fares', 'offers', 'payments', 'files', 'notifications', 'support']) expect(matchRoute('GET', `/v1/${a}/me`).kind).toBe('api');
+    // apps/api routes (D-059) reach the origin.
+    for (const p of ['/v1/me', '/v1/costs/expenses', '/v1/costs/break-even', '/v1/ops/health']) expect(matchRoute('GET', p)).toMatchObject({ kind: 'api', rule: { routeClass: 'users' } });
     expect(matchRoute('GET', '/v2/rides')).toEqual({ kind: 'unsupported_version', version: 'v2' });
     expect(matchRoute('GET', '/v1/admin/secret')).toEqual({ kind: 'not_found' });
   });
@@ -44,8 +46,12 @@ describe('API gateway: routing', () => {
     expect(seen[0].url).toBe('https://a.internal.example/v1/users/me?x=1');
     expect(seen[0].headers['x-request-id']).toBe('req-1');
     expect(res.headers.get('x-request-id')).toBe('req-1');
-    expect(await verifyOriginRequest('test-secret-not-real', 'req-1', seen[0].headers['x-gobye-origin-auth'], 1_792_700_000_000)).toBe(true);
-    expect(await verifyOriginRequest('wrong', 'req-1', seen[0].headers['x-gobye-origin-auth'], 1_792_700_000_000)).toBe(false);
+    const sig = seen[0].headers['x-gobye-origin-auth'];
+    expect(await verifyOriginRequest('test-secret-not-real', 'req-1', sig, 1_792_700_000_000, 'GET', '/v1/users/me?x=1')).toBe(true);
+    expect(await verifyOriginRequest('wrong', 'req-1', sig, 1_792_700_000_000, 'GET', '/v1/users/me?x=1')).toBe(false);
+    // Bound to the method and path: the same header can't be replayed against another route.
+    expect(await verifyOriginRequest('test-secret-not-real', 'req-1', sig, 1_792_700_000_000, 'POST', '/v1/users/me?x=1')).toBe(false);
+    expect(await verifyOriginRequest('test-secret-not-real', 'req-1', sig, 1_792_700_000_000, 'GET', '/v1/costs/expenses')).toBe(false);
   });
 
   it('health endpoints: live always; ready only with a usable origin, without dependency details', async () => {

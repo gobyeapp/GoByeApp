@@ -93,7 +93,7 @@ Error bodies never contain origin addresses, stack traces or configuration (test
 - Never forwarded: `X-Forwarded-*`, `Forwarded`, `X-Real-IP`, `X-User-*`, `X-Gobye-*`, `X-Admin-*`,
   `Cookie`, `CF-*` from the client. The gateway sets `X-Forwarded-For` from `CF-Connecting-IP` only.
 - Added: `X-Request-Id`, `X-Forwarded-Proto: https`, `X-Forwarded-Host`, `X-Gobye-Route-Class`,
-  `X-Gobye-Origin-Auth: t=<ms>,sig=<HMAC-SHA256(ORIGIN_AUTH_SECRET, requestId.t)>`.
+  `X-Gobye-Origin-Auth: t=<ms>,sig=<HMAC-SHA256(ORIGIN_AUTH_SECRET, requestId.t.METHOD.pathAndQuery)>` (method and path bound since 2026-10-23; the API also refuses a repeated request id within 60 s).
 - Response: only `Content-Type`, `ETag`, `Retry-After`, `Location`, `Content-Language` pass through;
   `Server`, `X-Powered-By`, `Set-Cookie` etc. are dropped. Always `Cache-Control: no-store`, `nosniff`,
   `X-Frame-Options: DENY`, `CSP default-src 'none'`, HSTS.

@@ -175,12 +175,13 @@ export const mayCompleteTrip = (passes: readonly SubscriptionPass[], tripAccepte
 /**
  * One-time migration of a pre-D-058 single stored pass (Driver App local storage) into the timeline.
  * The old record kept only one period, so it becomes one payment whose confirmation time is its start;
- * the reference is marked `legacy:` so it can never collide with a provider reference.
+ * the reference is `legacy:<driverId>:<start>` so it can never collide with a provider reference or
+ * with another driver's migrated pass (references are unique across drivers on the server).
  */
 export function subscriptionStateFromLegacy(driverId: string, legacy: { packageId: PassPlan; startsAt: number; expiresAt: number } | null | undefined): SubscriptionState {
   const s = emptySubscriptionState(driverId);
   if (!legacy || !(legacy.packageId in PASS_DURATION_MS)) return s;
-  const r = recordPassPayment(s, { paymentRef: `legacy:${legacy.startsAt}`, driverId, plan: legacy.packageId, amount: PASS_PRICE[legacy.packageId], confirmedAt: legacy.startsAt });
+  const r = recordPassPayment(s, { paymentRef: `legacy:${driverId}:${legacy.startsAt}`, driverId, plan: legacy.packageId, amount: PASS_PRICE[legacy.packageId], confirmedAt: legacy.startsAt });
   return r.ok ? r.state : s;
 }
 
