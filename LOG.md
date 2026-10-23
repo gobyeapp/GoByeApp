@@ -724,3 +724,18 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Owner reviews the 3D icon family (`docs/assets/3d/contact-sheet.png`) and the white dashboard.
   - Decide pass stacking (Q-043).
   - Choose map, billing and backend providers.
+
+## 2026-10-23 — Admin ready for its own Vercel project
+
+- **Vercel settings:** `apps/admin/vercel.json` now declares:
+  - framework (Vite);
+  - an install command that installs only the admin workspace from the shared lock file;
+  - the build command and output directory;
+  - an ignore rule: build only when `apps/admin` or `packages/core` changes. The landing page stays a separate project.
+- **Fonts:** Inter bundled as WOFF2 (about 115 KB per weight, OFL), so the build no longer reaches into the mobile apps' packages.
+- **Light only:** the colour-scheme meta is `light`.
+- **Checks:**
+  - A clean clone ran the exact install command (229 packages, 9 s) and the build passed.
+  - Served with the `vercel.json` headers: no CSP errors, fonts and 3D images load.
+  - Not yet deployed on Vercel (owner step, `apps/admin/DEPLOY_VERCEL.md`).
+- **Next:** the owner imports the repository as a second Vercel project with Root Directory `apps/admin` and turns on Deployment Protection. Connect the backend later via the `VITE_*` variables listed in `DEPLOY_VERCEL.md`.

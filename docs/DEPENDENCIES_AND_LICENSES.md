@@ -101,3 +101,4 @@ Inter is reused from `@expo-google-fonts/inter` (SIL OFL 1.1) and bundled by Vit
 |---|---|---|---|
 | `bpy` (Blender as a Python module) 5.2 | `tools/3d/render.py` renders the admin's 3D icons | GPL-3.0 (the tool); rendered images are the project's own output | Not a project dependency; install with `pip install bpy pillow` only to regenerate assets |
 | Pillow | Downsamples renders to WebP | HPND | Same as above |
+| Inter 4 weights as WOFF2 (`apps/admin/src/assets/fonts`) | Admin web font, bundled so the Vercel build doesn't depend on the mobile apps' packages | SIL OFL 1.1 (`OFL.txt` alongside) | Converted from `@expo-google-fonts/inter` with fontTools |

@@ -4,7 +4,7 @@
 |---|---|
 | Website `apps/web` on Vercel | **Implemented** (existing; owner deploys). Domain settings **unchanged** |
 | `apps/web/vercel.json` security headers + CSP | **Configured, tested locally** (Chromium against a server applying these headers). Takes effect on the next deploy |
-| `apps/admin/vercel.json` | **Configured** — admin hosting on Vercel is **pending deployment** |
+| `apps/admin/vercel.json` | **Configured** (install, build, output, ignore rule, headers). Admin is a separate Vercel project; first deployment is pending (owner) |
 | Env validation `npm run check:env -- <file>` | **Implemented** (`tools/check-env.mjs`) |
 | Preview deployments, error monitoring | **Pending** owner's Vercel project settings (below) |
 
@@ -49,8 +49,11 @@ Internal pages (`components.html`, `preview.html`, `driver-ui-source.html`, `fea
 
 ## Admin (`apps/admin`)
 
-Vite SPA with hash routing; build `npm run admin:build` → `apps/admin/dist`. If hosted on Vercel
-(`admin.gobye.app`, DNS only): Root `apps/admin`, build `npm run build`, output `dist`.
+Vite SPA with hash routing; build `npm run admin:build` → `apps/admin/dist`. **Its own Vercel project** (`gobye-admin`), separate from the landing page.
+- Root Directory: `apps/admin`.
+- Install, build, output and ignore rules are set in `apps/admin/vercel.json`. Install covers the admin workspace only. A build is skipped unless `apps/admin` or `packages/core` changed.
+- Later: `admin.gobye.app`, DNS only.
+- Step-by-step setup and backend variables: `apps/admin/DEPLOY_VERCEL.md`.
 Headers: `X-Robots-Tag: noindex, nofollow`, strict CSP (`script-src 'self'`, `connect-src 'self'
 https://api.gobye.app https://api-staging.gobye.app https://*.supabase.co`), HSTS, `DENY` framing,
 `no-referrer`; hashed `/assets/*` cached for a year (`immutable`), `index.html` `no-cache`.
