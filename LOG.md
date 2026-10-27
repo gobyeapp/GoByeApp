@@ -966,3 +966,33 @@ Owner brief: one management platform with workspaces and permissions per team ov
   5. Decide D-062 / A-4 / A-6.
   6. Deploy the staging gateway Worker after the Cloudflare token is rotated.
 - **Next (engineering):** after those steps, items S-6 to S-11 of §4.6. Phase 2 starts only after staging is ready.
+
+## 2026-10-27 — WhatsApp quick booking (D-064), built and switched off
+
+- **Owner idea:** book faster on WhatsApp; everything else stays in the app.
+- **Core** (`packages/core/src/whatsapp/`):
+  - the conversation as a pure function: pickup pin → destination pin → Quick Match fare list → tap → book, plus CANCEL;
+  - launch-city boxes;
+  - Cloud API webhook parsing and message building within WhatsApp's limits;
+  - 13 tests.
+- **API:**
+  - `/v1/webhooks/whatsapp`: GET verify-token check, and POST with a check of Meta's `X-Hub-Signature-256` over the raw body;
+  - de-duplication by message id;
+  - `whatsapp.inbound`, `whatsapp.send` and `whatsapp.cleanup` jobs;
+  - rides created with `channel = 'whatsapp'`, plus ride event, audit row and in-app notice;
+  - fares computed and honoured by the server for 5 minutes only; one open ride; messages older than 10 minutes ignored; kill switch;
+  - migration `0006`;
+  - `simulated` and `cloud_api` senders;
+  - config refusals;
+  - 13 tests.
+- **Gateway:** new route class `webhooks` (no user token; the signature header and body are forwarded unchanged); 1 test.
+- **Rider app:** `gobye://open/ride/<id>` opens a live ride, or explains that WhatsApp rides show once the ride API is connected (1 test).
+- **Website:** `gobye.app/open/...` page that opens the app (checked in Chromium at 375 px).
+- **Tool:** `apps/api/scripts/whatsapp-simulate.mjs`. A local live run (API + worker + Postgres, simulated sender) went hi → pickup → destination → tap and created a `whatsapp` ride in `searching`.
+- **Tests:** API 93/93 (0 skipped, strict); core 278; admin 405; rider 37; driver 14; infra 42. Typecheck and lint clean; Rider and Driver exports and the admin build pass.
+- **Not live:** `WHATSAPP_PROVIDER=none` everywhere. It needs:
+  - the Meta setup (`docs/WHATSAPP_BOOKING.md` §5: CAC ✅, utility bill ✅, the rest open);
+  - staging;
+  - server-side driver dispatch (Phase 3);
+  - owner approval.
+- **New question:** Q-080 (Nigerian or UK company for the Meta account).

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Open GoBye</title>
+<style>
+  :root { color-scheme: light dark; --fg: #111; --muted: #555; --bg: #fff; --card: #f4f4f5; --btn: #111; --btn-fg: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #f4f4f5; --muted: #a1a1aa; --bg: #0b0b0c; --card: #18181b; --btn: #fff; --btn-fg: #111; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { width: 100%; max-width: 420px; text-align: center; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p { margin: 0 0 16px; color: var(--muted); }
+  a.btn { display: block; padding: 14px 20px; border-radius: 14px; background: var(--btn); color: var(--btn-fg); font-weight: 600; text-decoration: none; margin: 24px 0 16px; }
+  .note { background: var(--card); border-radius: 14px; padding: 14px 16px; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Opening GoBye…</h1>
+  <p id="lead">If the app doesn't open by itself, tap the button.</p>
+  <a class="btn" id="open" href="gobye://">Open the GoBye app</a>
+  <p class="note">Don't have the app yet? GoBye is coming soon to the App Store and Google Play. <a href="/">Learn more</a></p>
+</main>
+<script src="open.js"></script>
+</body>
+</html>

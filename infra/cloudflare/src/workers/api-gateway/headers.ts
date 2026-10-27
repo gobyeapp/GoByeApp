@@ -4,7 +4,9 @@
  * never reach an origin. The client IP comes from Cloudflare's CF-Connecting-IP only.
  */
 
-const FORWARD_FROM_CLIENT = new Set(['authorization', 'content-type', 'accept', 'accept-language', 'user-agent', 'idempotency-key', 'if-match', 'if-none-match', 'x-app-version', 'x-platform']);
+const FORWARD_FROM_CLIENT = new Set(['authorization', 'content-type', 'accept', 'accept-language', 'user-agent', 'idempotency-key', 'if-match', 'if-none-match', 'x-app-version', 'x-platform',
+  // Provider signature on webhooks (Meta). The API verifies it; it grants nothing by itself.
+  'x-hub-signature-256']);
 
 /** Response headers passed back from an origin; everything else (Server, X-Powered-By, Set-Cookie, …) is dropped. */
 const FORWARD_FROM_ORIGIN = new Set(['content-type', 'etag', 'retry-after', 'location', 'content-language']);

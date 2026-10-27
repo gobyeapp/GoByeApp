@@ -39,6 +39,20 @@ describe('API gateway: routing', () => {
     expect(matchRoute('GET', '/v1/admin/secret')).toEqual({ kind: 'not_found' });
   });
 
+  it('passes WhatsApp webhooks (no bearer token) to the origin with the exact body and Meta signature (D-064)', async () => {
+    expect(matchRoute('POST', '/v1/webhooks/whatsapp')).toMatchObject({ kind: 'api', rule: { routeClass: 'webhooks', auth: false } });
+    const { g, seen } = gw();
+    const body = '{"object":"whatsapp_business_account",  "entry":[]}'; // spacing kept: the signature covers these bytes
+    const res = await g.fetch(req('/v1/webhooks/whatsapp', { method: 'POST', body, headers: { 'content-type': 'application/json', 'x-hub-signature-256': 'sha256=' + 'a'.repeat(64) } }), env());
+    expect(res.status).toBe(200);
+    expect(seen[0]!.body).toBe(body);
+    expect(seen[0]!.headers['x-hub-signature-256']).toBe('sha256=' + 'a'.repeat(64));
+    expect(seen[0]!.headers['x-gobye-origin-auth']).toMatch(/^t=\d+,sig=/);
+    const verify = await g.fetch(req('/v1/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=x&hub.challenge=123'), env());
+    expect(verify.status).toBe(200);
+    expect((await g.fetch(req('/v1/webhooks/whatsapp', { method: 'DELETE' }), env())).status).toBe(405);
+  });
+
   it('forwards to the primary origin with the path, request id and a signed origin header', async () => {
     const { g, seen } = gw();
     const res = await g.fetch(req('/v1/users/me?x=1', { headers: { authorization: TOKEN } }), env());

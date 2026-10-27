@@ -34,6 +34,9 @@ export const RULES: Record<RouteClass, RouteRule> = {
   notifications: { routeClass: 'notifications', methods: WRITE, auth: true, maxBodyBytes: 8 * KB, timeoutMs: 8_000, limit: { requests: 120, windowSeconds: 60 } },
   support: { routeClass: 'support', methods: WRITE, auth: true, maxBodyBytes: 32 * KB, timeoutMs: 10_000, limit: { requests: 60, windowSeconds: 60 } },
   safety: { routeClass: 'safety', methods: WRITE, auth: true, maxBodyBytes: 32 * KB, timeoutMs: 10_000, limit: null },
+  // WhatsApp Cloud API callbacks (D-064): Meta sends no bearer token. The API verifies Meta's
+  // X-Hub-Signature-256 over the exact body, which the gateway forwards unchanged.
+  webhooks: { routeClass: 'webhooks', methods: ['GET', 'POST'], auth: false, maxBodyBytes: 64 * KB, timeoutMs: 10_000, limit: { requests: 600, windowSeconds: 60 } },
 };
 
 /** One-time-code requests get their own, tighter limit (SMS cost and abuse). */
@@ -56,6 +59,7 @@ const SEGMENT: Record<string, RouteClass | ((method: string, rest: string[]) => 
   notifications: 'notifications',
   support: 'support',
   safety: 'safety',
+  webhooks: 'webhooks',
 };
 
 export type Match =

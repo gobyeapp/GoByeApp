@@ -541,3 +541,27 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - The API image is built with a digest-pinned base and smoke-tested (`scripts/docker-smoke.sh`).
 - **Lint:** ESLint 10 flat config at the root with the recommended JavaScript and typescript-eslint rules, plus React hooks. Problems were fixed in code. The only relaxations are written in `eslint.config.mjs` with their reason: Metro asset `require()`, Jest mock factories, and `_`-prefixed unused names.
 - **Not adopted:** type-aware lint rules. They would roughly double CI time and need per-workspace project setup. Revisit when Phase 2 grows the API.
+
+## D-064 — WhatsApp quick booking: a fast way in, everything else in the app (2026-10-27, owner)
+
+- **Decision (owner):** "The idea is to book faster; every other thing is in the app."
+  - Riders can book a **Quick Match** ride on WhatsApp by sending a pickup pin and a destination pin and tapping a fare.
+  - The ride is an ordinary `app.rides` row (`channel = 'whatsapp'`).
+  - Driver, tracking, chat, safety, payment and receipt happen in the app.
+  - Negotiate stays in the app.
+- **Rules:**
+  - only riders whose GoBye account has that WhatsApp number;
+  - pickup in a launch city;
+  - fares computed and honoured by the server for 5 minutes;
+  - one open ride;
+  - messages over 10 minutes old ignored;
+  - CANCEL from the chat only before a driver is assigned;
+  - an in-app notice for every WhatsApp booking.
+- **How:**
+  - Meta WhatsApp Business Platform (Cloud API) webhook at `/v1/webhooks/whatsapp` (gateway class `webhooks`), verified with `X-Hub-Signature-256`;
+  - de-duplicated by message id;
+  - processed by Postgres jobs;
+  - the conversation is a pure function in `@gobye/core`.
+- **Not a money webhook:** it moves no money, so the BACKEND_ARCHITECTURE §9 restriction on payment webhooks doesn't apply.
+- **Status:** built and tested; **off** (`WHATSAPP_PROVIDER=none`). Live only after the Meta setup, staging and server-side dispatch (Phase 3), with owner approval.
+- **Docs:** `WHATSAPP_BOOKING.md`.

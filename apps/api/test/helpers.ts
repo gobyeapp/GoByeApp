@@ -10,6 +10,7 @@ import { loadMigrations, migrate } from '../src/database/migrations';
 import { createTokenVerifier, type TokenVerifier } from '../src/auth/jwt';
 import { sqlPrincipalRepository } from '../src/auth/principal';
 import { providersFromConfig } from '../src/providers/providers';
+import type { Providers } from '../src/providers/ports';
 
 /**
  * Test database: a fresh, throwaway database per test file on the Postgres at TEST_DATABASE_ADMIN_URL
@@ -108,7 +109,7 @@ export interface TestApp {
   inject(o: InjectOptions): Promise<LightMyRequestResponse>;
 }
 
-export async function makeApp(p: { config?: Partial<Record<keyof RawConfig, string>>; db?: Database; keys?: Keys; now?: () => number } = {}): Promise<TestApp> {
+export async function makeApp(p: { config?: Partial<Record<keyof RawConfig, string>>; db?: Database; keys?: Keys; now?: () => number; providers?: Providers } = {}): Promise<TestApp> {
   const config = testConfig(p.config);
   const db = p.db ?? Database.fromConfig(config);
   const app = await createApp({
@@ -117,7 +118,7 @@ export async function makeApp(p: { config?: Partial<Record<keyof RawConfig, stri
     migrations: loadMigrations(MIGRATIONS_DIR),
     verifier: p.keys?.verifier ?? null,
     principals: db.configured ? sqlPrincipalRepository(db) : null,
-    providers: providersFromConfig(config),
+    providers: p.providers ?? providersFromConfig(config),
     now: p.now,
   });
   const fastify = app.getHttpAdapter().getInstance();

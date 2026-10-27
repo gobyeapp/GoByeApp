@@ -44,6 +44,7 @@ Routes are relative to `apps/<app>/src/app/`.
 | R29b | Trip summary | `trip-summary.tsx` | Rating card (Skip), compact driver and vehicle, receipt Download/Share, expandable Trip details and Payment details | Rate, Skip, Download, Share, Back to Home | unrated, rated, skipped | Built (mock), 2026-10-21 (D-036) |
 | R30 | Appearance | `account/appearance.tsx` | RadioRow ×3 | Light, Dark, System (saved, applied immediately) | default | Built (mock) — new 2026-10-21 (D-028) |
 | R31 | Location access | `account/location.tsx` | Permission state, approximate notice | Open Settings | granted, approximate, denied, undetermined | Built (mock) — new 2026-10-21 |
+| R32 | Ride booked on WhatsApp | `open/ride/[id].tsx` (+ `open/signup.tsx`) | Opens the live ride if one is active; otherwise an explanation (WhatsApp rides show once the ride API is connected) | Back to Home | active ride → redirect, none | Built (mock) — new 2026-10-27 (D-064) |
 
 ## Driver app (GoBye Driver) — planned, Phase 4
 

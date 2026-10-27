@@ -65,6 +65,8 @@ export async function createApp(deps: AppDeps): Promise<NestFastifyApplication> 
   const app = await NestFactory.create<NestFastifyApplication>(AppModule.forRoot(deps), adapter, {
     logger: c.LOG_LEVEL === 'silent' ? false : new ConsoleLogger({ json: c.isProductionLike, logLevels: LEVELS[c.LOG_LEVEL] }),
     bufferLogs: false,
+    // Keeps the exact request bytes (req.rawBody) for provider signatures (WhatsApp, D-064).
+    rawBody: true,
   });
 
   const fastify = app.getHttpAdapter().getInstance();

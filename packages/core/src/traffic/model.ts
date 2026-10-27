@@ -52,9 +52,11 @@ export type RouteClass =
   | 'files'
   | 'notifications'
   | 'support'
-  | 'safety';
+  | 'safety'
+  /** Provider callbacks (WhatsApp messages, D-064): no user token; the API checks the provider's signature. */
+  | 'webhooks';
 
-export const ROUTE_CLASSES: readonly RouteClass[] = ['auth', 'users', 'drivers', 'rides_create', 'rides_active', 'fares', 'offers', 'payments', 'files', 'notifications', 'support', 'safety'];
+export const ROUTE_CLASSES: readonly RouteClass[] = ['auth', 'users', 'drivers', 'rides_create', 'rides_active', 'fares', 'offers', 'payments', 'files', 'notifications', 'support', 'safety', 'webhooks'];
 
 /** Never switched off by maintenance or emergency: people in a car must keep their trip, safety and help. */
 export const ALWAYS_ALLOWED: readonly RouteClass[] = ['rides_active', 'safety', 'support'];
@@ -90,4 +92,5 @@ export const ROUTE_CLASS_LABEL: Record<RouteClass, string> = {
   notifications: 'Notifications',
   support: 'Support',
   safety: 'Safety and emergency',
+  webhooks: 'Provider callbacks (WhatsApp booking)',
 };

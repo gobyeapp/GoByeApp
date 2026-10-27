@@ -60,6 +60,23 @@ export interface NotificationSender {
   send(m: NotificationMessage): Promise<NotificationResult>;
 }
 
+/* ---------- WhatsApp (D-064: quick booking; Meta's WhatsApp Business Platform, Cloud API) ---------- */
+
+export interface WhatsAppSendResult {
+  providerMessageId: string | null;
+}
+
+/** Thrown by a sender when retrying cannot help (bad number, message rejected): the job stops. */
+export class WhatsAppPermanentError extends Error {
+  readonly permanent = true;
+}
+
+export interface WhatsAppSender {
+  readonly name: string;
+  /** `message` is the Cloud API body built by @gobye/core toCloudApiMessage. */
+  send(message: Record<string, unknown>, idempotencyKey: string): Promise<WhatsAppSendResult>;
+}
+
 /* ---------- Bundle ---------- */
 
 export interface Providers {
@@ -67,4 +84,6 @@ export interface Providers {
   maps: MapsProvider;
   notifications: NotificationSender;
   storage: ObjectStore;
+  /** null when WHATSAPP_PROVIDER=none: the webhook answers 404. */
+  whatsapp: WhatsAppSender | null;
 }

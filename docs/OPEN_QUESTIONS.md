@@ -530,3 +530,8 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Owner:** Owner / Operations / Legal · **Blocks:** Phase 2b (A-9)
 - **Assumption:** Manual review at launch.
 
+
+### Q-080 — Which company owns GoBye's WhatsApp Business account
+- **Question:** The Nigerian company (CAC) or a UK company? Meta accepts either if all documents match one company. But the operator of rides and the controller of rider data in Nigeria may need to be the Nigerian company (Lagos ride-hailing rules, NDPA).
+- **Owner:** Owner / Legal · **Blocks:** Meta Business Verification (`WHATSAPP_BOOKING.md` §5)
+- **Assumption:** The Nigerian company (CAC certificate and HQ utility bill already available), with a +234 number.

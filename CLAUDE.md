@@ -71,6 +71,7 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Run `npm test -w apps/api` with PostgreSQL available. The database tests skip without it, so a pass without Postgres proves little. CI runs `npm run test:ci -w apps/api` with PgBouncer (`apps/api/test/pooler/start.sh`, `TEST_POOLER_URL`), where any skip fails.
 - Database connections send **no session settings at start-up** (Supavisor transaction mode, C-1). Timeouts live on the role (`apps/api/db/roles.sql`) and in `SET LOCAL`.
 - `npm run lint` (ESLint, root `eslint.config.mjs`) must be clean. Fix the code; don't disable rules to pass.
+- WhatsApp quick booking (D-064, `docs/WHATSAPP_BOOKING.md`): the conversation lives in `@gobye/core` `whatsapp/`; WhatsApp only creates Quick Match rides, the app does everything else. Off unless `WHATSAPP_PROVIDER` is set.
 - Staging is not ready until `docs/BACKEND_PHASE_1_VERIFICATION.md` §4.6 is all ticked. Never use the website/waitlist Supabase project for the backend.
 
 ## Documentation maintenance

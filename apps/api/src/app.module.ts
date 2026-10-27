@@ -13,6 +13,7 @@ import { HealthController } from './health/health.controller';
 import { MeController } from './me/me.controller';
 import { SubscriptionsController } from './subscriptions/subscriptions.controller';
 import { CostsController } from './costs/costs.controller';
+import { WhatsAppWebhookController } from './whatsapp/whatsapp.controller';
 import { CLOCK, CONFIG, DATABASE, MIGRATIONS, PRINCIPALS, PROVIDERS, TOKEN_VERIFIER } from './tokens';
 
 export interface AppDeps {
@@ -30,7 +31,7 @@ export class AppModule {
   static forRoot(d: AppDeps): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, SubscriptionsController, CostsController],
+      controllers: [HealthController, MeController, SubscriptionsController, CostsController, WhatsAppWebhookController],
       providers: [
         { provide: CONFIG, useValue: d.config },
         { provide: DATABASE, useValue: d.db },

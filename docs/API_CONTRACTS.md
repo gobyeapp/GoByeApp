@@ -405,5 +405,12 @@ These endpoints exist and are covered by automated tests (`apps/api/test`). They
 | GET | `/v1/costs/expenses?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ items: Expense[] }` | 422, 403 |
 | GET | `/v1/costs/break-even?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ month, operatingCost, subscriptionRevenue, coverage, gap, monthlyPassesNeeded, dailyPassesNeeded, passesSold, excluded: { marketingCostKobo, pendingApprovalKobo }, rules }` (all money in kobo; marketing and unapproved costs excluded; refunded or reversed passes excluded; months in Lagos time) | 422, 403 |
 
+**WhatsApp quick booking (D-064, `WHATSAPP_BOOKING.md`); 404 unless `WHATSAPP_PROVIDER` is set:**
+
+| Method | Path | Auth | Request | Response | Errors |
+|---|---|---|---|---|---|
+| GET | `/v1/webhooks/whatsapp` | Meta's subscription check: `hub.mode=subscribe`, `hub.verify_token` = ours | query `hub.challenge` | (raw, text/plain) the challenge | 403 |
+| POST | `/v1/webhooks/whatsapp` | `X-Hub-Signature-256` = HMAC-SHA256(app secret, exact body) | Meta `whatsapp_business_account` messages webhook | `{ received, queued }` (duplicates are not queued again) | 401 bad signature |
+
 Not exposed over HTTP on purpose: recording verified pass payments and voids (`apps/api/src/subscriptions/subscriptions.repository.ts`). The payment verification job will call it once a provider is connected; clients and webhooks never can.
 

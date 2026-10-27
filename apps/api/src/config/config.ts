@@ -74,6 +74,21 @@ const schema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_PREFIX: z.string().regex(/^[a-z0-9-]+$/).optional(),
 
+  /* WhatsApp quick booking (D-064, docs/WHATSAPP_BOOKING.md). Off unless a provider is set. */
+  WHATSAPP_PROVIDER: z.enum(['none', 'simulated', 'cloud_api']).default('none'),
+  /** Meta app secret: verifies X-Hub-Signature-256 on every webhook. */
+  WHATSAPP_APP_SECRET: z.string().optional(),
+  /** Our own random string, echoed by Meta when the webhook is registered. */
+  WHATSAPP_VERIFY_TOKEN: z.string().optional(),
+  /** System-user access token for the Cloud API (cloud_api only). */
+  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().regex(/^\d{5,20}$/, 'must be the numeric phone number id').optional(),
+  WHATSAPP_GRAPH_VERSION: z.string().regex(/^v\d+\.\d+$/, 'like v23.0').default('v23.0'),
+  /** https page that opens the app (apps/web open.html): <base>/ride/<id>, <base>/signup. */
+  WHATSAPP_OPEN_LINK_BASE: url.default('https://gobye.app/open'),
+  /** Kill switch: false keeps the chat answering but refuses new bookings ("book in the app"). */
+  WHATSAPP_BOOKING_ENABLED: bool(true),
+
   /* Durable jobs (Postgres queue, §10). */
   WORKER_ENABLED: bool(false),
   WORKER_POLL_MS: int(2000, 100, 60_000),
@@ -153,6 +168,16 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     else if (prodLike && !o.startsWith('https://')) problems.push('CORS_ORIGINS: https origins only in staging and production');
   }
   if (corsOrigins.includes('*')) problems.push('CORS_ORIGINS: wildcard is not allowed');
+
+  if (c.WHATSAPP_PROVIDER !== 'none') {
+    if (!c.WHATSAPP_APP_SECRET || c.WHATSAPP_APP_SECRET.length < 16) problems.push('WHATSAPP_APP_SECRET: required (16+ characters) when WHATSAPP_PROVIDER is set');
+    if (!c.WHATSAPP_VERIFY_TOKEN || c.WHATSAPP_VERIFY_TOKEN.length < 16) problems.push('WHATSAPP_VERIFY_TOKEN: required (16+ random characters) when WHATSAPP_PROVIDER is set');
+    if (!c.WHATSAPP_PHONE_NUMBER_ID) problems.push('WHATSAPP_PHONE_NUMBER_ID: required when WHATSAPP_PROVIDER is set');
+    if (c.MAPS_PROVIDER === 'none') problems.push('MAPS_PROVIDER: WhatsApp booking needs a maps provider to price trips');
+    if (prodLike && !c.WHATSAPP_OPEN_LINK_BASE.startsWith('https://')) problems.push('WHATSAPP_OPEN_LINK_BASE: must use https');
+  }
+  if (c.WHATSAPP_PROVIDER === 'cloud_api' && !c.WHATSAPP_ACCESS_TOKEN) problems.push('WHATSAPP_ACCESS_TOKEN: required for WHATSAPP_PROVIDER=cloud_api');
+  if (c.APP_ENV === 'production' && c.WHATSAPP_PROVIDER === 'simulated') problems.push('WHATSAPP_PROVIDER: simulated is not allowed in production');
 
   if (problems.length) throw new ConfigError(problems);
   return { ...c, corsOrigins, isProductionLike: prodLike };

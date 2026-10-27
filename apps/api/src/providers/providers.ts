@@ -3,7 +3,7 @@ import { createMockObjectStore, createSimulatedGateway, type LatLng, type Object
 import { hexToBase64, presignR2, type R2Credentials } from '@gobye/r2-sigv4';
 import type { AppConfig } from '../config/config';
 import { Errors } from '../common/errors';
-import type { MapsProvider, NotificationSender, PlaceResult, Providers } from './ports';
+import { WhatsAppPermanentError, type MapsProvider, type NotificationSender, type PlaceResult, type Providers, type WhatsAppSender } from './ports';
 
 /* ---------- Not configured: fail closed ---------- */
 
@@ -71,6 +71,50 @@ export function logNotifications(log: (m: string, meta: object) => void = () => 
   };
 }
 
+/* ---------- WhatsApp ---------- */
+
+/** Records outgoing WhatsApp messages instead of sending (development, staging, tests). */
+export function simulatedWhatsApp(log: (m: string, meta: object) => void = () => undefined): WhatsAppSender & { sent: { key: string; message: Record<string, unknown> }[] } {
+  const sent: { key: string; message: Record<string, unknown> }[] = [];
+  return {
+    name: 'simulated',
+    sent,
+    async send(message, key) {
+      if (!sent.some((m) => m.key === key)) {
+        sent.push({ key, message });
+        // Type only: never the number or the text (personal data).
+        log('whatsapp.simulated', { key, type: message.type });
+      }
+      return { providerMessageId: `sim-${key}` };
+    },
+  };
+}
+
+/**
+ * Meta Cloud API: POST https://graph.facebook.com/{version}/{phone-number-id}/messages with the system
+ * user token. 4xx other than 429 is permanent (bad number, rejected message); 429 and 5xx are retried by
+ * the job queue. The token is never logged.
+ */
+export function cloudApiWhatsApp(o: { accessToken: string; phoneNumberId: string; graphVersion: string; fetch?: typeof fetch; timeoutMs?: number }): WhatsAppSender {
+  const f = o.fetch ?? fetch;
+  return {
+    name: 'cloud_api',
+    async send(message) {
+      const res = await f(`https://graph.facebook.com/${o.graphVersion}/${o.phoneNumberId}/messages`, {
+        method: 'POST',
+        headers: { authorization: `Bearer ${o.accessToken}`, 'content-type': 'application/json' },
+        body: JSON.stringify(message),
+        signal: AbortSignal.timeout(o.timeoutMs ?? 8000),
+      });
+      const body = (await res.json().catch(() => null)) as { messages?: { id?: string }[]; error?: { code?: number; message?: string } } | null;
+      if (res.ok) return { providerMessageId: body?.messages?.[0]?.id ?? null };
+      const why = `WhatsApp Cloud API ${res.status}${body?.error?.code ? ` (code ${body.error.code})` : ''}`;
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) throw new WhatsAppPermanentError(why);
+      throw new Error(why);
+    },
+  };
+}
+
 /* ---------- Cloudflare R2 (presigning only in Phase 1) ---------- */
 
 /**
@@ -109,5 +153,11 @@ export function providersFromConfig(c: AppConfig, log?: (m: string, meta: object
         : c.STORAGE_PROVIDER === 'memory'
           ? createMockObjectStore({ sha256: (b) => createHash('sha256').update(b).digest('hex') })
           : notConfiguredStorage,
+    whatsapp:
+      c.WHATSAPP_PROVIDER === 'cloud_api'
+        ? cloudApiWhatsApp({ accessToken: c.WHATSAPP_ACCESS_TOKEN!, phoneNumberId: c.WHATSAPP_PHONE_NUMBER_ID!, graphVersion: c.WHATSAPP_GRAPH_VERSION })
+        : c.WHATSAPP_PROVIDER === 'simulated'
+          ? simulatedWhatsApp(log)
+          : null,
   };
 }
