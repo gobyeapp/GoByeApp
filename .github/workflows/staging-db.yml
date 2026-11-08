@@ -1,0 +1,81 @@
+# Staging database: run the GoBye migrations and checks against the Supabase STAGING project
+# (docs/STAGING_SUPABASE.md §4 steps 6-7). Manual only (Actions → "Staging database" → Run workflow).
+# Never runs on push. Never touches production or the website's waitlist project.
+#
+# Needs, in GitHub → Settings → Environments → "staging" → Environment secrets (typed there, never in chat):
+#   STAGING_DATABASE_MIGRATION_URL  session pooler, port 5432, user gobye_migrator.<project-ref>
+#   STAGING_DATABASE_URL            transaction pooler, port 6543, user gobye_api.<project-ref>
+# Optional environment variable (public, not a secret):
+#   STAGING_DATABASE_CA_CERT        Supabase root certificate (PEM). Set → TLS verify-full; unset → TLS required.
+#
+# GitHub masks secret values in the log; the scripts print no connection strings.
+name: Staging database
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "status = show applied/pending · up = apply pending migrations, then grants and checks · check = runtime checks only"
+        type: choice
+        options: [status, up, check]
+        default: status
+permissions:
+  contents: read
+concurrency:
+  group: staging-database
+  cancel-in-progress: false
+
+jobs:
+  database:
+    name: ${{ inputs.action }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: staging
+    env:
+      # Migration tooling only: the API's own staging settings (gateway secret, CORS, auth URL) are not
+      # needed to run migrations, so the tool runs in development mode against the staging database.
+      APP_ENV: development
+      ORIGIN_AUTH_REQUIRED: "false"
+      LOG_LEVEL: info
+      DATABASE_SSL: ${{ vars.STAGING_DATABASE_CA_CERT != '' && 'verify-full' || 'require' }}
+      DATABASE_CA_CERT: ${{ vars.STAGING_DATABASE_CA_CERT }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "22", cache: npm }
+      - name: Secrets present
+        env:
+          MIG: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          RUN: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          [ -n "$MIG" ] || { echo "::error::Add STAGING_DATABASE_MIGRATION_URL to the 'staging' environment"; exit 1; }
+          [ -n "$RUN" ] || { echo "::error::Add STAGING_DATABASE_URL to the 'staging' environment"; exit 1; }
+          case "$MIG" in *:6543/*) echo "::error::The migration URL must be the SESSION pooler (5432), not 6543"; exit 1;; esac
+          case "$RUN" in *gobye_api*) ;; *) echo "::error::STAGING_DATABASE_URL must use the gobye_api role"; exit 1;; esac
+          case "$MIG" in *gobye_migrator*) ;; *) echo "::error::STAGING_DATABASE_MIGRATION_URL must use the gobye_migrator role"; exit 1;; esac
+          echo "Secrets present; TLS mode: $DATABASE_SSL"
+      - run: npm ci --workspace apps/api --include-workspace-root=false --no-audit --no-fund
+      - run: npm run build --workspace apps/api
+      - name: Migration status (before)
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          DATABASE_MIGRATION_URL: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+        run: node apps/api/dist/apps/api/src/migrate.js status
+      - name: Apply pending migrations
+        if: inputs.action == 'up'
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          DATABASE_MIGRATION_URL: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+        run: node apps/api/dist/apps/api/src/migrate.js up
+      - name: Runtime grants (as gobye_migrator)
+        if: inputs.action == 'up'
+        env:
+          MIG: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+        run: |
+          sudo apt-get install -y -q postgresql-client >/dev/null
+          PGSSLMODE=require psql "$MIG" -X -q -v ON_ERROR_STOP=1 -f apps/api/db/grants.sql
+          echo "Grants applied"
+      - name: Runtime check (as gobye_api, through the transaction pooler)
+        if: inputs.action != 'status'
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: node apps/api/dist/apps/api/src/migrate.js check-runtime

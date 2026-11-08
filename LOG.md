@@ -996,3 +996,24 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - server-side driver dispatch (Phase 3);
   - owner approval.
 - **New question:** Q-080 (Nigerian or UK company for the Meta account).
+
+## 2026-11-08 — Staging Supabase project created; roles in place; migration workflow added
+
+- **Decision (owner, 2026-11-07):**
+  - StackShift for the API and worker; Supabase for the database and sign-in.
+  - Recorded in the handover doc.
+- **Owner created `gobye-staging`:**
+  - Europe region, RLS on, 2FA on the owner's Supabase account.
+  - Ran `apps/api/db/roles.supabase-sql-editor.sql` (new: an SQL Editor version of `roles.sql`).
+  - Result: `gobye_migrator` and `gobye_api` exist; `gobye_api` has `bypassrls = true` and the 5s/3s/30s limits. **`bypassrls` is confirmed allowed on Supabase.**
+- **New `.github/workflows/staging-db.yml`:**
+  - manual only, environment `staging`;
+  - runs `status`, `up` (migrations, `grants.sql`, `check-runtime`) or `check`;
+  - the connection strings are GitHub environment secrets, never in chat.
+- **Website waitlist project:**
+  - found paused (free plan), so signups were lost while it was paused;
+  - owner to restore it and choose a keep-alive ping or Pro.
+- **Next:**
+  1. The owner adds the two secrets.
+  2. Run **Staging database → up**.
+  3. Then StackShift.

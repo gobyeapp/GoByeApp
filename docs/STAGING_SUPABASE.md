@@ -1,6 +1,6 @@
 # Supabase staging project: design and owner steps (Phase 1.5)
 
-**Status (2026-10-23):** designed, **not created**. No Supabase project, role, key or setting was created or changed by this work. Creating the project and handling its credentials is an **owner action** (steps in §4). Staging is **not ready** until §6 passes against a deployed API.
+**Status (2026-11-08):** project **`gobye-staging` created** by the owner on 2026-11-07 (Europe region, RLS on, owner 2FA on); database roles created (step 5 ✅). Migrations next (step 6). Originally designed 2026-10-23 as **not created**. No Supabase project, role, key or setting was created or changed by this work. Creating the project and handling its credentials is an **owner action** (steps in §4). Staging is **not ready** until §6 passes against a deployed API.
 
 **Rules:**
 - A **new, dedicated** project. Never the website project `morqitxqsfiprefczduo`, which holds the waitlist and the demo tables (`anon` can write to the demo tables). Nothing moves from it.
@@ -37,7 +37,7 @@
 The regression tests (`apps/api/test/pooler.test.ts`) pass through **PgBouncer** in transaction mode. **PgBouncer is not Supavisor.** Compatibility with Supavisor is proven only by `migrate.js check-runtime` and the smoke tests in §6, run against the staging project.
 
 **Not yet verified on Supabase:**
-- that `postgres` may run `alter role gobye_api bypassrls` (it has `BYPASSRLS` itself; locally the same grant works from a non-superuser with `CREATEROLE` + `BYPASSRLS`);
+- ~~that `postgres` may run `alter role gobye_api bypassrls`~~ **confirmed 2026-11-07** on `gobye-staging` (`rolbypassrls = true`);
 - that Supavisor accepts the `application_name` start-up parameter (PgBouncer does);
 - that role settings apply to Supavisor's server connections (they do on PgBouncer, which opens server connections as the role).
 
@@ -71,8 +71,8 @@ If `bypassrls` is refused, add a migration with `using (true)` policies for `gob
 | 2 | Create project `gobye-staging` in a **new** organisation or the existing one. Generate the database password in the password manager; never type it into chat. | Owner | Project ref noted (the ref is not secret) |
 | 3 | Settings → JWT signing keys: create an **asymmetric (ECC P-256)** key, make it current. Move to the new API keys (publishable / secret) and **disable the legacy JWT-based keys** for this project. | Owner | JWKS endpoint lists an ES256 key |
 | 4 | Settings → Database → SSL: download the root certificate; turn on **Enforce SSL**. | Owner | Certificate stored in the password manager |
-| 5 | Run `apps/api/db/roles.sql` as `postgres` over a **session** connection, passwords from the password manager via `psql -v` (the file's header has the command). | Owner (or engineering on a call, with the owner typing secrets) | `roles.sql` completes; no password appears in shell history (use `read -s`) |
-| 6 | Set the staging variables on the host (§3), then run the release step `migrate.js up`, then `grants.sql` as `gobye_migrator`. | Owner sets secrets; engineering runs the commands from the host's shell or CI | `migrate.js status` → `Pending: none` |
+| 5 ✅ 2026-11-07 | Done in the SQL Editor with `apps/api/db/roles.supabase-sql-editor.sql` (snippet deleted afterwards). Alternative: run `apps/api/db/roles.sql` as `postgres` over a **session** connection, passwords from the password manager via `psql -v` (the file's header has the command). | Owner (or engineering on a call, with the owner typing secrets) | `roles.sql` completes; no password appears in shell history (use `read -s`) |
+| 6 | Add the two connection strings as secrets of the GitHub environment `staging`, then run **Actions → Staging database → up** (`.github/workflows/staging-db.yml`: migrations, `grants.sql`, `check-runtime`). Later, set the staging variables on the host (§3). | Owner sets secrets; engineering runs the commands from the host's shell or CI | `migrate.js status` → `Pending: none` |
 | 7 | `node apps/api/dist/apps/api/src/migrate.js check-runtime` with the **transaction-pooler** `DATABASE_URL` | Engineering | Prints `Runtime connection OK` (role timeouts 5s/3s/30s, `bypassrls: true`, cannot create, no secret printed) |
 | 8 | Auth: email + password on; phone sign-up verification with the SMS provider or Send SMS hook (A-4; **no Advanced MFA Phone add-on**); TOTP MFA on for staff; access-token lifetime 15 min (A-6); refresh-token rotation and reuse detection on; redirect URLs for the apps' deep links only. | Owner | Settings screenshot without keys, or a written list |
 | 9 | Network restrictions: allow database connections only from the host's egress addresses, if the host publishes fixed ones. | Owner | Recorded |
