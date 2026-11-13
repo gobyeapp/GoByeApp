@@ -1,5 +1,6 @@
 import type { Kobo, PaymentMethodType } from '../types';
 import type { StaffRole } from './permissions';
+import type { ServiceUsage } from './serviceUsage';
 
 /**
  * Shared management records (owner brief 2026-10-21 §9): every workspace reads the same records by the
@@ -305,6 +306,8 @@ export interface IntegrationRecord {
    * has to open the provider's portal. Every integration must have at least one entry.
    */
   resultsShownIn: { place: string; route: string; what: string }[];
+  /** D-068: pay per use services carry their prices, top ups and usage so balances show in our admin. */
+  usage?: ServiceUsage;
 }
 
 export interface ConfigVersion<T = unknown> {

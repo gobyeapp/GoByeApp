@@ -79,6 +79,8 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Every outside service (payments, identity checks, SMS, email, push, maps, storage, monitoring and any future one) is called by our API, and its results are stored and shown in **our own admin and staff dashboards**. Staff never have to open the provider's portal to see a result or make a decision.
 - Each `IntegrationRecord` lists `resultsShownIn` (page, route, what shows there). `integrationsWithoutDashboard` must return nothing (test in `packages/core/src/__tests__/identity-checks.test.ts`).
 - A new integration isn't done until its results appear on the page of the staff who act on them (for example identity checks on the driver's Documents tab), with the provider's reference for tracing.
+- Pay per use services (D-068) carry `usage` (unit prices, top ups, uses). The admin **Service balances** page and the stakeholder summary show money left, spent this month and how many more uses it covers. A low balance raises a badge.
+- The admin has three audiences: **developer** (technical pages), **staff** (their work queues) and **stakeholder** (the `stakeholder` role: the business summary, reports and costs, in plain words, view only). Never give the stakeholder role a non-view permission, technical pages or people's personal details.
 
 ## Documentation maintenance
 

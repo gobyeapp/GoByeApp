@@ -30,3 +30,7 @@
 .month-axis { display: flex; gap: 10px; margin-top: 6px; }
 .month-axis span { flex: 1; text-align: center; font-size: 12px; color: var(--text-3); }
 .stat-text { font-size: 17px; line-height: 34px; font-weight: 600; color: var(--text-2); letter-spacing: -0.01em; }
+
+.balance-card { display: grid; gap: 8px; }
+.balance-big { font-size: 1.6rem; font-weight: 700; }
+.balance-prices { margin: 0; padding-left: 18px; display: grid; gap: 2px; }

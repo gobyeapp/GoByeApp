@@ -1075,3 +1075,19 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - integration detail → **Results shown in**, with links.
 - **Tests:** core 289, admin 408, typecheck and lint clean.
 
+## 2026-11-13 — Service balances and the stakeholder view (D-068)
+
+- **Core:**
+  - `platform/serviceUsage.ts`;
+  - `IntegrationRecord.usage` (simulated for QoreID and SMS);
+  - the `stakeholder` role and the `summary.view` permission;
+  - mock staff "Majority owner (65%)" (`stf-partner`);
+  - 4 tests.
+- **Admin:**
+  - `/costs/balances` (Service balances, with a low balance badge);
+  - `/summary` (Business summary, the stakeholder's home);
+  - shared `BalanceCards`;
+  - 3 tests.
+- **Tests:** core 293, admin 411, typecheck and lint clean.
+- **Next:** get QoreID and SMS quotes, then replace the placeholder prices.
+

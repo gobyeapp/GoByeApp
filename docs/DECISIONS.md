@@ -625,3 +625,24 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - jobs → Automation.
 - **First example:** the driver Documents tab now has an **Identity checks (QoreID)** panel showing NIN, licence, face match, liveness and plate, each with its result, the fields that did or did not match, the time and the provider reference. It is simulated until QoreID is connected, and staff still decide.
 
+## D-068 — Pay per use balances in our admin; a view only stakeholder role (2026-11-13, owner)
+
+- **Balances.** Providers that charge per use (QoreID per check, the SMS gateway per code, and any later one) show in our admin:
+  - the price of each use;
+  - the money paid in, used in total and this month;
+  - the money left, and how many more uses or "drivers fully checked" it pays for;
+  - a warning when the balance is low.
+  - The figures come from the provider's balance API when it has one, otherwise from our own record of every call times the agreed price. The page states which source it uses.
+  - Core: `platform/serviceUsage.ts` (`usageSummary`, `payPerUseServices`) and `IntegrationRecord.usage`.
+  - Admin: **Infrastructure & costs → Service balances** (`/costs/balances`), with a nav badge for low balances.
+  - The QoreID and SMS prices are placeholders until quotes arrive.
+- **Stakeholder.** New role `stakeholder` ("Stakeholder (view only)") for the majority owner (65%) and any investor who does not run the system.
+  - Permissions: `summary.view`, `reports.view` and `costs.view` only, so it is view only by construction (test).
+  - No technical pages, logs, personal details, safety records or ledger.
+  - Lands on the new **Business summary** (`/summary`): drivers able to drive, rides completed, money in, running costs, whether the costs are covered, and service balances in plain words.
+- **The three audiences:**
+  - **developer:** technical pages (integrations, events, infrastructure);
+  - **staff:** their role's queues ("My work");
+  - **stakeholder:** the summary.
+  - The company owner role keeps full view plus decisions.
+

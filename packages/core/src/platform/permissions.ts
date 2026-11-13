@@ -14,7 +14,8 @@ export type StaffRole =
   | 'finance'
   | 'marketing'
   | 'developer'
-  | 'auditor';
+  | 'auditor'
+  | 'stakeholder';
 
 export const ROLE_LABELS: Record<StaffRole, string> = {
   owner: 'Company owner',
@@ -27,6 +28,7 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   marketing: 'Marketing and partnerships',
   developer: 'Developer and technical',
   auditor: 'Auditor (read only)',
+  stakeholder: 'Stakeholder (view only)',
 };
 
 /**
@@ -36,6 +38,8 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
 export const PERMISSIONS = [
   // Oversight
   'overview.view',
+  // Plain language business summary for owners and investors who do not run the system (D-068)
+  'summary.view',
   'staff.view',
   'staff.manage',
   'approvals.view',
@@ -135,6 +139,10 @@ export const ROLE_PERMISSIONS: Record<StaffRole, readonly Permission[]> = {
   developer: ['integrations.view', 'integrations.configure', 'integrations.secrets', 'logs.view', 'payments_setup.view', 'audit.view', 'automation.view', 'automation.configure', 'automation.retry', 'costs.view', 'costs.manage'],
   // Read only by construction: only `.view` permissions, never contact details or precise safety location.
   auditor: VIEW_ALL.filter((p) => p !== 'safety.view'),
+  // D-068: business owners and investors who do not run the system. View only, in plain language:
+  // the summary, reports, costs and service balances. No people's personal details, no safety
+  // records, no technical pages, no logs, and no way to change anything.
+  stakeholder: ['summary.view', 'reports.view', 'costs.view'],
 };
 
 export interface StaffMember {

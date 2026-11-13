@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import type { CityId, Permission, PlatformDataset, StaffRole } from '@gobye/core';
+import { payPerUseServices, type CityId, type Permission, type PlatformDataset, type StaffRole } from '@gobye/core';
 import type { IconName } from '@/ui/Icon';
 import { REVIEW_STATES } from '@/workspaces/people/logic';
 
@@ -34,6 +34,8 @@ export const NAV: NavGroup[] = [
   {
     title: '',
     items: [
+      // Stakeholder page (D-068): plain words, view only.
+      { path: '/summary', label: 'Business summary', icon: 'chart', anyOf: ['summary.view'], page: L(() => import('@/workspaces/summary/Summary')), keywords: 'stakeholder investor owner partner plain summary' },
       { path: '/overview', label: 'Home', icon: 'home', anyOf: ['overview.view'], page: L(() => import('@/workspaces/overview/Overview')), keywords: 'overview dashboard business command centre' },
       // Role-focused workspace for staff (owner brief §23). Shows only panels the role's permissions allow.
       { path: '/workspace', label: 'My work', icon: 'layout', anyOf: ['live.view', 'drivers.verify', 'cases.view', 'safety.view', 'finance.view', 'integrations.view', 'comms.view', 'audit.view'], page: L(() => import('@/workspaces/home/Workspace')), keywords: 'my queue tasks assigned staff dashboard' },
@@ -140,6 +142,7 @@ export const NAV: NavGroup[] = [
     items: [
       { path: '/costs', label: 'Cost dashboard', icon: 'chart', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/CostDashboard')), keywords: 'operating cost spend infrastructure budget' },
       { path: '/costs/expenses', label: 'Expenses', icon: 'receipt', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Expenses')), badge: (d) => d.expenses.filter((e) => e.status === 'pending_approval').length, keywords: 'invoices bills capture approve' },
+      { path: '/costs/balances', label: 'Service balances', icon: 'wallet', anyOf: ['costs.view', 'integrations.view'], page: L(() => import('@/workspaces/costs/Balances')), badge: (d) => payPerUseServices(d.integrations).filter((x) => x.summary.low).length, keywords: 'credits balance top up qoreid sms usage pay per use' },
       { path: '/costs/vendors', label: 'Vendors', icon: 'store', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Vendors')), keywords: 'vercel cloudflare providers plans' },
       { path: '/costs/budgets', label: 'Budgets', icon: 'balance', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/Budgets')), keywords: 'budget limits monthly' },
       { path: '/costs/break-even', label: 'Break-even', icon: 'exchange', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/BreakEven')), keywords: 'break even subscriptions coverage' },
@@ -176,4 +179,5 @@ export const ROLE_HOME: Record<StaffRole, string> = {
   marketing: '/comms',
   developer: '/workspace',
   auditor: '/audit',
+  stakeholder: '/summary',
 };
