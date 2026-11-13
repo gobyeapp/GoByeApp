@@ -90,7 +90,14 @@ async function main() {
   }
   const files = loadMigrations(MIGRATIONS_DIR);
   const client = new Client({ ...poolConfig(url, config, 'gobye-migrate'), max: undefined } as never);
-  await client.connect();
+  try {
+    await client.connect();
+  } catch (e) {
+    // A short, readable reason (never the connection string): wrong password, unknown host, refused…
+    const err = e as { message?: string; code?: string };
+    process.stderr.write(`Could not connect to the database: ${err.message ?? 'unknown error'}${err.code ? ` (${err.code})` : ''}\n`);
+    process.exit(1);
+  }
   try {
     if (cmd === 'status') {
       const p = plan(files, await readApplied(client));

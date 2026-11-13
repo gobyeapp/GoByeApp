@@ -53,6 +53,24 @@ jobs:
           case "$RUN" in *gobye_api*) ;; *) echo "::error::STAGING_DATABASE_URL must use the gobye_api role"; exit 1;; esac
           case "$MIG" in *gobye_migrator*) ;; *) echo "::error::STAGING_DATABASE_MIGRATION_URL must use the gobye_migrator role"; exit 1;; esac
           echo "Secrets present; TLS mode: $DATABASE_SSL"
+      - name: Describe the connection settings (no password shown)
+        env:
+          MIG: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          RUN: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          node -e '
+            for (const [name, raw] of [["STAGING_DATABASE_MIGRATION_URL", process.env.MIG], ["STAGING_DATABASE_URL", process.env.RUN]]) {
+              const v = raw ?? "";
+              const notes = [];
+              if (v !== v.trim()) notes.push("has spaces or a line break at the start or end");
+              if (/[\[\]]/.test(v)) notes.push("still contains [ ] brackets");
+              let u;
+              try { u = new URL(v.trim()); } catch { console.log(`${name}: not a valid address (${notes.join("; ") || "check the format"})`); continue; }
+              const pw = decodeURIComponent(u.password);
+              const kinds = [/[a-z]/.test(pw) && "lowercase", /[A-Z]/.test(pw) && "uppercase", /[0-9]/.test(pw) && "digits", /[^A-Za-z0-9]/.test(pw) && "SYMBOLS"].filter(Boolean).join(", ");
+              if (/[^A-Za-z0-9]/.test(pw)) notes.push("the password has symbols: use letters and digits only");
+              console.log(`${name}: user=${decodeURIComponent(u.username)} host=${u.hostname} port=${u.port} database=${u.pathname.slice(1)} password=${pw.length} characters (${kinds || "empty"})${notes.length ? " | PROBLEM: " + notes.join("; ") : ""}`);
+            }'
       - run: npm ci --workspace apps/api --include-workspace-root=false --no-audit --no-fund
       - run: npm run build --workspace apps/api
       - name: Migration status (before)
