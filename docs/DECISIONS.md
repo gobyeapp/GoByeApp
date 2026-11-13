@@ -716,3 +716,13 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - "Infrastructure & costs" → "Costs";
   - the old "Settings" section (service areas, fares, packages) → "Configuration", so it is not confused with the Settings page.
 
+## D-072 — Move the free parts to Cloudflare now; paid parts later (2026-11-13, owner)
+
+- **Now (free):**
+  - website (`gobye.app`, `www`) and admin (`admin.gobye.app`) on Cloudflare static hosting;
+  - deployed by the manual workflow `.github/workflows/deploy-sites.yml`: preview on workers.dev first, then production with custom domains;
+  - each `wrangler.toml` has an `[env.production]` with the domains.
+- **Later (paid):** Workers Paid ($5/month) with the API containers, the API gateway in front of them, and R2 storage.
+- Supabase (database and sign-in) is unchanged.
+- **Safety:** the admin still signs in by choosing an account, so before production it goes behind Cloudflare Access (an allow list of team emails).
+

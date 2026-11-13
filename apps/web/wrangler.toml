@@ -1,4 +1,4 @@
-# GoBye website on Cloudflare static hosting (Workers static assets, D-065). TEMPLATE. NOT DEPLOYED.
+# GoBye website on Cloudflare static hosting (Workers static assets, D-065). Deployed by .github/workflows/deploy-sites.yml (D-072).
 # Free; no Worker code runs, only the files in this folder (minus .assetsignore).
 # Headers: _headers · rewrites: _redirects · clean URLs (/components for components.html): html_handling.
 #
@@ -17,3 +17,12 @@ not_found_handling = "none"
 [env.preview]
 name = "gobye-web-preview"
 workers_dev = true
+
+# Production (D-072): the custom domains. Delete the old Vercel DNS records for these names first.
+[env.production]
+name = "gobye-web"
+workers_dev = false
+routes = [
+  { pattern = "gobye.app", custom_domain = true },
+  { pattern = "www.gobye.app", custom_domain = true },
+]

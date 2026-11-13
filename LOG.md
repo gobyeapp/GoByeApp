@@ -1120,3 +1120,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - "Infrastructure & costs" is renamed "Costs"; the config section is renamed "Configuration".
 - **Tests:** admin 413, typecheck and lint clean. Open and folded states checked by screenshot in light and dark.
 
+## 2026-11-13 — Website and admin ready to move to Cloudflare (D-072)
+
+- New manual workflow "Deploy sites (Cloudflare)" (`deploy-sites.yml`), with the inputs `site` (both, website or admin) and `target` (preview or production).
+- `[env.production]` with custom domains added to `apps/web/wrangler.toml` and `apps/admin/wrangler.toml`; dry runs pass.
+- Owner steps are in `DEPLOYMENT_CLOUDFLARE.md` §2b.
+- The paid parts (API containers, R2) are deferred.
+

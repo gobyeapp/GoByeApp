@@ -42,6 +42,23 @@ Admin    ──▶ gobye-admin   (static files, apps/admin/dist; unknown paths �
 
 Both deploy first to their `preview` environment, a workers.dev address, for checking. Moving `gobye.app` and `admin.gobye.app` off Vercel is a DNS change that needs the owner's approval. Vercel keeps serving until then.
 
+## 2b. Free part first: website and admin (D-072)
+
+The owner chose to move what is free now and leave paid parts (Workers Paid, the API containers, R2) for later.
+
+1. In Cloudflare, create an API token with:
+   - **Account:** Workers Scripts Edit and Account Settings Read;
+   - **Zone gobye.app:** Workers Routes Edit and DNS Edit.
+2. In GitHub, go to Settings → Secrets and variables → Actions and add the **repository** secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+3. Run Actions → **Deploy sites (Cloudflare)** with `target = preview`, then open the two workers.dev addresses it prints.
+4. If they look right:
+   - in Cloudflare DNS, delete the Vercel records for `gobye.app`, `www` and `admin`;
+   - run the workflow again with `target = production`.
+   - Cloudflare then creates the custom domain records and certificates.
+5. Afterwards, Vercel can be disconnected.
+
+The admin is built without demo tools. Until real staff sign-in exists, put **admin.gobye.app** behind Cloudflare Access: Zero Trust → Access → Applications, allowing your team's email addresses only.
+
 ## 3. Owner steps, in order
 
 1. **Rotate the Cloudflare token** (`SECURITY_CREDENTIAL_ROTATION.md` X-3). Create a new one scoped to this account with **Workers Scripts: Edit**, **Containers: Edit** and **Account Settings: Read**, expiring within 90 days.
