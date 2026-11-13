@@ -38,7 +38,7 @@ function niceMax(v: number) {
 export function RideChart({ points, view }: { points: DayPoint[]; view: ChartView }) {
   const [hover, setHover] = useState<number | null>(null);
   const [box, W] = useWidth(720);
-  const series = view === 'volume' ? [{ key: 'requested', label: 'Ride requests', color: '#bfe0d2' }, { key: 'completed', label: 'Completed rides', color: 'var(--jade)' }] : [{ key: 'quickMatch', label: 'Quick Match', color: 'var(--jade)' }, { key: 'negotiated', label: 'Negotiated', color: '#8cc9b2' }];
+  const series = view === 'volume' ? [{ key: 'requested', label: 'Ride requests', color: 'var(--chart-2)' }, { key: 'completed', label: 'Completed rides', color: 'var(--chart)' }] : [{ key: 'quickMatch', label: 'Quick Match', color: 'var(--chart)' }, { key: 'negotiated', label: 'Negotiated', color: 'var(--chart-2)' }];
   const val = (p: DayPoint, k: string) => p[k as keyof DayPoint] as number;
   const peak = view === 'volume' ? Math.max(...points.map((p) => Math.max(p.requested, p.completed))) : Math.max(...points.map((p) => p.quickMatch + p.negotiated));
   const max = niceMax(peak);
@@ -63,7 +63,7 @@ export function RideChart({ points, view }: { points: DayPoint[]; view: ChartVie
         <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${series.map((s) => s.label).join(' and ')} per day, ${points.length} days`} width={W} height={H}>
           {ticks.map((tk, i) => (
             <g key={i}>
-              <line x1={PAD.l} x2={W - PAD.r} y1={y(tk)} y2={y(tk)} stroke={i === 0 ? '#d6dbd9' : '#eef1ef'} strokeWidth={1} vectorEffect="non-scaling-stroke" />
+              <line x1={PAD.l} x2={W - PAD.r} y1={y(tk)} y2={y(tk)} stroke={i === 0 ? 'var(--border-strong)' : 'var(--chart-grid)'} strokeWidth={1} vectorEffect="non-scaling-stroke" />
               <text x={PAD.l - 8} y={y(tk) + 4} textAnchor="end" className="rc-axis">{tk}</text>
             </g>
           ))}

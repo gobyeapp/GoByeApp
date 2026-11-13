@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { payPerUseServices, type CityId, type Permission, type PlatformDataset, type StaffRole } from '@gobye/core';
+import { PERMISSIONS, payPerUseServices, type CityId, type Permission, type PlatformDataset, type StaffRole } from '@gobye/core';
 import type { IconName } from '@/ui/Icon';
 import { REVIEW_STATES } from '@/workspaces/people/logic';
 
@@ -132,6 +132,8 @@ export const NAV: NavGroup[] = [
     title: 'Administration',
     items: [
       { path: '/staff', label: 'Staff and access', icon: 'group', anyOf: ['staff.view'], page: L(() => import('@/workspaces/staff/Staff')), keywords: 'roles permissions team invite' },
+      // Everyone signed in (D-069): profile, appearance, team view, sessions, support.
+      { path: '/settings', label: 'Settings', icon: 'settings', anyOf: [...PERMISSIONS], page: L(() => import('@/workspaces/settings/Settings')), keywords: 'appearance dark mode theme profile password two step sessions team support' },
       { path: '/audit', label: 'Activity and audit', icon: 'history', anyOf: ['audit.view'], page: L(() => import('@/workspaces/audit/Audit')), keywords: 'log trail' },
     ],
   },

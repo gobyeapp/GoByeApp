@@ -1,4 +1,4 @@
-import { ROLE_PERMISSIONS, createPlatformDataset, isReadOnly, naira, payPerUseServices, usageSummary, type Kobo, type ServiceUsage } from '../index';
+import { PLANNED_TECH_COST_MONTH, PLANNED_TECH_COST_YEAR, ROLE_PERMISSIONS, driversToCover, createPlatformDataset, isReadOnly, naira, payPerUseServices, usageSummary, type Kobo, type ServiceUsage } from '../index';
 
 const base: ServiceUsage = {
   billing: 'prepaid',
@@ -46,5 +46,14 @@ describe('stakeholder role (D-068)', () => {
       expect(ROLE_PERMISSIONS.stakeholder).not.toContain(p);
     }
     expect(ROLE_PERMISSIONS.stakeholder).toContain('summary.view');
+  });
+});
+
+describe('planned running cost (D-069)', () => {
+  it('spreads the year one budget over 12 months and counts passes to cover it', () => {
+    expect(PLANNED_TECH_COST_YEAR).toBe(naira(1_067_600));
+    expect(PLANNED_TECH_COST_MONTH).toBe(Math.round(naira(1_067_600) / 12));
+    expect(driversToCover(PLANNED_TECH_COST_MONTH, naira(1_500))).toBe(60);
+    expect(driversToCover(PLANNED_TECH_COST_MONTH, 0 as Kobo)).toBe(0);
   });
 });

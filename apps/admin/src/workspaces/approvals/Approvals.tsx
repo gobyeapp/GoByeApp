@@ -102,7 +102,7 @@ function PendingCard({ a, now, onOpen }: { a: ApprovalRequest; now: number; onOp
   return (
     <div className="card compact">
       <div className="row wrap" style={{ alignItems: 'flex-start', gap: 14 }}>
-        <span className="kpi-ico" style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', display: 'grid', placeItems: 'center', background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--e2)', color: 'var(--warning)', flexShrink: 0 }}>
+        <span className="kpi-ico" style={{ width: 36, height: 36, borderRadius: 'var(--r-sm)', display: 'grid', placeItems: 'center', background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--e2)', color: 'var(--warning)', flexShrink: 0 }}>
           <Icon name="time" size={18} />
         </span>
         <div className="stack tight" style={{ flex: 1, minWidth: 220 }}>

@@ -1091,3 +1091,18 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Tests:** core 293, admin 411, typecheck and lint clean.
 - **Next:** get QoreID and SMS quotes, then replace the placeholder prices.
 
+## 2026-11-13 — Admin restyle, dark theme, charts and Settings (D-069)
+
+- **Admin:**
+  - new design tokens, light and dark (`styles.css`);
+  - theme switch (`data/theme.ts`, moon button, Settings → Appearance); the old white-only hook is removed;
+  - remaining hardcoded colours replaced with tokens;
+  - chart kit `ui/charts.tsx`;
+  - Business summary and Service balances rebuilt chart-first;
+  - new **Settings** page (`/settings`).
+- **Core:**
+  - `PLANNED_TECH_COST_YEAR` / `PLANNED_TECH_COST_MONTH` and `driversToCover`;
+  - simulated `twoStep` / `lastSignInAt` on test staff.
+- **Tests:** core 294, admin 412, typecheck and lint clean. Light and dark checked by screenshot on: Home, Business summary, Service balances, Drivers, Live, Cost dashboard, Approvals, Integrations and Settings.
+- **Next:** stage 2 of the restyle, replacing text-heavy panels on the other pages (Cost dashboard, Money overview, Reports) with charts.
+

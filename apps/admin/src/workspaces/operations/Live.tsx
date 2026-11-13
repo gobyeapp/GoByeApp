@@ -166,10 +166,10 @@ export default function Live() {
             <Empty title="No cities in your scope" icon="mapPin" />
           )}
           <div className="map-legend" aria-hidden>
-            <span><i style={{ border: '2px solid var(--ink)', background: '#fff' }} />Pickup</span>
+            <span><i style={{ border: '2px solid var(--ink)', background: 'var(--surface)' }} />Pickup</span>
             <span><i style={{ background: 'var(--jade)' }} />Driver on a ride</span>
-            <span><i style={{ border: '2px solid var(--warning)', background: '#fff' }} />Searching</span>
-            <span><i style={{ border: '2px solid #8a938e', background: '#fff' }} />Available driver</span>
+            <span><i style={{ border: '2px solid var(--warning)', background: 'var(--surface)' }} />Searching</span>
+            <span><i style={{ border: '2px solid var(--text-3)', background: 'var(--surface)' }} />Available driver</span>
           </div>
         </Card>
       </div>

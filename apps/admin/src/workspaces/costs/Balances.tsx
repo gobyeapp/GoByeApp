@@ -8,10 +8,8 @@ export default function Balances() {
   const d = useData();
   return (
     <>
-      <CostsHead title="Service balances" sub="Services we pay for per use, such as identity checks and sign in codes: money left, money spent and how many more uses it covers." />
-      <Notice tone="info">
-        These figures are simulated. Once each service is connected, the system reads the balance from the provider, or works it out from our own record of every use. Nobody needs to open the provider’s site to check.
-      </Notice>
+      <CostsHead title="Service balances" sub="Pay per use services: money left, spent and how far it goes." />
+      <Notice tone="info">Simulated until each service is connected. Then balances come from the provider or our own records, never their site.</Notice>
       <div className="section">
         <BalanceCards integrations={d.integrations} />
       </div>

@@ -25,17 +25,17 @@ export function LiveMap({ city, rides, drivers, selected, onSelect }: { city: Ci
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={`Simulated positions of ${rides.length} active rides and ${drivers.length} available drivers in ${CITY_LABELS[city]}`}>
         <defs>
           <pattern id="mapgrid" width="64" height="64" patternUnits="userSpaceOnUse">
-            <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#eef1ef" strokeWidth="1" />
+            <path d="M 64 0 L 0 0 0 64" fill="none" stroke="var(--chart-grid)" strokeWidth="1" />
           </pattern>
         </defs>
-        <rect width={W} height={H} fill="#fff" />
+        <rect width={W} height={H} fill="var(--surface)" />
         <rect width={W} height={H} fill="url(#mapgrid)" />
         {/* Faint "arterial roads" for orientation only. */}
-        <path d={`M 0 ${H * 0.62} C ${W * 0.3} ${H * 0.52}, ${W * 0.6} ${H * 0.74}, ${W} ${H * 0.58}`} stroke="#e3e7e5" strokeWidth="16" fill="none" strokeLinecap="round" />
-        <path d={`M ${W * 0.38} 0 C ${W * 0.44} ${H * 0.4}, ${W * 0.32} ${H * 0.7}, ${W * 0.4} ${H}`} stroke="#e3e7e5" strokeWidth="12" fill="none" strokeLinecap="round" />
+        <path d={`M 0 ${H * 0.62} C ${W * 0.3} ${H * 0.52}, ${W * 0.6} ${H * 0.74}, ${W} ${H * 0.58}`} stroke="var(--track)" strokeWidth="16" fill="none" strokeLinecap="round" />
+        <path d={`M ${W * 0.38} 0 C ${W * 0.44} ${H * 0.4}, ${W * 0.32} ${H * 0.7}, ${W * 0.4} ${H}`} stroke="var(--track)" strokeWidth="12" fill="none" strokeLinecap="round" />
         {drivers.map((dr) => {
           const p = P(spot(dr.id));
-          return <circle key={dr.id} cx={p.x} cy={p.y} r={10} fill="#fff" stroke="#8a938e" strokeWidth={4} />;
+          return <circle key={dr.id} cx={p.x} cy={p.y} r={10} fill="var(--surface)" stroke="var(--text-3)" strokeWidth={4} />;
         })}
         {rides.map((r) => {
           const a = P(spot(r.pickup));
@@ -46,9 +46,9 @@ export function LiveMap({ city, rides, drivers, selected, onSelect }: { city: Ci
           const searching = r.status === 'searching';
           return (
             <g key={r.id} onClick={() => onSelect(r.id)} style={{ cursor: 'pointer' }} opacity={selected && !sel ? 0.45 : 1}>
-              {!searching ? <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={sel ? 'var(--jade)' : '#b9c4bf'} strokeWidth={sel ? 7 : 3.5} strokeDasharray={sel ? undefined : '10 10'} strokeLinecap="round" /> : null}
-              <circle cx={a.x} cy={a.y} r={sel ? 16 : 12} fill="#fff" stroke={searching ? 'var(--warning)' : 'var(--ink)'} strokeWidth={5} />
-              {!searching ? <circle cx={car.x} cy={car.y} r={sel ? 16 : 12} fill="var(--jade)" stroke="#fff" strokeWidth={5} /> : null}
+              {!searching ? <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={sel ? 'var(--jade)' : 'var(--text-3)'} strokeWidth={sel ? 7 : 3.5} strokeDasharray={sel ? undefined : '10 10'} strokeLinecap="round" /> : null}
+              <circle cx={a.x} cy={a.y} r={sel ? 16 : 12} fill="var(--surface)" stroke={searching ? 'var(--warning)' : 'var(--ink)'} strokeWidth={5} />
+              {!searching ? <circle cx={car.x} cy={car.y} r={sel ? 16 : 12} fill="var(--jade)" stroke="var(--surface)" strokeWidth={5} /> : null}
               {sel ? (
                 <>
                   <text x={a.x + 24} y={a.y - 16} className="map-label">{r.pickup}</text>

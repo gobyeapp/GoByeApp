@@ -147,6 +147,10 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
     { id: 'stf-audit', name: 'External Auditor', email: 'audit@example.test', roles: ['auditor'], cities: [], status: 'active' },
     { id: 'stf-new', name: 'Pending Invite', email: 'new.hire@example.test', roles: ['care'], cities: ['lagos'], status: 'invited' },
   ];
+  staff.forEach((s, i) => {
+    s.twoStep = s.status === 'active' && !['stf-care', 'stf-mkt', 'stf-ops-abj'].includes(s.id);
+    s.lastSignInAt = s.status === 'active' ? now - (i * 7 + 2) * HOUR : undefined;
+  });
   const actor = (sid: string): Actor => {
     const s = staff.find((x) => x.id === sid)!;
     return { kind: 'staff', id: s.id, name: s.name };

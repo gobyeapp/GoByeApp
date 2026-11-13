@@ -16,7 +16,7 @@
 .auto-card .auto-foot { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 12.5px; color: var(--text-2); border-top: 1px solid var(--border); padding-top: 10px; margin-top: auto; }
 .auto-steps ol { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
 .auto-steps li { color: var(--text); }
-.auto-ico { width: 32px; height: 32px; border-radius: 9px; display: inline-grid; place-items: center; background: #fff; border: 1px solid var(--border); box-shadow: var(--e2); color: var(--jade); flex-shrink: 0; }
+.auto-ico { width: 32px; height: 32px; border-radius: 9px; display: inline-grid; place-items: center; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--e2); color: var(--jade); flex-shrink: 0; }
 .auto-param { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--border); }
 .auto-param:first-of-type { border-top: none; }
 .auto-param .auto-value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -24,4 +24,4 @@
 .auto-queue-head { display: flex; align-items: center; gap: 10px; margin: 24px 0 10px; }
 .auto-queue-head h2 { font-size: 16px; font-weight: 600; color: var(--ink); }
 .auto-cell-key { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--text-2); overflow-wrap: anywhere; }
-.drawer code, .table code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #fff; border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; overflow-wrap: anywhere; }
+.drawer code, .table code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; overflow-wrap: anywhere; }

@@ -1,4 +1,5 @@
 import { DRIVER_ACCESS_PACKAGES } from '../payments';
+import { naira } from '../money';
 import type { Kobo } from '../types';
 
 /**
@@ -189,4 +190,17 @@ export function seedVendors(): Vendor[] {
     v('ven-monitoring', 'Monitoring', 'monitoring', 'Not chosen', 'not_chosen', 'Errors, uptime and alerts (MONITORING_OBSERVABILITY.md).', 'Sani Developer'),
     v('ven-payments', 'Paystack', 'payment_provider', 'Test mode', 'trial', 'Planned provider (Q-042). Test mode charges nothing; live fees depend on the contract.', 'Grace Finance', 'NGN'),
   ];
+}
+
+/**
+ * Year one technology budget from the cost sheet "GoBye Technology Costs, Year One" (safe launch,
+ * 13 Nov 2026): ₦1,067,600. Used as the planned monthly running cost until real bills are entered.
+ * A plan, not a bill: screens label it "planned".
+ */
+export const PLANNED_TECH_COST_YEAR = naira(1_067_600);
+export const PLANNED_TECH_COST_MONTH = Math.round(PLANNED_TECH_COST_YEAR / 12) as Kobo;
+
+/** Paying drivers needed in a month to cover a monthly cost at a monthly pass price. */
+export function driversToCover(monthlyCost: Kobo, passPrice: Kobo): number {
+  return passPrice > 0 ? Math.ceil(monthlyCost / passPrice) : 0;
 }

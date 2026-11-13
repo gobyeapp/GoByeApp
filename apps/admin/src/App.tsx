@@ -1,4 +1,5 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
+import { resolveTheme, useTheme } from './data/theme';
 import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { CITY_LABELS, ROLE_LABELS, type CityId } from '@gobye/core';
 import { initials } from '@/data/format';
@@ -13,16 +14,16 @@ import { Icon } from '@/ui/Icon';
 import { Dimensional } from '@/ui/Dimensional';
 import { Empty, ErrorState, IconButton, Notice, Select, Skeleton } from '@/ui/kit';
 
-/** The dashboard is white only (owner rule 2026-10-23): no dark theme. Clears any choice saved by older builds. */
-function useLightOnly() {
-  useEffect(() => {
-    document.documentElement.removeAttribute('data-theme');
-    try {
-      localStorage.removeItem('gobye.admin.theme');
-    } catch {
-      /* storage unavailable */
-    }
-  }, []);
+
+/** Top bar light/dark switch (D-069). System is chosen in Settings, Appearance. */
+function ThemeToggle() {
+  const [choice, set] = useTheme();
+  const dark = resolveTheme(choice) === 'dark';
+  return (
+    <button className="icon-btn" aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'} title={dark ? 'Light mode' : 'Dark mode'} onClick={() => set(dark ? 'light' : 'dark')}>
+      <Icon name={dark ? 'sun' : 'moon'} size={18} />
+    </button>
+  );
 }
 
 export default function App() {
@@ -146,7 +147,6 @@ function Shell() {
   const { staff, can, inScope, signOut } = useSession();
   const { data, loading, error, reload, reset, now, simulateFailures, setSimulateFailures } = usePlatform();
   const { city, setCity, range, setRange } = useFilters();
-  useLightOnly();
   const [collapsed, toggleCollapsed] = useCollapsed();
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -288,6 +288,7 @@ function Shell() {
                 </>
               )}
             </Popover>
+            <ThemeToggle />
             <Popover
               label="Notifications"
               className="icon-dot"

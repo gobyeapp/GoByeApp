@@ -82,6 +82,11 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Pay per use services (D-068) carry `usage` (unit prices, top ups, uses). The admin **Service balances** page and the stakeholder summary show money left, spent this month and how many more uses it covers. A low balance raises a badge.
 - The admin has three audiences: **developer** (technical pages), **staff** (their work queues) and **stakeholder** (the `stakeholder` role: the business summary, reports and costs, in plain words, view only). Never give the stakeholder role a non-view permission, technical pages or people's personal details.
 
+## Admin look (D-069)
+
+- Flat and compact; light by default, with a full dark theme through `data-theme` tokens in `apps/admin/src/styles.css`. Never hardcode a colour in admin CSS or TSX: use the tokens, including `--chart*` for charts.
+- Figures and charts first, short labels, little prose. Use `ui/charts.tsx` (`Kpi`, `Sparkline`, `BarChart`, `Donut`, `Ring`, `HBars`) before writing paragraphs.
+
 ## Documentation maintenance
 
 At the end of each meaningful session: append to `LOG.md`; update `docs/IMPLEMENTATION_PLAN.md`, `docs/SCREEN_INVENTORY.md` statuses, `docs/DECISIONS.md`, `docs/TEST_PLAN.md` (tests actually run), `docs/OPEN_QUESTIONS.md`, `docs/BACKEND_HANDOVER.md` if contracts changed; state the next task. Code and docs must never disagree.

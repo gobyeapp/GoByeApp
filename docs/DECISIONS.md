@@ -646,3 +646,35 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - **stakeholder:** the summary.
   - The company owner role keeps full view plus decisions.
 
+## D-069 — Admin look: flat and compact, light by default with a dark theme, charts first (2026-11-13, owner)
+
+- **Owner's direction:** less text and more graphs and analytics. The owner's reference design (a dark, flat, compact admin with a Settings page: General, Team, Sessions, Support) guides the admin from now on.
+- **The owner chose:**
+  - restyle the whole admin;
+  - GoBye brand colours as the accent, not the reference's violet;
+  - **light by default**.
+- **Supersedes:**
+  - D-056's white-first look and its "no dark theme" rule;
+  - the jade accent.
+- **Tokens** (`apps/admin/src/styles.css`):
+  - plain surfaces, 1px dividers, no card shadows (only menus and dialogs float);
+  - radii of 6, 8 and 10px; 14px body text; sidebar 232px; the selected item is a filled grey block.
+  - **Light:** white background, #F2F2F2 surfaces, #E9E9E9 borders, text #0B0B0B / #555, accent aubergine #351A40.
+  - **Dark** (`data-theme="dark"`): #0B0B0B background, #111 to #1A1A1A surfaces, #242424 / #343434 borders, text #F2F2F2 / #AAA, accent tangerine #FF751F (aubergine is unreadable on near black).
+  - Chart colours are tokens too (`--chart`, `--chart-2`, `--chart-3`, `--chart-alt`, `--chart-grid`).
+- **Theme switch** (`data/theme.ts`): Light, System or Dark. It is stored per browser, falls back to Light, and is set from the moon button in the top bar or Settings → Appearance.
+- **Charts** (`ui/charts.tsx`): hand-built SVG, so no new dependency:
+  - `Kpi` tiles with a `Sparkline`;
+  - `BarChart` (grouped bars, a dashed target line, hover values and a hidden table for screen readers);
+  - `Donut`, `Ring` and `HBars`.
+- **Pages rebuilt chart-first:**
+  - **Business summary:** money in vs running costs over 6 months, a costs-covered ring with the break-even passes, rides per day, a drivers donut, and service balance rings.
+  - **Service balances:** a balance ring, uses by item and a price table.
+- **Running cost:** until real bills are entered, the running cost shown is the planned year one budget (₦1,067,600 ÷ 12, `PLANNED_TECH_COST_MONTH`), labelled "planned".
+- **Settings** (`/settings`, open to every signed-in role):
+  - General: profile, appearance cards, and security (role, password, two step sign in);
+  - Team: members with role, last sign-in and two step status;
+  - Sessions: this device;
+  - Support: email support, report a problem, search.
+  - Password change, two step setup and remote sign-out are disabled until real staff sign-in exists, and say so.
+

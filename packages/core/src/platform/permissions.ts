@@ -153,6 +153,9 @@ export interface StaffMember {
   /** City scope; empty = all cities. */
   cities: string[];
   status: 'invited' | 'active' | 'suspended';
+  /** Two step sign in set up (simulated until real staff sign in exists). */
+  twoStep?: boolean;
+  lastSignInAt?: number;
 }
 
 export function permissionsOf(staff: Pick<StaffMember, 'roles' | 'status'>): Set<Permission> {
