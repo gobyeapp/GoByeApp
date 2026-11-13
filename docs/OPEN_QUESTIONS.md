@@ -529,6 +529,7 @@ When a question is answered: record the answer and date here, add/supersede a de
 - **Question:** Manual staff review of NIN, licence and vehicle papers at launch, or a KYC provider for lookups?
 - **Owner:** Owner / Operations / Legal · **Blocks:** Phase 2b (A-9)
 - **Assumption:** Manual review at launch.
+- **Answered 2026-11-13 (D-066):** use **QoreID** for the lookups (NIN, licence, face match, liveness, vehicle). Staff still approve. Prices and a sandbox are to be confirmed.
 
 
 ### Q-080 — Which company owns GoBye's WhatsApp Business account

@@ -586,3 +586,24 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - The admin "Data platform" page shows the readiness checks, the move plan and the alternatives (`DATA_PLATFORM_PORTABILITY.md`).
   - Neon is the backup database option.
 - **Not changed:** Supabase project `gobye-staging`, the migrations, the roles.
+
+## D-066 — Driver identity checks: QoreID (2026-11-13, owner)
+
+- **Owner's choice (2026-11-13):** QoreID (https://qoreid.com) is the identity check provider for drivers. It answers Q-079 and BACKEND_PHASE_2_PLAN A-9.
+- **What it covers for drivers** (from its API documentation, docs.qoreid.com, read 2026-11-13):
+  - NIN and virtual NIN;
+  - driver's licence;
+  - face match against the NIN or licence photo, and a liveness check;
+  - licence plate and vehicle lookups;
+  - guarantor and address checks;
+  - CAC lookup, useful for fleet owners.
+- **Still to confirm with QoreID:**
+  - prices per check (none published; request a quote);
+  - a test (sandbox) account;
+  - how they handle data under the NDPA, and a data processing agreement.
+- **How it fits:**
+  - one `IdentityVerificationService` in the API, with a simulated version until a contract and keys exist, so the provider can be swapped;
+  - staff still make the final approval decision;
+  - keys go only in the backend's secret store.
+- **Not changed:** nothing has been built or bought yet. This is a Phase 2b work package.
+

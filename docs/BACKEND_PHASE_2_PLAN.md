@@ -38,7 +38,7 @@
 | A-3 | "Every sign-in ends with a phone code" (D-045/D-048) | (a) Supabase phone MFA on every sign-in: +$75/month for the first project, +$10 each additional, plus SMS. (b) Verify the phone once at sign-up, again on a new device, and on sensitive changes. (c) Phone OTP *is* the sign-in (no password). | **(b)**, written up as **D-062 (Proposed)** with its threat controls (`AUTHENTICATION_PLAN.md` §6). Not approved yet. |
 | A-4 | SMS route for one-time codes | A provider built into Supabase (Twilio, MessageBird, Vonage, Textlocal), or the **Send SMS hook** (verified with Standard Webhooks) to a Nigerian gateway | Test delivery and price to MTN, Airtel, Glo and 9mobile on staging, then choose |
 | A-6 | Access-token lifetime | 5–60 min | 15 min |
-| A-9 | Identity checks for drivers (NIN, licence) | Manual staff review only at launch, or a KYC provider (NIN/BVN/licence lookup) | Manual at launch; choose a provider in Phase 2b |
+| A-9 | Identity checks for drivers (NIN, licence) | Manual staff review only at launch, or a KYC provider (NIN/BVN/licence lookup) | **Decided (D-066): QoreID** for lookups, staff approve; built in Phase 2b |
 | A-5 | Documents before a malware scanner exists | Wait, or review unscanned files in a restricted viewer | Wait: choose a scanner (Q-067) in Phase 2 |
 | A-10 | Terms and privacy notice versions that sign-up records consent to (Q-063, NDPA) | — | Legal to supply text and version ids |
 
@@ -196,7 +196,7 @@ WP1 and WP2 can ship to staging before WP3. Riders can sign up while driver docu
 | SMS one-time codes | Per message; provider not chosen | Volume ≈ sign-ups + new-device sign-ins under A-3(b) |
 | Supabase phone MFA (only if A-3(a)) | $75/month first project + $10 each additional | Avoided by A-3(b) |
 | Malware scanner (Q-067) | Unknown | Needed before documents can be approved |
-| KYC provider (only if A-9 chooses one) | Per lookup | Not needed at launch with manual review |
+| QoreID identity checks (D-066) | Per check; quote requested | NIN, licence, face match and liveness per driver |
 | StackShift staging | Unknown (Q-075) | |
 
 ## 6. Risks specific to Phase 2

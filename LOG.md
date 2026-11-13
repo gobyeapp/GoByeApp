@@ -1055,3 +1055,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - dry runs pass (website 81 files, admin 110).
 - **Docs:** `docs/DEPLOYMENT_CLOUDFLARE.md`, with the owner steps: rotate the token, Workers Paid, finish migrations, GitHub settings, deploy, Supabase sign-in settings, gateway.
 - **Dependency:** `@cloudflare/containers` 0.3.7 (MIT OR Apache-2.0) in `infra/cloudflare`.
+
+## 2026-11-13 — Driver identity provider chosen: QoreID (D-066)
+
+- The owner chose QoreID for driver identity checks (NIN, licence, face match, liveness, vehicle). This answers Q-079 and A-9.
+- Docs updated: `DECISIONS.md` (D-066), `OPEN_QUESTIONS.md` Q-079, `BACKEND_PHASE_2_PLAN.md` A-9 and the cost table.
+- Next: request QoreID pricing and a sandbox account. The integration is built in Phase 2b behind `IdentityVerificationService`.
+
