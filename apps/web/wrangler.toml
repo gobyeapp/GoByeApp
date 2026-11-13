@@ -1,0 +1,19 @@
+# GoBye website on Cloudflare static hosting (Workers static assets, D-065). TEMPLATE. NOT DEPLOYED.
+# Free; no Worker code runs, only the files in this folder (minus .assetsignore).
+# Headers: _headers · rewrites: _redirects · clean URLs (/components for components.html): html_handling.
+#
+#   npx wrangler@4.161.0 deploy -c apps/web/wrangler.toml --env preview     → a workers.dev address to check
+# The custom domain (gobye.app) is added only after the owner approves the move off Vercel.
+
+name = "gobye-web"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[assets]
+directory = "."
+html_handling = "auto-trailing-slash"
+not_found_handling = "none"
+
+[env.preview]
+name = "gobye-web-preview"
+workers_dev = true

@@ -1041,3 +1041,17 @@ Owner brief: one management platform with workspaces and permissions per team ov
   2. Paste the same value into the secret.
   3. Wait 5 minutes.
   4. Run `status` and read the Describe step.
+
+## 2026-11-13 — Cloudflare deployment set up (not deployed)
+
+- **API on Cloudflare Containers:**
+  - `infra/cloudflare/src/workers/api-container/` (Worker, `GobyeApi` container, settings pass-through, wrangler staging config: `basic` instance, `weur` hint, 5-minute keep-alive cron);
+  - manual workflow `.github/workflows/deploy-api-staging.yml`;
+  - tests: settings pass-through and template shape (infra 3), and the template plus secrets as a valid staging config (API 1);
+  - `wrangler deploy --dry-run` accepts the config. The image build stops only on Docker Hub, which is blocked here.
+- **Website and admin on Cloudflare static hosting:**
+  - `apps/web/{wrangler.toml,_headers,_redirects,.assetsignore}` and `apps/admin/{wrangler.toml,public/_headers}`;
+  - headers identical to `vercel.json` (test);
+  - dry runs pass (website 81 files, admin 110).
+- **Docs:** `docs/DEPLOYMENT_CLOUDFLARE.md`, with the owner steps: rotate the token, Workers Paid, finish migrations, GitHub settings, deploy, Supabase sign-in settings, gateway.
+- **Dependency:** `@cloudflare/containers` 0.3.7 (MIT OR Apache-2.0) in `infra/cloudflare`.

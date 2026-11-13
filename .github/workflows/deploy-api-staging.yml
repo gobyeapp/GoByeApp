@@ -1,0 +1,79 @@
+# Deploy the API to STAGING on Cloudflare Containers (D-065, docs/DEPLOYMENT_CLOUDFLARE.md).
+# Manual only (Actions → "Deploy API (staging)" → Run workflow). Never runs on push, never touches
+# production. Run "Staging database → up" first: the API refuses to be ready while migrations are pending.
+#
+# GitHub → Settings → Environments → "staging":
+#   Secrets:   CLOUDFLARE_API_TOKEN       token with Workers Scripts edit + Containers edit for the account
+#              CLOUDFLARE_ACCOUNT_ID
+#              STAGING_DATABASE_URL, STAGING_DATABASE_MIGRATION_URL   (same as the database workflow)
+#              STAGING_ORIGIN_AUTH_SECRET   48+ random characters; the same value goes on the gateway Worker
+#   Variables: STAGING_DATABASE_CA_CERT   Supabase root certificate (PEM, public) — required (verify-full)
+#              STAGING_API_ORIGIN_URL     this Worker's address once known (https://gobye-api-staging.<sub>.workers.dev)
+name: Deploy API (staging)
+on:
+  workflow_dispatch:
+    inputs:
+      allow_degraded:
+        description: "Accept /health/ready = degraded (e.g. before Supabase signing keys are switched to asymmetric)"
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: deploy-api-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: staging
+    env:
+      WRANGLER: npx --yes wrangler@4.161.0
+      CONFIG: infra/cloudflare/src/workers/api-container/wrangler.api-container.toml
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "22", cache: npm }
+      - name: Required settings present
+        env:
+          DB: ${{ secrets.STAGING_DATABASE_URL }}
+          MIG: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          OAS: ${{ secrets.STAGING_ORIGIN_AUTH_SECRET }}
+          CA: ${{ vars.STAGING_DATABASE_CA_CERT }}
+        run: |
+          missing=""
+          [ -n "$CLOUDFLARE_API_TOKEN" ] || missing="$missing CLOUDFLARE_API_TOKEN"
+          [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || missing="$missing CLOUDFLARE_ACCOUNT_ID"
+          [ -n "$DB" ] || missing="$missing STAGING_DATABASE_URL"
+          [ -n "$MIG" ] || missing="$missing STAGING_DATABASE_MIGRATION_URL"
+          [ ${#OAS} -ge 32 ] || missing="$missing STAGING_ORIGIN_AUTH_SECRET(32+ chars)"
+          [ -n "$CA" ] || missing="$missing STAGING_DATABASE_CA_CERT(variable)"
+          if [ -n "$missing" ]; then echo "::error::Add to the 'staging' environment:$missing"; exit 1; fi
+          echo "All settings present"
+      - run: npm ci --workspace infra/cloudflare --include-workspace-root=false --no-audit --no-fund
+      - name: Build the image and deploy the Worker + container
+        run: $WRANGLER deploy -c "$CONFIG" --env staging --var "APP_VERSION:${GITHUB_SHA::7}"
+      - name: Set the Worker's secrets (passed into the container)
+        env:
+          DB: ${{ secrets.STAGING_DATABASE_URL }}
+          MIG: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          OAS: ${{ secrets.STAGING_ORIGIN_AUTH_SECRET }}
+          CA: ${{ vars.STAGING_DATABASE_CA_CERT }}
+        run: |
+          f="$RUNNER_TEMP/secrets.json"
+          node -e 'require("fs").writeFileSync(process.argv[1], JSON.stringify({ DATABASE_URL: process.env.DB, DATABASE_MIGRATION_URL: process.env.MIG, ORIGIN_AUTH_SECRET: process.env.OAS, DATABASE_CA_CERT: process.env.CA.replace(/\r?\n/g, "\\n") }), { mode: 0o600 })' "$f"
+          $WRANGLER secret bulk "$f" -c "$CONFIG" --env staging
+          rm -f "$f"
+      - name: Health check (origin)
+        if: vars.STAGING_API_ORIGIN_URL != ''
+        run: |
+          extra=""
+          [ "${{ inputs.allow_degraded }}" = "true" ] && extra="--allow-degraded"
+          node apps/api/scripts/health-check.mjs "${{ vars.STAGING_API_ORIGIN_URL }}" --expect-version "${GITHUB_SHA::7}" --wait 180 $extra
+      - name: Next step
+        if: vars.STAGING_API_ORIGIN_URL == ''
+        run: echo "Deployed. Copy this Worker's workers.dev address from the deploy log into the STAGING_API_ORIGIN_URL variable, then re-run to health-check it."

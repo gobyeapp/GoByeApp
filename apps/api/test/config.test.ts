@@ -123,3 +123,23 @@ test('TLS settings in the database URL cannot override DATABASE_SSL', () => {
   }
 });
 
+
+test('the Cloudflare Containers staging template + its four secrets is a valid staging configuration (D-065)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { join } = await import('node:path');
+  const toml = readFileSync(join(__dirname, '..', '..', '..', '..', '..', '..', 'infra', 'cloudflare', 'src', 'workers', 'api-container', 'wrangler.api-container.toml'), 'utf8');
+  const vars = toml.slice(toml.indexOf('[env.staging.vars]'));
+  const env: Record<string, string> = {};
+  for (const m of vars.matchAll(/^([A-Z0-9_]+) = "(.*)"$/gm)) env[m[1]!] = m[2]!;
+  assert.equal(env.APP_ENV, 'staging');
+  const c = loadConfig({
+    ...env,
+    // The four secrets set with `wrangler secret` (placeholders here).
+    DATABASE_URL: 'postgresql://gobye_api.ref:placeholder@aws-0-eu-west-2.pooler.supabase.com:6543/postgres',
+    DATABASE_MIGRATION_URL: 'postgresql://gobye_migrator.ref:placeholder@aws-0-eu-west-2.pooler.supabase.com:5432/postgres',
+    DATABASE_CA_CERT: '-----BEGIN CERTIFICATE-----\\nMIIB\\n-----END CERTIFICATE-----',
+    ORIGIN_AUTH_SECRET: 'z'.repeat(48),
+  });
+  assert.equal(c.isProductionLike, true);
+  assert.equal(c.WORKER_ENABLED, true);
+});

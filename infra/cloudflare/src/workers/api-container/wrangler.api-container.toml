@@ -1,0 +1,61 @@
+# GoBye API on Cloudflare Containers (D-065, docs/DEPLOYMENT_CLOUDFLARE.md). TEMPLATE. NOT DEPLOYED.
+#
+# Runs the existing API image (apps/api/Dockerfile) as one container behind this Worker. The public entry
+# point stays the API gateway Worker (api.gobye.app); point its ORIGINS_JSON at this Worker's address.
+# Needs: the Workers Paid plan (owner turns it on), Docker on the machine that deploys, owner approval.
+#
+#   npx wrangler@4.161.0 deploy -c infra/cloudflare/src/workers/api-container/wrangler.api-container.toml --env staging
+#
+# Secrets are never written here. Set them per environment (or use the "Deploy API (staging)" workflow):
+#   DATABASE_URL, DATABASE_MIGRATION_URL, DATABASE_CA_CERT, ORIGIN_AUTH_SECRET
+#   npx wrangler secret put DATABASE_URL -c …/wrangler.api-container.toml --env staging
+#
+# Paths are relative to this file; the image builds with the repository root as context, like CI.
+
+name = "gobye-api"
+main = "index.ts"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[env.staging]
+name = "gobye-api-staging"
+# A workers.dev address for the gateway to call. The API refuses /v1 requests without the gateway's
+# signature, so this address is not a way around the gateway.
+workers_dev = true
+triggers = { crons = ["*/5 * * * *"] }
+
+[[env.staging.containers]]
+class_name = "GobyeApi"
+image = "../../../../../apps/api/Dockerfile"
+image_build_context = "../../../../.."
+# 1/4 vCPU, 1 GiB: measured ≈ 61 MB under load locally (STAGING_COST_ESTIMATE.md §3).
+instance_type = "basic"
+max_instances = 2
+
+[[env.staging.durable_objects.bindings]]
+name = "API"
+class_name = "GobyeApi"
+
+[[env.staging.migrations]]
+tag = "v1"
+new_sqlite_classes = ["GobyeApi"]
+
+[env.staging.vars]
+APP_ENV = "staging"
+LOG_LEVEL = "info"
+DATABASE_SSL = "verify-full"
+AUTH_PROVIDER = "supabase"
+SUPABASE_URL = "https://ubdfzekvoikrfxrthfiq.supabase.co"
+SUPABASE_JWT_AUDIENCE = "authenticated"
+STAFF_REQUIRE_MFA = "true"
+ORIGIN_AUTH_REQUIRED = "true"
+CORS_ORIGINS = "https://admin-staging.gobye.app"
+PAYMENTS_PROVIDER = "simulated"
+MAPS_PROVIDER = "fake"
+NOTIFICATIONS_PROVIDER = "log"
+STORAGE_PROVIDER = "none"
+WORKER_ENABLED = "true"
+WHATSAPP_PROVIDER = "none"
+
+# Production: not set up. Same shape as staging, with its own database, real providers and two or more
+# instances, after staging has passed BACKEND_PHASE_1_VERIFICATION.md §4.6 and the owner approves.

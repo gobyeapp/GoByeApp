@@ -1,0 +1,24 @@
+# Cloudflare static hosting headers for the website (D-065). Kept in step with vercel.json by
+# infra/cloudflare/test/static-sites.test.ts while both hosts exist.
+/assets/*
+  Cache-Control: public, max-age=86400
+/vendor/*
+  Cache-Control: public, max-age=86400
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
+/components.html
+  X-Robots-Tag: noindex, nofollow
+/preview.html
+  X-Robots-Tag: noindex, nofollow
+/driver-ui-source.html
+  X-Robots-Tag: noindex, nofollow
+/feature-ui-source.html
+  X-Robots-Tag: noindex, nofollow
+/open*
+  X-Robots-Tag: noindex, nofollow

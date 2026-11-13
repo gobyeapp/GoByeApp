@@ -1,0 +1,5 @@
+# Files in apps/web that are not part of the website (Cloudflare static hosting, D-065).
+wrangler.toml
+vercel.json
+README.md
+.assetsignore

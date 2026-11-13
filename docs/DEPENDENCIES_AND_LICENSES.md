@@ -139,3 +139,12 @@ Tests use Node's built-in `node:test`; no test framework dependency.
 - GitHub Actions `actions/checkout` v7.0.1 and `actions/setup-node` v7.1.0, pinned by commit SHA in `.github/workflows/ci.yml`.
 
 `expo lint` was replaced by `eslint .`: its config package was never installed, so the old script could not run.
+
+## Cloudflare Containers (infra/cloudflare, added 2026-11-13, D-065)
+
+| Package | Version | Licence | Purpose |
+|---|---|---|---|
+| @cloudflare/containers | 0.3.7 | MIT OR Apache-2.0 | Container class for running the API image on Cloudflare Containers (`src/workers/api-container`) |
+
+Wrangler is not installed in the repo. Workflows and docs run the pinned `npx wrangler@4.161.0`.
+

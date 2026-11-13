@@ -1,0 +1,2 @@
+# WhatsApp "Open GoBye" links (D-064): every /open/... path is served by open.html.
+/open/* /open.html 200

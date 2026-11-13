@@ -1,0 +1,18 @@
+# GoBye admin on Cloudflare static hosting (Workers static assets, D-065). TEMPLATE. NOT DEPLOYED.
+# Serves the Vite build (npm run build → dist/, which includes public/_headers). Every unknown path
+# returns index.html so the app's own router handles it.
+#
+#   npm run build -w apps/admin && npx wrangler@4.161.0 deploy -c apps/admin/wrangler.toml --env preview
+# The custom domain (admin.gobye.app) is added only after the owner approves the move off Vercel.
+
+name = "gobye-admin"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"
+
+[env.preview]
+name = "gobye-admin-preview"
+workers_dev = true

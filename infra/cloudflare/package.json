@@ -9,6 +9,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
     "@gobye/core": "*"
   }
 }
