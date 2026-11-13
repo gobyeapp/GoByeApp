@@ -3,6 +3,14 @@ import { count, money, when } from '@/data/format';
 import { usePlatform } from '@/data/store';
 import { Card, Meter, Pill } from '@/ui/kit';
 
+/** Plain names: what the service does, then who provides it. */
+const SERVICE_NAME: Partial<Record<IntegrationRecord['area'], string>> = {
+  identity: 'Driver identity checks',
+  sms: 'Sign in codes by SMS',
+  email: 'Emails',
+};
+const providerOf = (i: IntegrationRecord) => (/^not chosen/i.test(i.provider) ? 'Provider not chosen yet' : i.provider.replace(/\s*\(.*\)$/, ''));
+
 const SOURCE: Record<'provider_api' | 'our_records' | 'simulated', string> = {
   provider_api: 'From the provider’s balance',
   our_records: 'Worked out from our own records',
@@ -18,10 +26,10 @@ export function BalanceCards({ integrations, showPrices = true }: { integrations
   return (
     <div className="grid cols-2">
       {services.map(({ integration: i, usage: u, summary: s }) => {
-        const name = i.provider.replace(/\s*\(.*\)$/, '');
+        const name = SERVICE_NAME[i.area] ?? providerOf(i);
         const share = u.toppedUp > 0 ? s.balance / u.toppedUp : 0;
         return (
-          <Card key={i.id} title={<span>{name}</span>} actions={s.low ? <Pill tone="warning">Top up soon</Pill> : <Pill tone="success">Enough for now</Pill>}>
+          <Card key={i.id} title={<span>{name} <span className="muted small">· {providerOf(i)}</span></span>} actions={s.low ? <Pill tone="warning">Top up soon</Pill> : <Pill tone="success">Enough for now</Pill>}>
             <div className="balance-card" aria-label={`${name} balance`}>
               <div className="balance-big">{money(s.balance)} <span className="muted small">left</span></div>
               <Meter value={share} label={`${name}: share of money paid in that is left`} />

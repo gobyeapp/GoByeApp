@@ -39,7 +39,7 @@ export default function Summary() {
         <Stat icon="steering" label="Drivers able to drive" value={count(drivers)} sub={`${count(waiting)} more waiting for checks`} />
         <Stat icon="route" label="Rides completed" value={count(rides)} sub={`In ${monthLabel(month)}`} />
         <Stat icon="wallet" label="Money in" value={money(s.revenue)} sub="Driver passes paid this month" />
-        <Stat icon="receipt" label="Running costs" value={money(s.operating)} sub="Services and tools this month" />
+        <Stat icon="receipt" label="Running costs" value={money(s.operating)} sub={s.operating > 0 ? "Services and tools this month" : "No bills entered yet this month"} />
       </div>
 
       <div className="section">
