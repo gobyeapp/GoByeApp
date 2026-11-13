@@ -1028,3 +1028,16 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Core:** `platform/dataPortability.ts` holds the components in use, 12 readiness checks with evidence, provider options with sources and a 14-step move plan (4 tests). The mock integrations now name Supabase for the database and sign-in.
 - **Admin:** new **Technical → Data platform** page: providers, readiness, the move plan by scope and the options. It is labelled as reference, not live (2 tests).
 - **Docs:** `docs/DATA_PLATFORM_PORTABILITY.md`, D-065.
+
+## 2026-11-13 — Staging migrations paused (resume here)
+
+- **Done:**
+  - GitHub environment `staging` with both secrets (project ref `ubdfzekvoikrfxrthfiq`, pooler host `aws-0-eu-west-2.pooler.supabase.com`, London);
+  - the workflow reaches Supabase over TLS, and the user `gobye_migrator` is recognised.
+- **Blocked:** `password authentication failed for user "gobye_migrator"` (runs #1 and #6). The cause is either a password mismatch between the secret and the role, or the pooler caching an old password.
+- **Added:** a workflow step "Describe the connection settings (no password shown)" (user, host, port, password length and character types) and a clear connect error in `migrate.js` (`be7b002`).
+- **To resume:**
+  1. Reset the password with a letters-and-digits value in the SQL Editor.
+  2. Paste the same value into the secret.
+  3. Wait 5 minutes.
+  4. Run `status` and read the Describe step.
