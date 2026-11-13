@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { CITY_LABELS, withdrawable, type CityId, type DocumentKind, type DriverDocument, type DriverRecord, type DriverVerification } from '@gobye/core';
+import { CITY_LABELS, IDENTITY_CHECKS, IDENTITY_PROVIDER, identityCheckSummary, simulatedIdentityChecks, withdrawable, type CityId, type IdentityCheckOutcome, type DocumentKind, type DriverDocument, type DriverRecord, type DriverVerification } from '@gobye/core';
 import { count, date, label, money, when } from '@/data/format';
 import { PanelSection, TRIP_STATUS, useOpenRecord } from '@/data/records';
 import { useScopedFilter, useSession } from '@/data/session';
@@ -40,6 +40,9 @@ const ACTION_UI: Record<VerificationAction, { text: string; done: string; audit:
   suspend: { text: 'Suspend', done: 'Driver suspended and taken offline', audit: 'driver.suspended', variant: 'danger-soft', reason: 'Reason', body: 'The driver goes offline straight away and can’t take trips until reinstated.' },
   reinstate: { text: 'Reinstate', done: 'Driver reinstated', audit: 'driver.reinstated', variant: 'primary', body: 'Driver app updates; going online also needs an active access package.' },
 };
+
+const ID_TONE: Record<IdentityCheckOutcome, Tone> = { passed: 'success', needs_review: 'warning', failed: 'danger', not_run: 'neutral' };
+const ID_LABEL: Record<IdentityCheckOutcome, string> = { passed: 'Passed', needs_review: 'Check by hand', failed: 'Failed', not_run: 'Not run yet' };
 
 export default function Drivers() {
   const d = useData();
@@ -173,6 +176,8 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
   const [pending, setPending] = useState<VerificationAction | null>(null);
   const [rejectDoc, setRejectDoc] = useState<DocumentKind | null>(null);
   const ready = documentReadiness(x, t);
+  const idChecks = simulatedIdentityChecks(x, t);
+  const idSummary = identityCheckSummary(idChecks);
   const access = accessStatus(x, t);
   const elig = eligibility(x, timelineFor(d.subscriptions, x.id, t));
   const canVerify = can('drivers.verify');
@@ -360,6 +365,31 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
                 />
               ))}
             </div>
+          </PanelSection>
+          <PanelSection
+            title={`Identity checks (${IDENTITY_PROVIDER})`}
+            icon="shield"
+            aside={`${idSummary.passed} of ${idChecks.length} passed${idSummary.attention ? ` · ${idSummary.attention} need attention` : ''} · simulated`}
+          >
+            <Notice tone="info">Simulated results. Once {IDENTITY_PROVIDER} is connected, the API runs these checks and the results appear here, so nobody needs to open {IDENTITY_PROVIDER}’s own site. You still make the decision.</Notice>
+            <ul className="id-checks" aria-label="Identity check results">
+              {idChecks.map((c) => {
+                const meta = IDENTITY_CHECKS.find((k) => k.kind === c.kind)!;
+                return (
+                  <li key={c.kind} className="id-check">
+                    <div className="id-check-head">
+                      <span className="strong">{meta.label}</span>
+                      <Pill tone={ID_TONE[c.outcome]}>{ID_LABEL[c.outcome]}</Pill>
+                    </div>
+                    <div className="small">{c.detail}</div>
+                    {c.fields?.length ? (
+                      <div className="small muted">{c.fields.map((f) => `${f.field}: ${f.matched ? 'matches' : 'does not match'}`).join(' · ')}</div>
+                    ) : null}
+                    {c.checkedAt ? <div className="small muted">Checked {when(c.checkedAt, t)} · reference {c.reference}</div> : <div className="small muted">{meta.what}</div>}
+                  </li>
+                );
+              })}
+            </ul>
           </PanelSection>
           <PanelSection title="Review history" icon="history" aside={docHistory.length ? `${docHistory.length} recorded` : undefined}>
             {docHistory.length ? (

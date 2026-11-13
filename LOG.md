@@ -1062,3 +1062,16 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Docs updated: `DECISIONS.md` (D-066), `OPEN_QUESTIONS.md` Q-079, `BACKEND_PHASE_2_PLAN.md` A-9 and the cost table.
 - Next: request QoreID pricing and a sandbox account. The integration is built in Phase 2b behind `IdentityVerificationService`.
 
+## 2026-11-13 — Integrations report back to our dashboards (D-067)
+
+- **Owner's rule:** every integration's results show in our admin and staff dashboards, never only in the provider's portal. It is recorded in `CLAUDE.md` and D-067.
+- **Core:**
+  - `platform/identityChecks.ts`: QoreID check kinds, simulated results, summary, and `integrationsWithoutDashboard`;
+  - `IntegrationRecord.resultsShownIn` is filled in for all 12 integrations;
+  - identity checks and email now name QoreID and SendHiiv (backup SendByte);
+  - 7 tests.
+- **Admin:**
+  - driver Documents tab → **Identity checks (QoreID)** panel, simulated (1 test);
+  - integration detail → **Results shown in**, with links.
+- **Tests:** core 289, admin 408, typecheck and lint clean.
+

@@ -31,6 +31,7 @@ const base = (x: Partial<IntegrationRecord>): IntegrationRecord => ({
   failures: [],
   dependsOn: [],
   usedBy: [],
+  resultsShownIn: [],
   ...x,
 });
 

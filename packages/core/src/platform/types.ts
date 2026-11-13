@@ -300,6 +300,11 @@ export interface IntegrationRecord {
   failures: { at: number; message: string; resolved: boolean }[];
   dependsOn: string[];
   usedBy: string[];
+  /**
+   * D-067: where this integration's results appear in GoBye's own dashboards (admin and staff), so nobody
+   * has to open the provider's portal. Every integration must have at least one entry.
+   */
+  resultsShownIn: { place: string; route: string; what: string }[];
 }
 
 export interface ConfigVersion<T = unknown> {

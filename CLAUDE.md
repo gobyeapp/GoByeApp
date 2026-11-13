@@ -74,6 +74,12 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - WhatsApp quick booking (D-064, `docs/WHATSAPP_BOOKING.md`): the conversation lives in `@gobye/core` `whatsapp/`; WhatsApp only creates Quick Match rides, the app does everything else. Off unless `WHATSAPP_PROVIDER` is set.
 - Staging is not ready until `docs/BACKEND_PHASE_1_VERIFICATION.md` §4.6 is all ticked. Never use the website/waitlist Supabase project for the backend.
 
+## Integrations report back to our dashboards (D-067)
+
+- Every outside service (payments, identity checks, SMS, email, push, maps, storage, monitoring and any future one) is called by our API, and its results are stored and shown in **our own admin and staff dashboards**. Staff never have to open the provider's portal to see a result or make a decision.
+- Each `IntegrationRecord` lists `resultsShownIn` (page, route, what shows there). `integrationsWithoutDashboard` must return nothing (test in `packages/core/src/__tests__/identity-checks.test.ts`).
+- A new integration isn't done until its results appear on the page of the staff who act on them (for example identity checks on the driver's Documents tab), with the provider's reference for tracing.
+
 ## Documentation maintenance
 
 At the end of each meaningful session: append to `LOG.md`; update `docs/IMPLEMENTATION_PLAN.md`, `docs/SCREEN_INVENTORY.md` statuses, `docs/DECISIONS.md`, `docs/TEST_PLAN.md` (tests actually run), `docs/OPEN_QUESTIONS.md`, `docs/BACKEND_HANDOVER.md` if contracts changed; state the next task. Code and docs must never disagree.

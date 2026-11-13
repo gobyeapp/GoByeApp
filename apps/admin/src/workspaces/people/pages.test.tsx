@@ -62,6 +62,14 @@ describe('driver profile sheet', () => {
     expect(screen.getByText(/Manual: the driver buys a new pass/)).toBeTruthy();
   });
 
+  it('shows identity check results on our own page, labelled simulated (D-066, D-067)', () => {
+    mount(Drivers, 'stf-onb');
+    fireEvent.click(document.querySelector('tbody tr.clickable') as HTMLElement);
+    expect(screen.getByText('Identity checks (QoreID)')).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Identity check results' }).querySelectorAll('li')).toHaveLength(5);
+    expect(screen.getByText(/nobody needs to open QoreID’s own site/)).toBeTruthy();
+  });
+
   it('hides contact details from roles without access', () => {
     mount(Drivers, 'stf-fin');
     fireEvent.click(document.querySelector('tbody tr.clickable') as HTMLElement);

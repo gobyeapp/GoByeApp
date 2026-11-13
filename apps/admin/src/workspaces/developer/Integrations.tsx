@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { APPROVAL_RULES, canGoLive, type ConnectionState, type IntegrationRecord } from '@gobye/core';
 import { useSession } from '@/data/session';
 import { useAction, useData, usePlatform, useToast } from '@/data/store';
@@ -293,6 +293,23 @@ function Detail({ rec, onOpen }: { rec: IntegrationRecord; onOpen: (id: string) 
               {rec.usedBy.length ? rec.usedBy.join(', ') : 'Nothing yet'}
             </p>
             {rec.state !== 'live' && rec.usedBy.length ? <p className="muted small">These features show an honest pending or unavailable state until this is live.</p> : null}
+          </div>
+          <div>
+            <div className="small strong">Results shown in</div>
+            {rec.resultsShownIn.length ? (
+              <ul className="small" style={{ marginTop: 6, paddingLeft: 18 }}>
+                {rec.resultsShownIn.map((r) => (
+                  <li key={r.place + r.route}>
+                    <Link to={r.route} className="strong">{r.place}</Link>: {r.what}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="small" style={{ marginTop: 6 }}>
+                <Pill tone="warning">Not set</Pill> Every integration must show its results in our own dashboards (D-067).
+              </p>
+            )}
+            <p className="muted small">Staff work from these pages, not from the provider’s own portal.</p>
           </div>
         </div>
       </Card>

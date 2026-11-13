@@ -607,3 +607,21 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - keys go only in the backend's secret store.
 - **Not changed:** nothing has been built or bought yet. This is a Phase 2b work package.
 
+## D-067 — Every integration reports back to our own dashboards (2026-11-13, owner)
+
+- **Owner's rule (2026-11-13):** applies to every integration, past and future. Our API calls the provider and stores what it returns, and the result shows in GoBye's admin and in the relevant staff dashboard. Nobody verifies a driver, checks a payment or reads a delivery report on the provider's own site.
+- **How it is enforced:**
+  - `IntegrationRecord.resultsShownIn` names each page, its route and what it shows;
+  - the admin integration detail shows it, with a "Not set" warning if empty;
+  - `integrationsWithoutDashboard()` plus a core test fail when an integration has no home for its results.
+- **Applied to the existing integrations:**
+  - payments → Payments and Finance;
+  - email, SMS and push → Communications and the Event log;
+  - maps → Live;
+  - sign in → Drivers and Staff;
+  - database → Data platform;
+  - file storage and identity checks → the driver's Documents tab;
+  - monitoring → Event log;
+  - jobs → Automation.
+- **First example:** the driver Documents tab now has an **Identity checks (QoreID)** panel showing NIN, licence, face match, liveness and plate, each with its result, the fields that did or did not match, the time and the provider reference. It is simulated until QoreID is connected, and staff still decide.
+
