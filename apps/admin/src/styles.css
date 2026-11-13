@@ -654,3 +654,16 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .mini-table th { text-align: left; font-weight: 500; color: var(--text-2); padding: 6px 0; border-bottom: 1px solid var(--border); }
 .mini-table td { padding: 7px 0; border-bottom: 1px solid var(--border); }
 .mini-table .right { text-align: right; }
+
+/* ---------- Sidebar sections (D-071): one line each, pages open beneath on click, no arrow ---------- */
+.nav-group.nav-sec { gap: 1px; }
+.nav-head { width: 100%; background: none; border: none; font: inherit; text-align: left; cursor: pointer; }
+.nav-head.here { color: var(--text); font-weight: 600; }
+.nav-head.here svg { color: var(--text); }
+.nav-group.nav-sec.open > .nav-head { color: var(--text); }
+.nav-nested { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 4px; animation: fade var(--t-fast); }
+.nav-link.nested { padding-left: 28px; height: 32px; font-size: 13.5px; }
+.nav-link.nested svg { width: 16px; height: 16px; }
+.side-scroll { gap: 2px; }
+@media (min-width: 961px) { .shell.collapsed .nav-link.nested { padding: 0; } }
+.nav-group:not(.nav-sec) { margin-bottom: 10px; }

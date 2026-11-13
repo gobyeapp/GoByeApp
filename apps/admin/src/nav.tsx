@@ -119,7 +119,7 @@ export const NAV: NavGroup[] = [
     items: [{ path: '/reports', label: 'Reports', icon: 'chart', anyOf: ['reports.view'], page: L(() => import('@/workspaces/finance/Reports')), keywords: 'analytics exports csv' }],
   },
   {
-    title: 'Settings',
+    title: 'Configuration',
     subnav: true,
     items: [
       { path: '/config/areas', label: 'Service areas', icon: 'mapPin', anyOf: ['config.view'], page: L(() => import('@/workspaces/config/ServiceAreas')), keywords: 'cities zones hours' },
@@ -140,7 +140,7 @@ export const NAV: NavGroup[] = [
   },
   {
     // Infrastructure and operating costs (D-057). Manual capture; no billing integration connected.
-    title: 'Infrastructure & costs',
+    title: 'Costs',
     subnav: true,
     items: [
       { path: '/costs', label: 'Cost dashboard', icon: 'chart', anyOf: ['costs.view'], page: L(() => import('@/workspaces/costs/CostDashboard')), keywords: 'operating cost spend infrastructure budget' },

@@ -700,3 +700,19 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - the SimulatedBadge rule now applies to the rider and driver apps only;
   - in the admin, unconnected services show as "Not connected" or as disabled actions with a reason, never as "simulated".
 
+## D-071 — Sidebar sections open on click, without arrows (2026-11-13, owner)
+
+- **How it works:**
+  - each sidebar section (Operations, People, Care and safety, Finance, Payments, Automation, Growth, Insights, Configuration, Administration, Costs, Technical) is one line with its icon;
+  - clicking it opens its pages beneath it, indented;
+  - clicking anywhere outside the sidebar folds it back;
+  - one section is open at a time;
+  - Home, My work, Approvals and Business summary stay visible at the top.
+- **No dropdown arrow, by the owner's choice.** For screen readers the section line is a button with `aria-expanded`.
+- **When folded:**
+  - the line shows the section's total badge count;
+  - the section of the current page is shown in bold.
+- **Renames:**
+  - "Infrastructure & costs" → "Costs";
+  - the old "Settings" section (service areas, fares, packages) → "Configuration", so it is not confused with the Settings page.
+

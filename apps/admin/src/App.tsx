@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { resolveTheme, useTheme } from './data/theme';
 import { DEMO_TOOLS } from './data/mode';
 import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
@@ -148,6 +148,14 @@ function Shell() {
   const [collapsed, toggleCollapsed] = useCollapsed();
   const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!openGroup) return;
+    const away = (e: MouseEvent) => navRef.current && !navRef.current.contains(e.target as Node) && setOpenGroup(null);
+    document.addEventListener('mousedown', away);
+    return () => document.removeEventListener('mousedown', away);
+  }, [openGroup]);
   const loc = useLocation();
   const navigate = useNavigate();
   useEffect(() => setNavOpen(false), [loc.pathname]);
@@ -196,27 +204,49 @@ function Shell() {
             <Icon name="close" size={18} />
           </button>
         </div>
-        <nav className="side-scroll" aria-label="Main">
+        <nav className="side-scroll" aria-label="Main" ref={navRef}>
           {NAV.map((g) => {
             const items = g.items.filter((i) => i.anyOf.some((p) => can(p)));
             if (!items.length) return null;
+            const link = (i: (typeof items)[number]) => {
+              const n = data && i.badge ? i.badge(data, now(), inScope) : 0;
+              return (
+                <NavLink key={i.path} to={i.path} end title={collapsed ? `${i.label}${n ? ` (${n})` : ''}` : undefined} className={({ isActive }) => `nav-link ${g.title ? 'nested' : ''} ${isActive ? 'active' : ''}`}>
+                  {({ isActive }) => (
+                    <>
+                      <Icon name={i.icon} filled={isActive} />
+                      <span className="label">{i.label}</span>
+                      {n ? <span className="count" aria-label={`, ${n} need attention`}>{n}</span> : null}
+                    </>
+                  )}
+                </NavLink>
+              );
+            };
+            if (!g.title) return <div key="home" className="nav-group" role="group" aria-label="Home">{items.map(link)}</div>;
+            // D-071: a section is one line; its pages open beneath it on click and fold away when you click elsewhere.
+            const open = openGroup === g.title;
+            const here = items.some((i) => i.path === loc.pathname);
+            const total = data ? items.reduce((sum, i) => sum + (i.badge ? i.badge(data, now(), inScope) : 0), 0) : 0;
+            const id = `navg-${g.title.replace(/\W+/g, '-').toLowerCase()}`;
             return (
-              <div key={g.title || 'home'} className="nav-group" role="group" aria-label={g.title || 'Home'}>
-                {g.title ? <div className="nav-title" aria-hidden>{g.title}</div> : null}
-                {items.map((i) => {
-                  const n = data && i.badge ? i.badge(data, now(), inScope) : 0;
-                  return (
-                    <NavLink key={i.path} to={i.path} end title={collapsed ? `${i.label}${n ? ` (${n})` : ''}` : undefined} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                      {({ isActive }) => (
-                        <>
-                          <Icon name={i.icon} filled={isActive} />
-                          <span className="label">{i.label}</span>
-                          {n ? <span className="count" aria-label={`, ${n} need attention`}>{n}</span> : null}
-                        </>
-                      )}
-                    </NavLink>
-                  );
-                })}
+              <div key={g.title} className={`nav-group nav-sec ${open ? 'open' : ''}`}>
+                <button
+                  type="button"
+                  className={`nav-link nav-head ${here ? 'here' : ''}`}
+                  aria-expanded={open}
+                  aria-controls={id}
+                  title={collapsed ? g.title : undefined}
+                  onClick={() => setOpenGroup(open ? null : g.title)}
+                >
+                  <Icon name={items[0]!.icon} filled={here} />
+                  <span className="label">{g.title}</span>
+                  {!open && total ? <span className="count" aria-label={`, ${total} need attention`}>{total}</span> : null}
+                </button>
+                {open ? (
+                  <div id={id} role="group" aria-label={g.title} className="nav-nested">
+                    {items.map(link)}
+                  </div>
+                ) : null}
               </div>
             );
           })}

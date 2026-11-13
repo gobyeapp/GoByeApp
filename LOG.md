@@ -1114,3 +1114,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - New guard test `shell/no-demo-labels.test.ts`.
 - **Tests:** core 294, admin 413, typecheck and lint clean.
 
+## 2026-11-13 — Sidebar sections open on click (D-071)
+
+- Admin sidebar: sections are single lines that open their pages beneath them on click and fold away on an outside click. There is no arrow icon.
+- "Infrastructure & costs" is renamed "Costs"; the config section is renamed "Configuration".
+- **Tests:** admin 413, typecheck and lint clean. Open and folded states checked by screenshot in light and dark.
+
