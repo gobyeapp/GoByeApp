@@ -1017,3 +1017,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
   1. The owner adds the two secrets.
   2. Run **Staging database → up**.
   3. Then StackShift.
+
+## 2026-11-13 — Hosting direction (D-065) and data-platform portability
+
+- **Owner's direction:**
+  - Cloudflare for the front end and the backend (API on Cloudflare Containers, to be checked on staging); StackShift becomes the backup.
+  - Supabase stays for the database and sign-in. Moving them to Cloudflare was rejected: D1 is SQLite, and Cloudflare has no customer sign-in service.
+  - Cheaper database options were compared; Neon is the backup.
+- **API:** `AUTH_PROVIDER=oidc` (with `AUTH_ISSUER`, `AUTH_JWKS_URL`, `AUTH_AUDIENCE`) accepts any standards-based sign-in provider, so moving away from Supabase Auth is a configuration change. Config rules, env templates and 3 tests.
+- **Core:** `platform/dataPortability.ts` holds the components in use, 12 readiness checks with evidence, provider options with sources and a 14-step move plan (4 tests). The mock integrations now name Supabase for the database and sign-in.
+- **Admin:** new **Technical → Data platform** page: providers, readiness, the move plan by scope and the options. It is labelled as reference, not live (2 tests).
+- **Docs:** `docs/DATA_PLATFORM_PORTABILITY.md`, D-065.

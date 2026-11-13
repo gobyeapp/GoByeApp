@@ -3,7 +3,8 @@ import type { AppConfig } from '../config/config';
 import { Errors } from '../common/errors';
 
 /**
- * Supabase Auth access-token verification (docs/AUTHENTICATION_PLAN.md).
+ * Access-token verification (docs/AUTHENTICATION_PLAN.md): Supabase Auth by default, or any standards-based
+ * (OIDC/JWKS) provider with AUTH_PROVIDER=oidc (docs/DATA_PLATFORM_PORTABILITY.md).
  *
  * - Asymmetric signing keys (ES256 / RS256) from `${SUPABASE_URL}/auth/v1/.well-known/jwks.json`.
  *   Keys are cached for at most 10 minutes (Supabase's own edge cache time); unknown `kid` triggers a
@@ -36,14 +37,29 @@ export function supabaseIssuer(supabaseUrl: string): string {
   return `${supabaseUrl.replace(/\/+$/, '')}/auth/v1`;
 }
 
-export function claimsToToken(p: JWTPayload): VerifiedToken {
+/**
+ * Claims → token. `supabase`: Supabase Auth's claims (role = authenticated, aal). `oidc`: standard claims
+ * from any provider; a second factor is read from `aal` or from `amr` (RFC 8176: mfa, otp, hwk, swk).
+ * Either way `sub` must be the UUID the account has in app.users: moving providers keeps user ids
+ * (docs/DATA_PLATFORM_PORTABILITY.md).
+ */
+export function claimsToToken(p: JWTPayload, flavour: 'supabase' | 'oidc' = 'supabase'): VerifiedToken {
   if (typeof p.sub !== 'string' || !UUID.test(p.sub)) throw Errors.unauthenticated();
-  if (p.role !== 'authenticated') throw Errors.unauthenticated();
   if (p.is_anonymous === true) throw Errors.unauthenticated();
+  let aal: 'aal1' | 'aal2';
+  if (flavour === 'supabase') {
+    if (p.role !== 'authenticated') throw Errors.unauthenticated();
+    aal = p.aal === 'aal2' ? 'aal2' : 'aal1';
+  } else {
+    // A service or machine token is never a person.
+    if (p.role !== undefined && p.role !== 'authenticated') throw Errors.unauthenticated();
+    const amr = Array.isArray(p.amr) ? p.amr.map(String) : [];
+    aal = p.aal === 'aal2' || amr.some((m) => ['mfa', 'otp', 'hwk', 'swk', 'totp'].includes(m)) ? 'aal2' : 'aal1';
+  }
   return {
     userId: p.sub.toLowerCase(),
-    sessionId: typeof p.session_id === 'string' ? p.session_id : null,
-    aal: p.aal === 'aal2' ? 'aal2' : 'aal1',
+    sessionId: typeof p.session_id === 'string' ? p.session_id : typeof p.sid === 'string' ? p.sid : null,
+    aal,
     email: typeof p.email === 'string' && p.email ? p.email : null,
     phone: typeof p.phone === 'string' && p.phone ? p.phone : null,
     expiresAt: (p.exp ?? 0) * 1000,
@@ -58,6 +74,8 @@ export interface VerifierOptions {
   /** Legacy HS256 secret (development/test only, config refuses it elsewhere). */
   sharedSecret?: string;
   keysReachable?: () => Promise<boolean>;
+  /** Claim conventions: Supabase Auth (default) or standard OIDC. */
+  flavour?: 'supabase' | 'oidc';
 }
 
 export function createTokenVerifier(o: VerifierOptions): TokenVerifier {
@@ -76,7 +94,7 @@ export function createTokenVerifier(o: VerifierOptions): TokenVerifier {
           if (!o.keys) throw Errors.unauthenticated();
           ({ payload } = await jwtVerify(token, o.keys, { ...common, algorithms: ['ES256', 'RS256'] }));
         }
-        return claimsToToken(payload);
+        return claimsToToken(payload, o.flavour ?? 'supabase');
       } catch (e) {
         if (e instanceof joseErrors.JWTExpired) throw Errors.tokenExpired();
         if (e instanceof joseErrors.JWKSTimeout) throw Errors.unavailable('Sign-in could not be checked right now. Try again shortly.');
@@ -90,17 +108,21 @@ export function createTokenVerifier(o: VerifierOptions): TokenVerifier {
 
 /** Verifier from configuration: remote JWKS (cached ≤ 10 min) plus the dev-only shared secret. */
 export function verifierFromConfig(c: AppConfig): TokenVerifier | null {
-  if (!c.SUPABASE_URL && !c.SUPABASE_JWT_SECRET) return null;
-  const issuer = c.SUPABASE_URL ? supabaseIssuer(c.SUPABASE_URL) : 'http://localhost/auth/v1';
+  const oidc = c.AUTH_PROVIDER === 'oidc';
+  if (!oidc && !c.SUPABASE_URL && !c.SUPABASE_JWT_SECRET) return null;
+  if (oidc && (!c.AUTH_ISSUER || !c.AUTH_JWKS_URL || !c.AUTH_AUDIENCE)) return null;
+  const issuer = oidc ? c.AUTH_ISSUER! : c.SUPABASE_URL ? supabaseIssuer(c.SUPABASE_URL) : 'http://localhost/auth/v1';
+  const jwksUrl = oidc ? c.AUTH_JWKS_URL! : c.SUPABASE_URL ? `${issuer}/.well-known/jwks.json` : null;
   let keys: ReturnType<typeof createRemoteJWKSet> | undefined;
-  if (c.SUPABASE_URL) {
-    keys = createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`), { cacheMaxAge: 600_000, cooldownDuration: 30_000, timeoutDuration: 3000 });
+  if (jwksUrl) {
+    keys = createRemoteJWKSet(new URL(jwksUrl), { cacheMaxAge: 600_000, cooldownDuration: 30_000, timeoutDuration: 3000 });
   }
   return createTokenVerifier({
     issuer,
-    audience: c.SUPABASE_JWT_AUDIENCE,
+    audience: oidc ? c.AUTH_AUDIENCE! : c.SUPABASE_JWT_AUDIENCE,
     keys,
-    sharedSecret: c.SUPABASE_ALLOW_HS256 ? c.SUPABASE_JWT_SECRET : undefined,
+    flavour: oidc ? 'oidc' : 'supabase',
+    sharedSecret: !oidc && c.SUPABASE_ALLOW_HS256 ? c.SUPABASE_JWT_SECRET : undefined,
     keysReachable: keys ? cached(60_000, async () => {
       try {
         if (!keys!.fresh) await keys!.reload();

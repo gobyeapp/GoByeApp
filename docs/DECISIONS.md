@@ -565,3 +565,24 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Not a money webhook:** it moves no money, so the BACKEND_ARCHITECTURE §9 restriction on payment webhooks doesn't apply.
 - **Status:** built and tested; **off** (`WHATSAPP_PROVIDER=none`). Live only after the Meta setup, staging and server-side dispatch (Phase 3), with owner approval.
 - **Docs:** `WHATSAPP_BOOKING.md`.
+
+## D-065 — Hosting direction: Cloudflare for the apps' web side and the API; Supabase kept for the database and sign-in, ready to move (2026-11-13, owner)
+
+- **Owner's direction (2026-11-13):** use Cloudflare for the backend and to host the front end.
+  - This replaces StackShift (2026-11-07), which becomes the **backup**.
+  - Proposed shape, still to check on staging:
+    - website and admin on Cloudflare static hosting;
+    - the existing API image on **Cloudflare Containers**, behind the existing gateway Worker;
+    - jobs inside the container.
+  - It needs the **Workers Paid plan ($5/month)**, a paid activation done by the owner.
+  - To verify before relying on it:
+    - container placement near the database (Europe);
+    - Containers' maturity;
+    - the real cost (estimate ≈ $7–12/month to start).
+- **Supabase stays** for the database and sign-in.
+  - Moving them to Cloudflare was considered and rejected: D1 is SQLite (our schema, triggers, roles, locks and job queue are PostgreSQL), and Cloudflare has no rider or driver sign-in service.
+- **Ready to move later:**
+  - The API now accepts any standards-based sign-in provider by configuration (`AUTH_PROVIDER=oidc`, `AUTH_ISSUER`, `AUTH_JWKS_URL`, `AUTH_AUDIENCE`; tests in `apps/api/test/auth-portability.test.ts`).
+  - The admin "Data platform" page shows the readiness checks, the move plan and the alternatives (`DATA_PLATFORM_PORTABILITY.md`).
+  - Neon is the backup database option.
+- **Not changed:** Supabase project `gobye-staging`, the migrations, the roles.

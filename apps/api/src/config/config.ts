@@ -57,6 +57,15 @@ const schema = z.object({
   /** Legacy shared secret (HS256). Development/test only; production uses asymmetric signing keys via JWKS. */
   SUPABASE_JWT_SECRET: z.string().optional(),
   SUPABASE_ALLOW_HS256: bool(false),
+  /**
+   * Which sign-in service issues the tokens (docs/DATA_PLATFORM_PORTABILITY.md). `supabase` (default):
+   * Supabase Auth via SUPABASE_URL. `oidc`: any standards-based provider (signed JWTs + a JWKS URL), so a
+   * future move away from Supabase Auth is a configuration change, not a code change.
+   */
+  AUTH_PROVIDER: z.enum(['supabase', 'oidc']).default('supabase'),
+  AUTH_ISSUER: url.optional(),
+  AUTH_JWKS_URL: url.optional(),
+  AUTH_AUDIENCE: z.string().optional(),
   /** Staff permissions apply only to sessions with MFA (aal2). */
   STAFF_REQUIRE_MFA: bool(true),
 
@@ -139,7 +148,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     if (!dbUrl) problems.push('DATABASE_URL: required in staging and production');
     if (c.DATABASE_SSL !== 'verify-full') problems.push('DATABASE_SSL: must be verify-full in staging and production');
     if (c.DATABASE_SSL === 'verify-full' && !c.DATABASE_CA_CERT) problems.push('DATABASE_CA_CERT: required with verify-full (Supabase root certificate)');
-    if (!c.SUPABASE_URL) problems.push('SUPABASE_URL: required in staging and production');
+    if (c.AUTH_PROVIDER === 'supabase' && !c.SUPABASE_URL) problems.push('SUPABASE_URL: required in staging and production');
     if (c.SUPABASE_URL && !c.SUPABASE_URL.startsWith('https://')) problems.push('SUPABASE_URL: must use https');
     if (c.SUPABASE_ALLOW_HS256 || c.SUPABASE_JWT_SECRET) problems.push('SUPABASE_JWT_SECRET / SUPABASE_ALLOW_HS256: the legacy shared secret is refused in staging and production; use JWT signing keys (JWKS)');
     if (!c.ORIGIN_AUTH_REQUIRED) problems.push('ORIGIN_AUTH_REQUIRED: must be true in staging and production');
@@ -156,6 +165,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     if (c.STORAGE_PROVIDER === 'memory') problems.push('STORAGE_PROVIDER: in-memory storage is refused in production');
   }
   if (!prodLike && c.ORIGIN_AUTH_REQUIRED && !c.ORIGIN_AUTH_SECRET) problems.push('ORIGIN_AUTH_SECRET: required while ORIGIN_AUTH_REQUIRED=true (set ORIGIN_AUTH_REQUIRED=false for local development without the gateway)');
+  if (c.AUTH_PROVIDER === 'oidc') {
+    if (!c.AUTH_ISSUER) problems.push('AUTH_ISSUER: required when AUTH_PROVIDER=oidc');
+    if (!c.AUTH_JWKS_URL) problems.push('AUTH_JWKS_URL: required when AUTH_PROVIDER=oidc');
+    if (!c.AUTH_AUDIENCE) problems.push('AUTH_AUDIENCE: required when AUTH_PROVIDER=oidc');
+    if (prodLike && c.AUTH_JWKS_URL && !c.AUTH_JWKS_URL.startsWith('https://')) problems.push('AUTH_JWKS_URL: must use https');
+    if (c.SUPABASE_ALLOW_HS256) problems.push('SUPABASE_ALLOW_HS256: not used with AUTH_PROVIDER=oidc');
+  }
   if (c.SUPABASE_ALLOW_HS256 && !c.SUPABASE_JWT_SECRET) problems.push('SUPABASE_JWT_SECRET: required when SUPABASE_ALLOW_HS256=true');
   if (c.SUPABASE_JWT_SECRET && c.SUPABASE_JWT_SECRET.length < 32) problems.push('SUPABASE_JWT_SECRET: must be 32+ characters');
   if (c.STORAGE_PROVIDER === 'r2') {

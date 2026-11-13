@@ -152,6 +152,8 @@ export const NAV: NavGroup[] = [
       { path: '/developer/events', label: 'Events and failures', icon: 'webhook', anyOf: ['logs.view'], page: L(() => import('@/workspaces/developer/EventLog')), keywords: 'webhooks jobs errors' },
       // Simulated until a backend and a live control plane exist (D-051). The page also checks roles itself.
       { path: '/infrastructure/traffic', label: 'Traffic and origins', icon: 'server', anyOf: ['integrations.view', 'audit.view', 'staff.manage'], page: L(() => import('@/workspaces/infrastructure/Traffic')), keywords: 'infrastructure cloudflare failover' },
+      // Reference page (D-065): Supabase stays; readiness and plan for a later provider move. No live status.
+      { path: '/infrastructure/data-platform', label: 'Data platform', icon: 'server', anyOf: ['integrations.view', 'audit.view', 'staff.manage'], page: L(() => import('@/workspaces/infrastructure/DataPlatform')), keywords: 'database supabase sign-in auth migration neon portability' },
     ],
   },
 ];
