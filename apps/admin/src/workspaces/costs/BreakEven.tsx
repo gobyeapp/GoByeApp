@@ -59,7 +59,7 @@ export default function BreakEven() {
         </Card>
       )}
       <div className="section">
-        <Notice tone="info">Marketing is excluded from the agreed operating break-even. Revenue counts only passes verified with the payment provider (test data in this prototype).</Notice>
+        <Notice tone="info">Marketing is excluded from the agreed operating break-even. Revenue counts only passes verified with the payment provider.</Notice>
       </div>
     </>
   );

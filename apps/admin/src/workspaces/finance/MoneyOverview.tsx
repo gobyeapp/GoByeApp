@@ -4,7 +4,7 @@ import type { CityId, CollectionRecord, WithdrawalRecord } from '@gobye/core';
 import { count, money } from '@/data/format';
 import { RANGE_MS, useFilters } from '@/data/session';
 import { useData, usePlatform } from '@/data/store';
-import { ActivityFeed, Card, FeaturedStat, Notice, Section, Stat, type FeedItem, type TrendValue } from '@/ui/kit';
+import { ActivityFeed, Card, FeaturedStat, Section, Stat, type FeedItem, type TrendValue } from '@/ui/kit';
 import { cityIndex, payerCity } from './logic';
 import { FinanceHead, useInclude } from './parts';
 
@@ -129,7 +129,7 @@ export default function MoneyOverview() {
               </div>
               <div className="row small muted" style={{ justifyContent: 'space-between', marginTop: 8 }}>
                 <span>{dayLabel(days[0]!.start)}</span>
-                <span>Lagos time · test data</span>
+                <span>Lagos time</span>
                 <span>{dayLabel(days.at(-1)!.start)}</span>
               </div>
             </>
@@ -143,7 +143,6 @@ export default function MoneyOverview() {
       </div>
 
       <div className="section">
-        <Notice tone="info">Figures come from test collections and withdrawals verified with Paystack (test).</Notice>
       </div>
     </>
   );

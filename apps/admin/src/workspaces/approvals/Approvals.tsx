@@ -241,7 +241,7 @@ function ApprovalDrawer({ req, onClose }: { req: ApprovalRequest; onClose: () =>
 }
 
 function Target({ d, req, now }: { d: PlatformDataset; req: ApprovalRequest; now: number }) {
-  const missing = <Notice tone="warning">The target record ({req.target.label}) isn’t in the test data.</Notice>;
+  const missing = <Notice tone="warning">The target record ({req.target.label}) can’t be found.</Notice>;
   switch (req.kind) {
     case 'refund': {
       const r = d.refunds.find((x) => x.id === req.target.id);

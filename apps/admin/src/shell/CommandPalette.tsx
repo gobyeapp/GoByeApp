@@ -200,7 +200,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
         <div className="cmdk-foot" aria-hidden>
           <span><kbd className="kbd">↑</kbd> <kbd className="kbd">↓</kbd> move</span>
           <span><kbd className="kbd">Enter</kbd> open</span>
-          <span>Test data · searched in this browser</span>
+          
         </div>
       </div>
     </>

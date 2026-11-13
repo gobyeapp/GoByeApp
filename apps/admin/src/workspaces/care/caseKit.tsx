@@ -159,7 +159,7 @@ export function MessageStreams({ c, canWrite, writeReason, onSend }: { c: CaseRe
             />
             <span className="small muted row" style={{ gap: 4 }}>
               <Icon name={channel === 'customer' ? 'eye' : 'lock'} size={14} />
-              {channel === 'customer' ? 'The customer will see this in the app (simulated, nothing is sent).' : 'Only staff will see this.'}
+              {channel === 'customer' ? 'The customer will see this in the app.' : 'Only staff will see this.'}
             </span>
           </div>
           <Field label={channel === 'customer' ? 'Reply' : 'Note'}>

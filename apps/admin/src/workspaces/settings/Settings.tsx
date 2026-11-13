@@ -88,7 +88,6 @@ function General() {
           <span className="set-label">Email address</span>
           <span className="set-value">{me.email}</span>
         </div>
-        <span className="small muted">Changes to your name or email go through the owner while sign in is simulated.</span>
       </Row>
       <Row title="Appearance" desc="Light, dark, or follow your device.">
         <div className="themes" role="radiogroup" aria-label="Appearance">
@@ -195,7 +194,7 @@ function Team() {
         </tbody>
       </table>
       {!rows.length ? <p className="muted small">No members match your search.</p> : null}
-      <p className="small muted">Showing {rows.length} of {d.staff.length} · simulated sign in data · roles and invites are managed in Staff and access</p>
+      <p className="small muted">Showing {rows.length} of {d.staff.length} · roles and invites are managed in Staff and access</p>
     </div>
   );
 }

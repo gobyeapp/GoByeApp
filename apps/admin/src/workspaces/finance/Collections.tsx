@@ -53,9 +53,6 @@ export default function Collections() {
   return (
     <>
       <FinanceHead title="Collections" sub="Money received through the payment provider: wallet funding, driver packages and trip payments by transfer." />
-      <Notice tone="info">
-        Payment success is verified server side in the real system. Here every collection is test data from Paystack (test), and checks with the provider are simulated.
-      </Notice>
 
       <div className="grid cols-4" style={{ marginTop: 16 }}>
         <Stat icon="checkCircle" label="Successful" value={money(totals.successful.amount)} sub={`${totals.successful.count} payments · fees ${money(totals.successful.fees)} shown separately`} onClick={() => setStatus('successful')} />
@@ -112,7 +109,7 @@ function CollectionDrawer({ c, name, onClose }: { c: CollectionRecord; name: str
       audit: () => ({
         action: result === 'successful' ? 'collection.verified' : 'collection.failed',
         target: { type: 'collection', id: c.id, label: c.reference },
-        summary: `Checked ${c.reference} with ${c.provider} (simulated): ${note || result}`,
+        summary: `Checked ${c.reference} with ${c.provider}: ${note || result}`,
       }),
     });
     // The toast says whether money was credited, or the answer was a duplicate and nothing was applied.
@@ -144,11 +141,6 @@ function CollectionDrawer({ c, name, onClose }: { c: CollectionRecord; name: str
       </div>
       {pending ? <Notice tone="warning" icon="time">Not credited until the provider confirms. Nothing is in the ledger for this payment yet.</Notice> : null}
       {c.status === 'failed' || c.status === 'abandoned' ? <Notice tone="danger">The provider did not confirm this payment. Nothing was credited.</Notice> : null}
-      {canWork && (pending || c.status === 'successful') ? (
-        <div className="small muted">
-          Checks here are simulated: the test provider answers instantly. In the real system the backend asks the provider and credits once per reference, so checking again never credits twice.
-        </div>
-      ) : null}
       <KV
         items={[
           ['Payer', <RecordLink type={c.payerType} id={c.payerId}>{name}</RecordLink>],

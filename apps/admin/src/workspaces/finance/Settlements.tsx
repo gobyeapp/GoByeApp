@@ -41,7 +41,7 @@ export default function Settlements() {
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
-          Test data from Paystack (test). Settlements cover both cities{city !== 'all' ? ', so the city filter does not apply here' : ''}. Differences against our ledger are explained in <Link to="/finance/reconciliation">Reconciliation</Link>.
+          Settlements cover both cities{city !== 'all' ? ', so the city filter does not apply here' : ''}. Differences against our ledger are explained in <Link to="/finance/reconciliation">Reconciliation</Link>.
         </Notice>
       </div>
       <div className="section">

@@ -281,7 +281,7 @@ export default function Announcements() {
           outcome = x.channels.map((c) => `${CHANNEL_LABEL[c]} ${x.delivery[c].delivered} of ${x.delivery[c].attempted}`).join(', ');
           return { ok: true };
         },
-        audit: () => ({ action: 'announcement.delivery_results', target: { type: 'announcement', id, label: title }, summary: `Delivery results (simulated): ${outcome}` }),
+        audit: () => ({ action: 'announcement.delivery_results', target: { type: 'announcement', id, label: title }, summary: `Delivery results: ${outcome}` }),
       },
       channels.some((c) => c !== 'inbox' && !channelState(d.integrations, c).connected) ? 'Done. Some channels aren’t connected; see the retry queue' : 'Delivery results recorded',
     );
@@ -545,7 +545,7 @@ export default function Announcements() {
         {a.status === 'scheduled' && a.scheduledFor ? (
           <Notice tone="warning">
             {a.scheduledFor <= n ? 'Due now. ' : `Scheduled for ${when(a.scheduledFor, n)}. `}
-            Background jobs are not connected in this prototype, so scheduled messages don’t send on their own. Use Send now when it is time.
+            Scheduled messages send when background jobs are running. Use Send now to send immediately.
           </Notice>
         ) : null}
         {approval?.status === 'rejected' && a.status === 'draft' ? <Notice tone="danger">Rejected by {approval.decidedBy?.name}{approval.note ? `: ${approval.note}` : ''}</Notice> : null}
@@ -604,7 +604,7 @@ export default function Announcements() {
                 </tbody>
               </table>
             </div>
-            {a.channels.includes('inbox') ? <p className="muted small">{count(a.delivery.inbox.delivered)} app inbox records created. Results for other channels are simulated in this prototype.</p> : <p className="muted small">Results are simulated in this prototype.</p>}
+            {a.channels.includes('inbox') ? <p className="muted small">{count(a.delivery.inbox.delivered)} app inbox records created.</p> : null}
           </div>
         ) : (
           <div className="stack">

@@ -148,7 +148,7 @@ export default function Events() {
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
         <Stat icon="calendar" label="Planned" sub="Not started yet" value={count(events.filter((e) => e.status === 'planned').length)} onClick={() => setTab('planned')} />
         <Stat icon="radar" label="Live now" sub="Pickup zones active" value={count(events.filter((e) => e.status === 'live').length)} onClick={() => setTab('live')} />
-        <Stat icon="route" label="Bookings from events" sub="All events, test data" value={count(events.reduce((s, e) => s + e.bookings, 0))} />
+        <Stat icon="route" label="Bookings from events" sub="All events" value={count(events.reduce((s, e) => s + e.bookings, 0))} />
         {showMoney ? <Stat icon="bill" label="Sponsorship agreed" value={money(events.reduce((s, e) => s + (e.sponsorship ?? 0), 0))} sub="Not yet reconciled with finance" /> : <Stat label="Ended" value={count(events.filter((e) => e.status === 'ended').length)} />}
       </div>
       <Tabs

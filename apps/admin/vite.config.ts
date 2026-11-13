@@ -15,5 +15,5 @@ export default defineConfig({
   server: { port: 5180 },
   // Relative asset paths so the built app can be opened from any folder or static host.
   base: './',
-  test: { environment: 'jsdom', globals: false, include: ['src/**/*.test.{ts,tsx}'] },
+  test: { environment: 'jsdom', globals: false, include: ['src/**/*.test.{ts,tsx}'], env: { VITE_DEMO_TOOLS: 'true' } },
 });

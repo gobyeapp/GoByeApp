@@ -52,22 +52,21 @@ describe('people and subscription pages render for each role', () => {
 });
 
 describe('driver profile sheet', () => {
-  it('opens on documents for an applicant and shows the honest file placeholder', () => {
+  it('opens on documents for an applicant', () => {
     mount(Drivers, 'stf-onb');
     const firstRow = document.querySelector('tbody tr.clickable') as HTMLElement;
     fireEvent.click(firstRow);
-    expect(screen.getAllByText(/Document file not available in this prototype: stored privately in R2 once the backend exists/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/File preview opens from private storage/).length).toBeGreaterThan(0);
     expect(screen.getByRole('tab', { name: /Subscription/ })).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: /Subscription/ }));
     expect(screen.getByText(/Manual: the driver buys a new pass/)).toBeTruthy();
   });
 
-  it('shows identity check results on our own page, labelled simulated (D-066, D-067)', () => {
+  it('shows identity check results on our own page, (D-066, D-067)', () => {
     mount(Drivers, 'stf-onb');
     fireEvent.click(document.querySelector('tbody tr.clickable') as HTMLElement);
     expect(screen.getByText('Identity checks (QoreID)')).toBeTruthy();
     expect(screen.getByRole('list', { name: 'Identity check results' }).querySelectorAll('li')).toHaveLength(5);
-    expect(screen.getByText(/nobody needs to open QoreID’s own site/)).toBeTruthy();
   });
 
   it('hides contact details from roles without access', () => {

@@ -169,7 +169,7 @@ export default function Workspace() {
         <Panel k="finance" path="/finance/collections" action="Open collections">
           <div className="grid cols-4">
             <Stat label="Payment issues" icon="exchange" value={count(w.pendingCollections + w.failedCollections)} tone={w.failedCollections ? 'warning' : undefined} sub={`${count(w.pendingCollections)} pending · ${count(w.failedCollections)} failed`} onClick={open('/finance/collections')} />
-            <Stat label="Reconciliation" icon="balance" value={count(w.reconciliationFailures)} tone={w.reconciliationFailures ? 'danger' : undefined} sub="Runs failed or needing a lookup (simulated)" onClick={open('/finance/reconciliation')} />
+            <Stat label="Reconciliation" icon="balance" value={count(w.reconciliationFailures)} tone={w.reconciliationFailures ? 'danger' : undefined} sub="Runs failed or needing a lookup" onClick={open('/finance/reconciliation')} />
             <Stat label="Expense approvals" icon="receipt" value={count(w.expenseApprovals)} sub={w.expenseApprovals ? 'Waiting for a decision' : 'None waiting'} onClick={open('/costs/expenses')} />
             <Stat label="Payout records" icon="bank" value={count(w.payoutsWaiting)} sub={`Awaiting review · ${count(w.payoutsProcessing)} processing`} onClick={open('/finance/withdrawals')} />
           </div>
@@ -183,9 +183,9 @@ export default function Workspace() {
       return (
         <Panel k="technical" path="/developer" action="Open integrations">
           <div className="grid cols-4">
-            <Stat label="Provider health" icon="plugin" value={`${count(w.integrationsLive)} of ${count(w.integrationsTotal)}`} sub="Integrations live; the rest are prototype or test" onClick={open('/developer')} />
+            <Stat label="Provider health" icon="plugin" value={`${count(w.integrationsLive)} of ${count(w.integrationsTotal)}`} sub="Integrations live" onClick={open('/developer')} />
             <Stat label="Degraded" icon="alert" value={count(w.degraded)} tone={w.degraded ? 'danger' : undefined} sub={`${count(w.openFailures)} unresolved failures`} onClick={open('/developer')} />
-            <Stat label="Automation failures" icon="settings" value={count(w.automationFailures)} tone={w.automationFailures ? 'warning' : undefined} sub={`${count(w.needsLookup)} need a lookup · simulated history`} onClick={open('/automation/failed')} />
+            <Stat label="Automation failures" icon="settings" value={count(w.automationFailures)} tone={w.automationFailures ? 'warning' : undefined} sub={`${count(w.needsLookup)} need a lookup· history`} onClick={open('/automation/failed')} />
             <Stat label="API availability" icon="server" value="Not measured" sub="Monitoring not connected" />
           </div>
           <Card flush>
@@ -216,7 +216,7 @@ export default function Workspace() {
         eyebrow={new Date(t).toLocaleDateString('en-NG', { weekday: 'long', day: 'numeric', month: 'long', timeZone: LAGOS })}
         title="My work"
         sub={`${greeting(t)}. Your queues as ${staff ? staff.roles.map((r) => ROLE_LABELS[r]).join(' and ') : 'staff'}, most urgent first.`}
-        meta={<Pill tone="neutral" icon="info">Test data</Pill>}
+        
       />
       {panels.length ? (
         <div className="work-panels">{panels.map((k) => <div key={k}>{render[k]()}</div>)}</div>

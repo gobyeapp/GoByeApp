@@ -100,7 +100,7 @@ export default function Subscriptions() {
         eyebrow="Revenue"
         title="Driver subscriptions"
         sub="GoBye earns from driver passes, not from trips (0% commission). Access starts when a payment is verified with the provider."
-        meta={<><Pill tone="neutral" icon="info">Test data</Pill><Pill tone="neutral" icon="refresh">Renewal is manual</Pill></>}
+        meta={<><Pill tone="neutral" icon="refresh">Renewal is manual</Pill></>}
       />
 
       <div className="grid featured">

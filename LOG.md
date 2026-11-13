@@ -1106,3 +1106,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Tests:** core 294, admin 412, typecheck and lint clean. Light and dark checked by screenshot on: Home, Business summary, Service balances, Drivers, Live, Cost dashboard, Approvals, Integrations and Settings.
 - **Next:** stage 2 of the restyle, replacing text-heavy panels on the other pages (Cost dashboard, Money overview, Reports) with charts.
 
+## 2026-11-13 — Admin: demo labels removed, less text (D-070)
+
+- Removed every prototype, test data and simulated label, banner and notice from the admin. The demo only tools are behind `VITE_DEMO_TOOLS` (`data/mode.ts`).
+- Provider and bank names lose "(test)". The integration state "Prototype" now reads "Not connected".
+- Page subtitles are one line; the section eyebrows are hidden.
+- New guard test `shell/no-demo-labels.test.ts`.
+- **Tests:** core 294, admin 413, typecheck and lint clean.
+

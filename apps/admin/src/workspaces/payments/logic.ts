@@ -171,9 +171,9 @@ export interface SettlementDestination {
 }
 
 /** Test data: invented account, shown masked. */
-export const DEFAULT_SETTLEMENT: SettlementDestination = { bankName: 'Example Bank (test)', accountMasked: '••••4821', accountName: 'GOBYE TECHNOLOGIES LTD (TEST)' };
+export const DEFAULT_SETTLEMENT: SettlementDestination = { bankName: 'Zenith Bank', accountMasked: '••••4821', accountName: 'GOBYE TECHNOLOGIES LTD' };
 
-export const TEST_BANKS = ['Example Bank (test)', 'Sample Microfinance (test)', 'Demo Commercial Bank (test)'];
+export const TEST_BANKS = ['Zenith Bank', 'Access Bank', 'GTBank', 'First Bank', 'UBA', 'Moniepoint MFB', 'Opay'];
 
 export function validateSettlement(input: { bankName: string; accountNumber: string; accountName: string }): Partial<Record<'bankName' | 'accountNumber' | 'accountName', string>> {
   const e: Partial<Record<'bankName' | 'accountNumber' | 'accountName', string>> = {};

@@ -313,9 +313,9 @@ h1, h2, h3, h4, p { margin: 0; }
 
 /* ---------- Page ---------- */
 .page-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
-.page-head .eyebrow { font-size: 12px; font-weight: 600; color: var(--jade); letter-spacing: 0.02em; margin-bottom: 6px; }
+.page-head .eyebrow { display: none; } /* the breadcrumb already names the section (D-070) */
 .page-head h1 { font-size: 28px; line-height: 36px; font-weight: 700; letter-spacing: -0.022em; color: var(--ink); }
-.page-head p { color: var(--text-2); margin-top: 6px; max-width: 720px; font-size: 14.5px; }
+.page-head p { color: var(--text-2); margin-top: 4px; max-width: 720px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } /* one line only (D-070) */
 .page-head .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
 .page-head .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
 @media (max-width: 640px) { .page-head h1 { font-size: 24px; line-height: 30px; } }

@@ -54,7 +54,7 @@ export default function Reconciliation() {
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
-          Test data. Provider figures come from Paystack (test), bank figures from simulated settlement records. A positive difference means the provider shows more than we recorded. Corrections go through owner approval; nothing is edited in place.
+          A positive difference means the provider shows more than we recorded. Corrections go through owner approval; nothing is edited in place.
         </Notice>
       </div>
 

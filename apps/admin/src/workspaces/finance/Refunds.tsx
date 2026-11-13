@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DEMO_TOOLS } from '@/data/mode';
 import type { RefundRecord } from '@gobye/core';
 import { money, when } from '@/data/format';
 import { RecordLink } from '@/data/records';
@@ -18,9 +19,9 @@ const STEP_AT: Partial<Record<RefundRecord['status'], number>> = { requested: 1,
 const DESCRIBE: Record<RefundAction, { title: string; body: (r: RefundRecord) => string }> = {
   approve: { title: 'Approve refund', body: (r) => `Approves ${money(r.amount)} to the ${DEST[r.destination].toLowerCase()}. The linked approval request is marked approved. Money moves only when you process it.` },
   reject: { title: 'Reject refund', body: () => 'Nothing is paid. The reason is saved to the audit trail and the approval request.' },
-  process: { title: 'Process refund', body: (r) => (r.destination === 'wallet' ? `Posts a refund journal: the passenger wallet goes up by ${money(r.amount)}, booked as a goodwill expense. Posted once, even if pressed again.` : `Submits ${money(r.amount)} to Paystack (test) for the original payment method. Simulated: the result comes from the buttons that follow.`) },
-  sim_success: { title: 'Simulate refund success', body: (r) => `Simulated provider event refund.processed. Posts the refund journal for ${money(r.amount)} as a goodwill expense.` },
-  sim_failure: { title: 'Simulate refund failure', body: () => 'Simulated provider event refund.failed. Nothing is posted; you can process it again.' },
+  process: { title: 'Process refund', body: (r) => (r.destination === 'wallet' ? `Posts a refund journal: the passenger wallet goes up by ${money(r.amount)}, booked as a goodwill expense. Posted once, even if pressed again.` : `Submits ${money(r.amount)} to the payment provider for the original payment method.`) },
+  sim_success: { title: 'Demo: refund success', body: (r) => `Demo provider event refund.processed. Posts the refund journal for ${money(r.amount)} as a goodwill expense.` },
+  sim_failure: { title: 'Demo: refund failure', body: () => 'Demo provider event refund.failed. Nothing is posted; you can process it again.' },
 };
 
 export default function Refunds() {
@@ -111,7 +112,7 @@ function RefundDrawer({ r, onClose }: { r: RefundRecord; onClose: () => void }) 
         audit: () => ({
           action: `refund.${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : action === 'process' ? 'processed' : action}`,
           target: { type: 'refund', id: r.id, label: `Refund ${r.id}` },
-          summary: `${DESCRIBE[action].title}: ${money(r.amount)} to ${passenger?.name ?? r.passengerId}${action.startsWith('sim_') ? ' (simulated provider event)' : ''}`,
+          summary: `${DESCRIBE[action].title}: ${money(r.amount)} to ${passenger?.name ?? r.passengerId}${action.startsWith('sim_') ? ' (demo provider event)' : ''}`,
           reason: reason || undefined,
         }),
       },
@@ -149,10 +150,10 @@ function RefundDrawer({ r, onClose }: { r: RefundRecord; onClose: () => void }) 
           <span className="strong">How it is booked.</span> GoBye keeps no commission on trips, so a refund is paid from company funds and booked as a goodwill expense (promotions and goodwill). It never reduces the driver’s earnings or package revenue.
         </div>
       </Card>
-      {sim.length ? (
+      {DEMO_TOOLS && sim.length ? (
         <Card muted>
           <div className="row" style={{ marginBottom: 8 }}>
-            <span className="strong">Simulated provider result</span>
+            <span className="strong">Demo provider result</span>
             <SimTag />
           </div>
           <div className="row wrap">

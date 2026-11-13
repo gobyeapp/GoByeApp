@@ -65,7 +65,7 @@ export default function Operations() {
         eyebrow="Payments"
         title="Payment operations"
         sub="Every payment in and payout out, with each figure kept apart: gross, provider charge, GoBye fee, wallet or earnings movement and settlement."
-        meta={<Pill tone="warning" icon="info">Test data · Paystack (test)</Pill>}
+        
       />
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
         <Stat icon="exchange" label="Payments and payouts" value={count(rows.length)} sub={`${count(done.length)} completed`} />
@@ -110,7 +110,7 @@ function MovementDrawer({ row, now, onClose }: { row: MovementRow; now: number; 
       <div className="row wrap">
         <Pill tone={statusTone(row)}>{label(row.status)}</Pill>
         {row.stuck ? <Pill tone="danger" icon="time">Stuck</Pill> : null}
-        <Pill tone="warning" icon="info">Test data</Pill>
+        
       </div>
       <Card title="Breakdown">
         <dl className="breakdown">

@@ -82,9 +82,6 @@ export default function Staff() {
         <Stat icon="time" tone={roleRequests ? 'warning' : undefined} label="Role requests" value={roleRequests} sub="Waiting for owner approval" />
       </div>
       <div className="stack" style={{ gap: 12, marginBottom: 16 }}>
-        <Notice icon="info">
-          Sign in is simulated in this prototype. Changes here update the staff records; real invites, sign in and sessions come with the backend.
-        </Notice>
         {!manage ? <Notice icon="lock">Read only. Only the company owner can invite staff or change access.</Notice> : null}
       </div>
       <Tabs
@@ -415,7 +412,7 @@ function InviteDrawer({ onClose }: { onClose: () => void }) {
           };
         },
       },
-      'Invite recorded (simulated: no email is sent)',
+      'Invite recorded',
     );
     if (r.ok) onClose();
   };
@@ -423,7 +420,6 @@ function InviteDrawer({ onClose }: { onClose: () => void }) {
   return (
     <Drawer
       title="Invite staff"
-      sub="Simulated: the invite is recorded, no email is sent."
       onClose={onClose}
       footer={
         <>

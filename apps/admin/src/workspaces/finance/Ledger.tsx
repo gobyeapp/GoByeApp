@@ -37,7 +37,7 @@ export default function Ledger() {
         <Stat icon="wallet" label="Passenger wallets" value={money(bal.passengerWallets)} sub="Held for passengers (liability)" />
         <Stat icon="steering" label="Driver earnings" value={money(bal.driverEarnings)} sub="Withdrawable, owed to drivers" />
         <Stat icon="time" label="Withdrawal reserves" value={money(bal.withdrawalReserves)} sub="Requested, not yet paid" />
-        <Stat icon="exchange" label="Provider clearing" value={<Amount value={bal.providerClearing} />} sub="Paystack (test): negative means money in, not yet settled out" />
+        <Stat icon="exchange" label="Provider clearing" value={<Amount value={bal.providerClearing} />} sub="Negative means money in, not yet settled out" />
         <Stat icon="list" label="Journals" value={String(all.length)} sub={all.every((j) => j.total === 0) ? 'All balance to zero' : 'Some do not balance'} tone={all.every((j) => j.total === 0) ? undefined : 'danger'} />
       </div>
 

@@ -14,7 +14,7 @@ export function PageHead({ title, sub, actions, eyebrow, meta }: { title: string
       <div style={{ minWidth: 0 }}>
         {eyebrow ? <div className="eyebrow">{eyebrow}</div> : null}
         <h1>{title}</h1>
-        {sub ? <p>{sub}</p> : null}
+        {sub ? <p title={sub}>{sub}</p> : null}
         {meta ? <div className="meta">{meta}</div> : null}
       </div>
       {actions ? <div className="actions">{actions}</div> : null}

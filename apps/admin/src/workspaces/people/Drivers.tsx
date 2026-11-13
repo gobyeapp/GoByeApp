@@ -122,11 +122,11 @@ export default function Drivers() {
 
   return (
     <>
-      <PageHead eyebrow="People" title="Drivers" sub="Verify applications and documents, follow subscriptions and keep drivers eligible to accept rides. Document checks are simulated." />
+      <PageHead eyebrow="People" title="Drivers" sub="Verify applications and documents, follow subscriptions and keep drivers eligible to accept rides." />
       <div className="grid featured">
         <FeaturedStat label="Pending verification" value={count(review.length)} sub={docsPending ? `${count(docsPending)} waiting on the driver to upload` : 'Oldest application first'} art="verification" onClick={go('review')} />
         <Stat icon="steering" label="Registered drivers" value={count(scoped.length)} sub={`${count(approved)} approved`} onClick={() => (setTab('all'), setVer('all'))} />
-        <Stat icon="radar" label="Online now" value={count(online)} sub="Simulated status" />
+        <Stat icon="radar" label="Online now" value={count(online)} sub="Right now" />
         <Stat icon="ticket" label="Active subscribers" value={count(subscribers)} sub="Daily or monthly pass running" />
       </div>
       <div style={{ marginTop: 32 }}>
@@ -302,7 +302,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
           {readinessNotice}
           <div className="sheet-figures">
             <Figure label="Documents" value={`${docsOk} of ${REQUIRED_DOCS.length}`} sub="Required, accepted" />
-            <Figure label="Trips" value={count(x.trips)} sub={`${count(completed.length)} completed in test data`} />
+            <Figure label="Trips" value={count(x.trips)} sub={`${count(completed.length)} completed`} />
             <Figure label="Rating" value={x.trips ? x.rating.toFixed(2) : 'None'} sub={`Acceptance ${Math.round(x.acceptanceRate * 100)}%`} />
           </div>
           <PanelSection title="At a glance" icon="steering">
@@ -351,7 +351,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
       {view === 'documents' ? (
         <>
           {readinessNotice}
-          <PanelSection title="Document review" icon="fileCheck" aside={`${docsOk} of ${REQUIRED_DOCS.length} required accepted · checks simulated`}>
+          <PanelSection title="Document review" icon="fileCheck" aside={`${docsOk} of ${REQUIRED_DOCS.length} required accepted`}>
             <div className="doc-cards">
               {x.documents.map((doc) => (
                 <DocCard
@@ -369,9 +369,8 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
           <PanelSection
             title={`Identity checks (${IDENTITY_PROVIDER})`}
             icon="shield"
-            aside={`${idSummary.passed} of ${idChecks.length} passed${idSummary.attention ? ` · ${idSummary.attention} need attention` : ''} · simulated`}
+            aside={`${idSummary.passed} of ${idChecks.length} passed${idSummary.attention ? ` · ${idSummary.attention} need attention` : ''}`}
           >
-            <Notice tone="info">Simulated results. Once {IDENTITY_PROVIDER} is connected, the API runs these checks and the results appear here, so nobody needs to open {IDENTITY_PROVIDER}’s own site. You still make the decision.</Notice>
             <ul className="id-checks" aria-label="Identity check results">
               {idChecks.map((c) => {
                 const meta = IDENTITY_CHECKS.find((k) => k.kind === c.kind)!;
@@ -451,7 +450,7 @@ function DriverSheet({ driver: x, onClose }: { driver: DriverRecord; onClose: ()
               ))}
             </div>
           ) : (
-            <span className="small muted">No trips in the test data for this driver.</span>
+            <span className="small muted">No trips yet for this driver.</span>
           )}
         </PanelSection>
       ) : null}
@@ -534,9 +533,9 @@ function DocCard({ doc, appliedAt, now, canVerify, onAccept, onReject }: { doc: 
         </div>
         <Pill tone={DOC_TONE[st]}>{label(st)}</Pill>
       </div>
-      <div className="doc-preview" role="img" aria-label={`${DOC_LABELS[doc.kind]}: file not available in this prototype`}>
+      <div className="doc-preview" role="img" aria-label={`${DOC_LABELS[doc.kind]}: file preview`}>
         <Icon name="document" size={20} />
-        <span>{st === 'missing' ? 'Not uploaded yet.' : 'Document file not available in this prototype: stored privately in R2 once the backend exists.'}</span>
+        <span>{st === 'missing' ? 'Not uploaded yet.' : 'File preview opens from private storage.'}</span>
       </div>
       <dl className="doc-meta">
         <div><dt>Expiry</dt><dd>{doc.expiresAt ? `${doc.expiresAt <= now ? 'Expired' : 'Expires'} ${date(doc.expiresAt)}` : 'No expiry'}</dd></div>

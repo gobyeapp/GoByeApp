@@ -96,7 +96,7 @@ export default function Failed() {
         ))
       ) : (
         <Card>
-          <Empty title="Nothing has failed" icon="checkCircle">Every simulated run finished or is still queued.</Empty>
+          <Empty title="Nothing has failed" icon="checkCircle">Every run finished or is still queued.</Empty>
         </Card>
       )}
       {open ? <RunDrawer run={d.automationRuns.find((r) => r.id === open.id) ?? open} onClose={() => setOpen(null)} /> : null}

@@ -76,7 +76,7 @@ export default function Fees() {
         eyebrow="Payments"
         title="Fee configuration"
         sub="Wallet funding and withdrawal fees: versioned, dated and approved by the owner before they apply. Customers see every fee before they confirm."
-        meta={<Pill tone="warning" icon="info">Test data · no fee is charged</Pill>}
+        
         actions={
           <Button variant="primary" icon="add" onClick={() => setEditing('new')} disabledReason={canEdit ? (drafts.length ? 'Finish or send the open draft first' : undefined) : 'Only finance can prepare fee schedules'}>
             New draft

@@ -57,7 +57,7 @@ export function PlatformProvider({ children, actor, initial }: { children: React
     setError(null);
     await wait(700);
     if (failRef.current) {
-      setError('The server didn’t respond (simulated failure).');
+      setError('The server didn’t respond.');
       setLoading(false);
       return;
     }
@@ -80,7 +80,7 @@ export function PlatformProvider({ children, actor, initial }: { children: React
     const who = actorRef.current;
     if (!current || !who) return { ok: false, error: 'Not signed in' };
     await wait(spec.latency ?? 650);
-    if (failRef.current) return { ok: false, error: 'Couldn’t save. Nothing was changed (simulated failure). Try again.' };
+    if (failRef.current) return { ok: false, error: 'Couldn’t save. Nothing was changed. Try again.' };
     const draft = structuredClone(dataRef.current ?? current);
     const at = now();
     const res = spec.apply(draft, { now: at, actor: who });

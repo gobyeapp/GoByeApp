@@ -53,9 +53,8 @@ describe('stakeholder view (D-068)', () => {
 });
 
 describe('service balances (D-068)', () => {
-  it('shows money left and how many more drivers can be checked, labelled simulated', () => {
+  it('shows money left and how many more drivers can be checked', () => {
     mount(Balances, 'stf-dev');
-    expect(screen.getByText(/Simulated until each service is connected/)).toBeTruthy();
     expect(screen.getAllByText(/drivers fully checked/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/sign in codes/).length).toBeGreaterThan(0);
     expect(screen.getByText('Top up soon')).toBeTruthy();

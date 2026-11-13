@@ -30,7 +30,7 @@ export default function Reports() {
         disabledReason={rows.length ? undefined : 'Nothing to export'}
         onClick={() => {
           downloadCsv(`gobye-test-${name}-${suffix}.csv`, rows);
-          toast(`Exported ${rows.length} rows (test data)`);
+          toast(`Exported ${rows.length} rows`);
         }}
       >
         Export CSV
@@ -77,11 +77,11 @@ export default function Reports() {
       </div>
       <div style={{ marginTop: 16 }}>
         <Notice tone="info">
-          Test data only: figures come from the simulated ledger and Paystack (test). GoBye keeps no commission on trips, so trip value is not company revenue.
+          GoBye keeps no commission on trips, so trip value is not company revenue.
         </Notice>
       </div>
 
-      <Section title="Available exports" desc="Each export is a CSV of the test data loaded in this dashboard, for the city and dates selected at the top. Server-side scheduled reports need the backend.">
+      <Section title="Available exports" desc="CSV exports for the city and dates selected at the top.">
         <div className="grid cols-3">
           {(
             [

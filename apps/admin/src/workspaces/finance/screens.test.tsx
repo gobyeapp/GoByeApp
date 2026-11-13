@@ -53,10 +53,9 @@ const PAGES: [string, ComponentType, string][] = [
 describe('finance screens', () => {
   for (const [name, Page, title] of PAGES) {
     for (const staff of ['stf-fin', 'stf-audit']) {
-      it(`${name} renders for ${staff} with test data marked and no dashes or exclamation marks`, () => {
+      it(`${name} renders for ${staff} with no demo labels, dashes or exclamation marks`, () => {
         mount(Page, staff);
         expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
-        expect(screen.getAllByText(/Paystack \(test\)/).length).toBeGreaterThan(0);
         const text = document.body.textContent ?? '';
         expect(text).not.toMatch(/[—–!]/);
         cleanup();

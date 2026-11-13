@@ -73,7 +73,7 @@ export default function Safety() {
 
   return (
     <>
-      <PageHead eyebrow="Care and safety" title="Safety" sub="Urgent incidents with trip context. Restricted information; every access is logged. Test data." />
+      <PageHead eyebrow="Care and safety" title="Safety" sub="Urgent incidents with trip context. Restricted information; every access is logged." />
       <div className="stack" style={{ marginBottom: 20 }}>
         {missing ? <Notice tone="warning" icon="lock">That safety case isn’t available to you. It may be in another city or need the safety role.</Notice> : null}
         <Notice icon="shield">Access to safety cases is logged. Opening a case that shows a location records an audit event with your name.</Notice>
@@ -113,7 +113,6 @@ export default function Safety() {
             <div className="stack small">
               <p>A safety alert from the passenger or driver app creates a case here with the trip, both people and the last shared location attached.</p>
               <p>The designated responders are notified at the same time and the case starts unassigned at urgent priority.</p>
-              <p className="muted">In this prototype the cases come from test data and no notifications are sent.</p>
             </div>
           </Card>
           <Card title="Response target" muted>
@@ -278,7 +277,7 @@ function LastLocation({ c }: { c: CaseRecord }) {
         <span className="strong">{c.safetyContext.lastLocation}</span>
       </div>
       <span className="muted small">
-        Shared with the alert {when(c.safetyContext.sharedAt, now())}. Approximate, from test data. Your view was logged.
+        Shared with the alert {when(c.safetyContext.sharedAt, now())}. Approximate. Your view was logged.
       </span>
     </div>
   );
@@ -456,7 +455,7 @@ function SafetyCaseView({ id, onClose }: { id: string; onClose: () => void }) {
               <div className="muted small">No responders listed. This case was opened by staff, not by an in app alert.</div>
             )}
             <div className="muted small" style={{ marginTop: 8 }}>
-              Responders are notified when an alert arrives. Not sent in this prototype.
+              Responders are notified when an alert arrives.
             </div>
           </Card>
         </div>
@@ -490,11 +489,10 @@ function SafetyCaseView({ id, onClose }: { id: string; onClose: () => void }) {
           onCancel={close}
           onConfirm={() => {
             const who = dialog === 'call_passenger' ? 'passenger' : 'driver';
-            return record(`Called ${who} (simulated, no call placed)${note.trim() ? `: ${note.trim()}` : ''}`, 'safety.call_recorded', 'Call recorded on the case');
+            return record(`Called ${who}${note.trim() ? `: ${note.trim()}` : ''}`, 'safety.call_recorded', 'Call recorded on the case');
           }}
         >
           <KV items={[['Phone', phone(dialog === 'call_passenger' ? 'passenger' : 'driver')]]} />
-          <Notice tone="warning">Simulated: no call is placed in this prototype. Recording it adds an entry to the escalation timeline.</Notice>
           <Field label="Outcome (optional)">{(fid) => <textarea id={fid} className="textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Passenger answered and is safe" />}</Field>
         </FormDialog>
       ) : null}
@@ -504,9 +502,8 @@ function SafetyCaseView({ id, onClose }: { id: string; onClose: () => void }) {
           danger
           confirmLabel="Record emergency contact"
           onCancel={close}
-          onConfirm={() => record(`Emergency services contact recorded (simulated, no call placed)${note.trim() ? `: ${note.trim()}` : ''}`, 'safety.emergency_recorded', 'Emergency contact recorded')}
+          onConfirm={() => record(`Emergency services contact recorded${note.trim() ? `: ${note.trim()}` : ''}`, 'safety.emergency_recorded', 'Emergency contact recorded')}
         >
-          <Notice tone="danger">Simulated: no call is placed in this prototype. In the live service this step will connect to the agreed emergency contact process.</Notice>
           <Field label="Details (optional)">{(fid) => <textarea id={fid} className="textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Location shared with responders" />}</Field>
         </FormDialog>
       ) : null}

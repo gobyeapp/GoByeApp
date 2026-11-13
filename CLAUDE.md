@@ -26,7 +26,7 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Money is integer kobo (`Kobo`), formatted only with `formatNaira`.
 - Use `npx expo install` for native packages (in a proxied environment: `EXPO_OFFLINE=1 npx expo install …`, which resolves from the SDK's bundled versions).
 - Do not install unrelated packages. Record every new dependency in `docs/DEPENDENCIES_AND_LICENSES.md`.
-- Never present mock data as live: use `SimulatedBadge` / "Simulated" copy for ETAs, driver location, payments, verification, emergency features.
+- Never present mock data as live in the rider and driver apps: use `SimulatedBadge` / "Simulated" copy for ETAs, driver location, payments, verification, emergency features. The admin is different (D-070): no prototype, test data or simulated wording; an unconnected service shows as "Not connected" or a disabled action with its reason, and demo only tools sit behind `VITE_DEMO_TOOLS`.
 
 ## MingCute requirements
 

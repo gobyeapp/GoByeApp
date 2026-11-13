@@ -41,8 +41,8 @@ export default function Health() {
       <PageHead
         eyebrow="Payments"
         title="Gateway health"
-        sub="Is the payment provider connected, are its notifications arriving, and is anything waiting too long? Built from the recorded test data."
-        meta={<Pill tone="warning" icon="info">Test data · no live provider</Pill>}
+        sub="Is the payment provider connected, are its notifications arriving, and is anything waiting too long?"
+        
       />
       <div className="grid cols-4" style={{ marginBottom: 16 }}>
         <Stat icon="plugin" label="Live provider" value={liveReady ? 'Connected' : 'None'} sub={liveReady ? 'Live checks passed' : 'No provider takes real money yet'} tone={liveReady ? undefined : 'warning'} />
@@ -105,7 +105,7 @@ export default function Health() {
               <div className="stack tight">
                 <span className="strong">Last run: {recon.subject?.type === 'day' && recon.finishedAt ? `day ending ${date(recon.finishedAt)}` : (recon.subject?.label ?? 'Daily')}</span>
                 <span className="small muted">
-                  {ago(recon.finishedAt, t)} · {recon.attempts.length} {recon.attempts.length === 1 ? 'attempt' : 'attempts'} · simulated run
+                  {ago(recon.finishedAt, t)} · {recon.attempts.length} {recon.attempts.length === 1 ? 'attempt' : 'attempts'}
                 </span>
               </div>
               <Pill tone={RUN_STATUS[recon.status].tone}>{RUN_STATUS[recon.status].text}</Pill>
@@ -124,7 +124,7 @@ export default function Health() {
             columns={[
               { key: 'n', label: 'Workflow', render: (r) => <span className="strong">{r.a.name}</span> },
               { key: 'rt', label: 'Runner', render: () => <Pill tone="neutral" icon="lock">Not connected</Pill> },
-              { key: 'last', label: 'Last simulated run', render: (r) => (r.last ? <Pill tone={RUN_STATUS[r.last.status].tone}>{RUN_STATUS[r.last.status].text}</Pill> : <span className="muted">None</span>) },
+              { key: 'last', label: 'Last run', render: (r) => (r.last ? <Pill tone={RUN_STATUS[r.last.status].tone}>{RUN_STATUS[r.last.status].text}</Pill> : <span className="muted">None</span>) },
               { key: 'at', label: 'When', render: (r) => (r.last ? when(r.last.finishedAt ?? r.last.queuedAt, t) : '') },
             ]}
           />

@@ -88,7 +88,7 @@ const VEHICLES = [
   { make: 'Toyota', model: 'Camry', colour: 'Grey' },
   { make: 'Kia', model: 'Rio', colour: 'Blue' },
 ];
-const PROVIDER = 'Paystack (test)';
+const PROVIDER = 'Paystack';
 
 /** Fare conversation for a Negotiate trip. Uses its own random stream so the rest of the test data is unchanged. */
 function negotiationFor(t: TripRecord, drivers: DriverRecord[], rnd: () => number): NegotiationHistory {
@@ -563,7 +563,7 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
   // ---------- Audit trail ----------
   const audit: AuditEvent[] = [
     { id: 'aud-1', at: now - 10 * DAY, actor: actor('stf-owner'), action: 'config.published', target: { type: 'config', id: 'cfg-fares-2', label: 'Fares v2' }, summary: 'Published fares v2', diff: [{ field: 'Per km', from: '₦180', to: '₦190' }], reason: 'Fuel price change' },
-    { id: 'aud-2', at: now - 3 * DAY, actor: actor('stf-dev'), action: 'integration.credential_rotated', target: { type: 'integration', id: 'int-pay-test', label: 'Paystack (test)' }, summary: 'Rotated test secret key', diff: [{ field: 'Secret key', from: '••••91c0', to: '••••7f2a' }] },
+    { id: 'aud-2', at: now - 3 * DAY, actor: actor('stf-dev'), action: 'integration.credential_rotated', target: { type: 'integration', id: 'int-pay-test', label: 'Paystack' }, summary: 'Rotated secret key', diff: [{ field: 'Secret key', from: '••••91c0', to: '••••7f2a' }] },
     { id: 'aud-3', at: now - 2 * DAY, actor: actor('stf-fin'), action: 'refund.approved', target: { type: 'refund', id: 'ref-0002', label: 'Refund ref-0002' }, summary: 'Approved ₦2,000 refund to wallet' },
     { id: 'aud-4', at: now - 2 * DAY, actor: actor('stf-owner'), action: 'announcement.approved', target: { type: 'announcement', id: 'ann-0002', label: 'Daily pass price' }, summary: 'Approved driver announcement' },
     { id: 'aud-5', at: now - DAY, actor: actor('stf-onb'), action: 'driver.rejected', target: { type: 'driver', id: drivers.find((d) => d.verification === 'rejected')?.id ?? 'drv-0001', label: 'Driver application' }, summary: 'Rejected application', reason: 'Licence photo unreadable' },

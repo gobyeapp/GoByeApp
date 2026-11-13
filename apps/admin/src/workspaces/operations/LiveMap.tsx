@@ -1,5 +1,4 @@
 import { CITY_LABELS, type CityId, type DriverRecord, type TripRecord } from '@gobye/core';
-import { Pill } from '@/ui/kit';
 
 /**
  * Honest schematic in place of a map: no map provider is chosen (D-025 proposed), so positions are
@@ -22,7 +21,7 @@ export function LiveMap({ city, rides, drivers, selected, onSelect }: { city: Ci
   const P = (p: { x: number; y: number }) => ({ x: p.x * W, y: p.y * H });
   return (
     <div className="map-canvas">
-      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={`Simulated positions of ${rides.length} active rides and ${drivers.length} available drivers in ${CITY_LABELS[city]}`}>
+      <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" role="img" aria-label={`Positions of ${rides.length} active rides and ${drivers.length} available drivers in ${CITY_LABELS[city]}`}>
         <defs>
           <pattern id="mapgrid" width="64" height="64" patternUnits="userSpaceOnUse">
             <path d="M 64 0 L 0 0 0 64" fill="none" stroke="var(--chart-grid)" strokeWidth="1" />
@@ -61,7 +60,7 @@ export function LiveMap({ city, rides, drivers, selected, onSelect }: { city: Ci
         })}
       </svg>
       <div style={{ position: 'absolute', left: 14, top: 12 }}>
-        <Pill tone="neutral" icon="info">Simulated positions · map provider not chosen</Pill>
+        
       </div>
     </div>
   );

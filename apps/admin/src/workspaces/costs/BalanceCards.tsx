@@ -17,7 +17,7 @@ const unitWord = (label: string) => (label === 'sign in code' ? 'codes' : 'drive
 const SOURCE: Record<'provider_api' | 'our_records' | 'simulated', string> = {
   provider_api: 'From the provider',
   our_records: 'From our records',
-  simulated: 'Simulated',
+  simulated: 'Generated figures',
 };
 
 /** Compact rings for the stakeholder summary: money left and how far it goes. */

@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { resolveTheme, useTheme } from './data/theme';
+import { DEMO_TOOLS } from './data/mode';
 import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { CITY_LABELS, ROLE_LABELS, type CityId } from '@gobye/core';
 import { initials } from '@/data/format';
@@ -12,7 +13,7 @@ import { CommandPalette } from '@/shell/CommandPalette';
 import { Popover } from '@/shell/Popover';
 import { Icon } from '@/ui/Icon';
 import { Dimensional } from '@/ui/Dimensional';
-import { Empty, ErrorState, IconButton, Notice, Select, Skeleton } from '@/ui/kit';
+import { Empty, ErrorState, IconButton, Select, Skeleton } from '@/ui/kit';
 
 
 /** Top bar light/dark switch (D-069). System is chosen in Settings, Appearance. */
@@ -86,11 +87,8 @@ function SignIn() {
       <section className="signin-panel" aria-labelledby="signin-title">
         <div>
           <h2 id="signin-title" style={{ fontSize: 20, fontWeight: 700 }}>Staff sign in</h2>
-          <p className="muted" style={{ marginTop: 4 }}>Choose a test staff account to open that role’s workspace.</p>
+          <p className="muted" style={{ marginTop: 4 }}>Choose your account.</p>
         </div>
-        <Notice tone="warning" icon="info">
-          Prototype on test data. Sign in is simulated. Changes stay while this tab is open, so you can switch staff to follow a request from one team to another. Real sign in (email with one time code, session limits) comes with the backend.
-        </Notice>
         <div className="staff-list" role="list">
           {TEST_STAFF.map((s) => (
             <button key={s.id} className="staff-option" role="listitem" onClick={() => signIn(s.id)} disabled={s.status !== 'active'} style={s.status !== 'active' ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
@@ -224,17 +222,10 @@ function Shell() {
           })}
         </nav>
         <div className="side-foot">
-          <div className="row small" style={{ color: 'var(--side-title)', padding: '2px 6px' }} title="Prototype: test data only">
-            <Icon name="info" size={16} />
-            <span className="label">Test data · simulated</span>
-          </div>
         </div>
       </aside>
 
       <div className="main">
-        <div className="proto-banner" role="note">
-          <Icon name="info" size={15} /> Prototype · test data and simulated responses only. No real money, people or providers.
-        </div>
         <header className="topbar">
           <div className="top-left">
             <span className="menu-btn">
@@ -283,7 +274,7 @@ function Shell() {
                   <div className="popover-body">
                     <Select label="City" value={city} onChange={setCity} options={cityOptions} />
                     <Select<RangeKey> label="Date range" value={range} onChange={setRange} options={RANGE_OPTIONS} />
-                    <span className="small muted">Applies to lists and figures across the dashboard. Test data.</span>
+                    <span className="small muted">Applies to lists and figures across the dashboard.</span>
                   </div>
                 </>
               )}
@@ -321,7 +312,7 @@ function Shell() {
                       <Empty title="You’re all caught up" art="completedTrips">Nothing waiting in the pages you can open.</Empty>
                     )}
                   </div>
-                  <div className="cmdk-foot">Counts from the loaded test data. Staff alerts by push or email need the backend.</div>
+                  
                 </>
               )}
             </Popover>
@@ -345,7 +336,6 @@ function Shell() {
                   <div className="menu-section">
                     <button className="menu-item" onClick={() => (close(), setPaletteOpen(true))}><Icon name="search" size={16} /> Find a page</button>
                   </div>
-                  <div className="cmdk-foot">This is a prototype on test data. Nothing here moves real money or contacts real people.</div>
                 </>
               )}
             </Popover>
@@ -371,16 +361,16 @@ function Shell() {
                       {staff.roles.map((r) => ROLE_LABELS[r]).join(' + ')} · {staff.cities.length ? staff.cities.map((c) => CITY_LABELS[c as CityId]).join(', ') : 'All cities'}
                     </span>
                   </div>
-                  <div className="menu-section">
-                    <div className="cmdk-group" style={{ padding: '6px 10px 2px' }}>Prototype tools</div>
+                  {DEMO_TOOLS ? <div className="menu-section">
+                    <div className="cmdk-group" style={{ padding: '6px 10px 2px' }}>Demo tools</div>
                     <label className="menu-item" style={{ cursor: 'pointer' }}>
                       <input type="checkbox" checked={simulateFailures} onChange={(e) => setSimulateFailures(e.target.checked)} />
                       Simulate server failures
                     </label>
                     <button className="menu-item" onClick={() => (close(), reset())}>
-                      <Icon name="refresh" size={16} /> Reset test data
+                      <Icon name="refresh" size={16} /> Reset data
                     </button>
-                  </div>
+                  </div> : null}
                   <div className="menu-section">
                     <button className="menu-item" onClick={signOut}>
                       <Icon name="exit" size={16} /> Sign out

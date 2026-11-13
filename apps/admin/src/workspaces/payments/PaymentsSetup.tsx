@@ -70,9 +70,6 @@ export default function PaymentsSetup() {
         <Stat icon="alert" label="Setup problems" value={String(problems.length)} sub="Listed below with who owns each" tone={problems.length ? 'warning' : undefined} />
       </div>
       <div className="stack">
-        <Notice tone="warning" icon="info">
-          Prototype on test data. Nothing is connected to Paystack or any bank, and no real money moves. Paystack is shown in test mode only.
-        </Notice>
         <Notice tone="info" icon="exchange">
           Changing gateway keeps the provider on existing transactions so pending payments, refunds and payouts can still be resolved.
         </Notice>
@@ -498,7 +495,7 @@ function Settlement({ live }: { live?: IntegrationRecord }) {
               ['Confirmed for live', settlementCheck?.passed ? <Pill key="p" tone="success" icon="check">Confirmed</Pill> : <Pill key="p" tone="warning" icon="time">Not confirmed</Pill>],
             ]}
           />
-          <p className="small muted">Test data. Provider settlements go to this account; changing it needs owner approval and never changes settlements already paid.</p>
+          <p className="small muted">Provider settlements go to this account; changing it needs owner approval and never changes settlements already paid.</p>
           {pending ? (
             <div className="stack" style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
               <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -630,7 +627,7 @@ function SettlementForm({ live, current, onClose }: { live?: IntegrationRecord; 
           {(id) => <input id={id} className="input" autoComplete="off" value={accountName} onChange={(e) => setName(e.target.value)} />}
         </Field>
         <Notice tone="info" icon="lock">
-          In the real system this goes to protected server storage; it is never stored in the browser. This prototype keeps only the bank, the last 4 digits and the name on the request.
+          In the real system this goes to protected server storage; it is never stored in the browser. Only the bank, the last 4 digits and the name are kept here.
         </Notice>
         <p className="small muted">Current: {current.bankName} {current.accountMasked}. Settlements already paid keep their destination.</p>
       </form>

@@ -106,7 +106,7 @@ function TripPanel({ id, onClose, sub }: { id: string; onClose: () => void; sub?
   const { can } = useSession();
   const open = useOpenRecord();
   const t = d.trips.find((x) => x.id === id);
-  if (!t) return <Drawer title="Trip not found" onClose={onClose}>This trip isn’t in the test data.</Drawer>;
+  if (!t) return <Drawer title="Trip not found" onClose={onClose}>This trip can’t be found.</Drawer>;
   const p = d.passengers.find((x) => x.id === t.passengerId);
   const dr = t.driverId ? d.drivers.find((x) => x.id === t.driverId) : undefined;
   const cases = d.cases.filter((c) => c.links.tripId === t.id && (c.team === 'care' ? can('cases.view') : can('safety.view')));
@@ -231,7 +231,7 @@ function PassengerPanel({ id, onClose, sub }: { id: string; onClose: () => void;
   const [view, setView] = useState<PassengerView>('overview');
   const p: PassengerRecord | undefined = d.passengers.find((x) => x.id === id);
   const trips = useMemo(() => d.trips.filter((t) => t.passengerId === id).sort((a, b) => b.requestedAt - a.requestedAt), [d.trips, id]);
-  if (!p) return <Drawer title="Passenger not found" onClose={onClose}>Not in the test data.</Drawer>;
+  if (!p) return <Drawer title="Passenger not found" onClose={onClose}>Not found.</Drawer>;
   const t = now();
   const seeMoney = can('finance.view') || can('ledger.view');
   const wallet = balanceOf(d.ledger, { kind: 'passenger_wallet', ownerId: p.id });
@@ -370,7 +370,7 @@ function DriverPanel({ id, onClose, sub }: { id: string; onClose: () => void; su
   const { can } = useSession();
   const { now } = usePlatform();
   const dr: DriverRecord | undefined = d.drivers.find((x) => x.id === id);
-  if (!dr) return <Drawer title="Driver not found" onClose={onClose}>Not in the test data.</Drawer>;
+  if (!dr) return <Drawer title="Driver not found" onClose={onClose}>Not found.</Drawer>;
   const t = now();
   const tl = timelineFor(d.subscriptions, dr.id, t);
   const accessActive = tl.access.active;

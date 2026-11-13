@@ -40,7 +40,7 @@ import {
  * and never edit a balance: they post journals through the ledger helpers in @gobye/core.
  */
 
-export const PROVIDER = 'Paystack (test)';
+export const PROVIDER = 'Paystack';
 export type Result = { ok: true; note?: string } | { ok: false; error: string };
 type Ctx = { now: number; actor: Actor };
 

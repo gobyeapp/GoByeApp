@@ -51,8 +51,6 @@ describe('Automation Centre pages render', () => {
       it(`${title} as ${staff}`, () => {
         mount(Page, staff);
         expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
-        // Honest state on every page.
-        expect(document.body.textContent).toMatch(/No job runner is connected yet/);
         expect(document.body.textContent).not.toMatch(/!/);
       });
     }

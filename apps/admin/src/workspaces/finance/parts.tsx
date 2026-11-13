@@ -10,9 +10,9 @@ import { ACCOUNT_LABEL, KIND_LABEL, type ActionOption, type Include } from './lo
 
 /* Small building blocks shared by the finance screens (local to this workspace). */
 
-/** Page heading with the test data marker every finance screen carries. */
+/** Finance page heading. */
 export function FinanceHead({ title, sub, actions }: { title: string; sub?: string; actions?: ReactNode }) {
-  return <PageHead eyebrow="Finance" title={title} sub={sub} meta={<Pill tone="warning" icon="info">Test data · Paystack (test)</Pill>} actions={actions} />;
+  return <PageHead eyebrow="Finance" title={title} sub={sub} actions={actions} />;
 }
 
 /**
@@ -84,12 +84,12 @@ export function StatusPill({ tone, status }: { tone: Tone; status: string }) {
   return <Pill tone={tone} icon={icon}>{label(status)}</Pill>;
 }
 
-/** Simulated provider marker for buttons and events. */
+/** Marks demo only provider controls (shown only with VITE_DEMO_TOOLS). */
 export function SimTag() {
   return (
     <span className="pill neutral" style={{ height: 20, fontSize: 11 }}>
       <Icon name="code" size={12} />
-      Simulated
+      Demo tool
     </span>
   );
 }

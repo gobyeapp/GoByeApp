@@ -52,7 +52,7 @@ export default function Registry() {
 
       <div className="grid featured" style={{ marginTop: 20 }}>
         <FeaturedStat art="automation" label="Configured workflows" value={c.total} sub={<span>{c.healthy} healthy · run on GoBye servers only</span>} />
-        <Stat icon="alert" tone={c.failed ? 'danger' : undefined} label="Failed executions" value={c.failed} sub="Waiting for a person (simulated)" />
+        <Stat icon="alert" tone={c.failed ? 'danger' : undefined} label="Failed executions" value={c.failed} sub="Waiting for a person" />
         <Stat icon="refresh" tone={c.pending ? 'warning' : undefined} label="Pending jobs" value={c.pending} sub="Queued or retrying" />
         <Stat icon="calendar" label="Upcoming scheduled" value={c.upcoming} sub={c.upcoming ? 'From queued runs only' : 'Not scheduled: no job runner'} />
       </div>
@@ -183,7 +183,7 @@ function DefinitionDrawer({ def, onClose, onRun }: { def: AutomationDefinition; 
         </>
       ) : null}
       {tab === 'history' ? (
-        <Table rows={runs} columns={cols} rowKey={(r) => r.id} pageSize={10} onRowClick={(r) => (onClose(), onRun(r))} empty={<Empty title="No runs yet" icon="history">Runs appear here once the job runner is connected. This history is simulated.</Empty>} />
+        <Table rows={runs} columns={cols} rowKey={(r) => r.id} pageSize={10} onRowClick={(r) => (onClose(), onRun(r))} empty={<Empty title="No runs yet" icon="history">Runs appear here as they happen.</Empty>} />
       ) : null}
       {tab === 'errors' ? (
         failures.length ? (
@@ -198,7 +198,7 @@ function DefinitionDrawer({ def, onClose, onRun }: { def: AutomationDefinition; 
             ))}
           </ol>
         ) : (
-          <Empty title="No errors recorded" icon="checkCircle">Every simulated run of this workflow finished without a failed attempt.</Empty>
+          <Empty title="No errors recorded" icon="checkCircle">Every run of this workflow finished without a failed attempt.</Empty>
         )
       ) : null}
       {tab === 'config' ? (

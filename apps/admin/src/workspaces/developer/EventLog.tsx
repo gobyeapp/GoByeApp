@@ -37,9 +37,9 @@ export default function EventLog() {
           if (x.outcome !== 'failed') return { ok: false, error: 'Already processed' };
           return { ok: true };
         },
-        audit: () => ({ action: RETRY_ACTION, target: { type: 'event', id: e.id, label: `${e.type} ${e.reference}` }, summary: `Retried ${e.type} for ${e.reference} (simulated)` }),
+        audit: () => ({ action: RETRY_ACTION, target: { type: 'event', id: e.id, label: `${e.type} ${e.reference}` }, summary: `Retried ${e.type} for ${e.reference}` }),
       },
-      'Retried and marked processed (simulated)',
+      'Retried and marked processed',
     );
 
   const columns: Column<StreamEvent>[] = [
@@ -99,7 +99,7 @@ export default function EventLog() {
 
   return (
     <>
-      <PageHead eyebrow="Technical" title="Events and failures" sub="Webhook and job history built from the shared records. Test data; no provider sends events to this prototype." />
+      <PageHead eyebrow="Technical" title="Events and failures" sub="Webhook and job history built from the shared records." />
 
       <div className="grid cols-4">
         <Stat icon="webhook" label="Events" value={all.length} sub="Webhooks, jobs and checks" />

@@ -90,7 +90,7 @@ function NotConnected() {
       <PageHead title="Connected demo" sub="Riders, drivers and staff sharing the same test records." meta={<Pill tone="neutral" icon="link">Not connected</Pill>} />
       <div className="stack" style={{ gap: 16 }}>
       <Notice tone="info">
-        This admin isn’t connected to a demo relay, so the rider and driver apps can’t reach it yet. Everything here is test data, never real people or money.
+        This admin isn’t connected to a demo relay, so the rider and driver apps can’t reach it yet.
       </Notice>
       <Card title="Connect on one Wi-Fi network (quickest)">
         <ol className="stack" style={{ paddingLeft: 18, margin: 0, overflowWrap: 'anywhere' }}>
@@ -133,7 +133,7 @@ function Connected({ c }: { c: DemoConnection }) {
   const counts = data ? demoCounts(data.people, data.apps, data.rides) : null;
   return (
     <>
-      <PageHead title="Connected demo" sub="The rider app, the driver app and this admin share these records. Test data only." actions={<ConnectionLine c={c} />} />
+      <PageHead title="Connected demo" sub="The rider app, the driver app and this admin share these records." actions={<ConnectionLine c={c} />} />
       {error && data ? <Notice tone="warning">Showing the last update. {error}</Notice> : null}
       <Tabs<TabId>
         value={tab}
@@ -302,7 +302,7 @@ function ApplicationDrawer({ c, a, onClose, refresh }: { c: DemoConnection; a: R
           <span className="row wrap" style={{ gap: 6 }}>
             <Pill tone={APP_STATUS[a.status].tone}>{APP_STATUS[a.status].label}</Pill>
             <span>{a.phone}</span>
-            <span>· Test data</span>
+            
           </span>
         }
         onClose={onClose}

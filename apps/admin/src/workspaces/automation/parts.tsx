@@ -11,9 +11,7 @@ import './automation.css';
 /** Shown at the top of every Automation Centre page. */
 export function NotConnected() {
   return (
-    <Notice tone="warning" icon="plugin">
-      No job runner is connected yet. Definitions are the contract for the backend; run history is simulated test data.
-    </Notice>
+    null
   );
 }
 
@@ -98,7 +96,6 @@ export function RunDrawer({ run, onClose, actions = true }: { run: AutomationRun
         <div className="row wrap">
           <RunStatusPill status={run.status} />
           {def?.financial ? <Pill tone="brand" icon="wallet">Moves money</Pill> : null}
-          <Pill tone="neutral" icon="info">Simulated</Pill>
         </div>
         {run.status === 'needs_lookup' ? (
           <Notice tone="danger" icon="search">
@@ -151,8 +148,7 @@ export function RunDrawer({ run, onClose, actions = true }: { run: AutomationRun
           body={
             <>
               <p>{check(pending).message}</p>
-              {pending === 'lookup' ? <p style={{ marginTop: 8 }}>This prototype can’t reach a provider, so the request is recorded only.</p> : null}
-              {pending === 'retry' ? <p style={{ marginTop: 8 }}>This prototype queues a new simulated run; nothing runs on a server.</p> : null}
+              
             </>
           }
           confirmLabel={LABEL[pending]}

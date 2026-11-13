@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { DEMO_TOOLS } from '@/data/mode';
 import { APPROVAL_RULES, type WithdrawalRecord, type WithdrawalStatus } from '@gobye/core';
 import { city, label, money, when } from '@/data/format';
 import { RecordLink } from '@/data/records';
@@ -29,9 +30,9 @@ const DESCRIBE: Record<WithdrawalAction, { title: string; body: (w: WithdrawalRe
   start_review: { title: 'Start review', body: () => 'Moves the request to Under review. Earnings stay reserved.' },
   approve_submit: { title: 'Approve and submit transfer', body: (w) => `Submits a ${money(w.amount)} transfer to ${w.bankAccount.bankName} ${w.bankAccount.accountNumberMasked}. Submitted is not paid: the status stays Processing until the provider reports the result. Test mode: no money moves.` },
   reject: { title: 'Reject withdrawal', body: (w) => `The reserved ${money(w.amount)} goes back to the driver’s withdrawable earnings.` },
-  sim_success: { title: 'Simulate transfer success', body: (w) => `Simulated provider event transfer.success. The reserved ${money(w.amount)} is recorded as paid out.` },
-  sim_failure: { title: 'Simulate transfer failure', body: (w) => `Simulated provider event transfer.failed. The reserved ${money(w.amount)} returns to withdrawable earnings.` },
-  sim_reversal: { title: 'Simulate reversal', body: (w) => `Simulated provider event transfer.reversed. A reversal journal returns ${money(w.amount)} to the driver’s withdrawable earnings.` },
+  sim_success: { title: 'Demo: transfer success', body: (w) => `Demo provider event transfer.success. The reserved ${money(w.amount)} is recorded as paid out.` },
+  sim_failure: { title: 'Demo: transfer failure', body: (w) => `Demo provider event transfer.failed. The reserved ${money(w.amount)} returns to withdrawable earnings.` },
+  sim_reversal: { title: 'Demo: reversal', body: (w) => `Demo provider event transfer.reversed. A reversal journal returns ${money(w.amount)} to the driver’s withdrawable earnings.` },
 };
 
 export default function Withdrawals() {
@@ -81,7 +82,7 @@ export default function Withdrawals() {
           title={<><Icon name="bank" size={14} /> How a withdrawal moves</>}
           steps={STEPS}
           current={STEP_AT[tab]}
-          note={<>A transfer being submitted is not a completed payout: only the provider’s final event (success, failure, later a reversal) moves it on. Amounts of {money(threshold)} or more need review first. Provider events here are simulated on test data.</>}
+          note={<>A transfer being submitted is not a completed payout: only the provider’s final event (success, failure, later a reversal) moves it on. Amounts of {money(threshold)} or more need review first.</>}
         />
       </div>
 
@@ -119,7 +120,7 @@ function WithdrawalDrawer({ w, onClose }: { w: WithdrawalRecord; onClose: () => 
         audit: () => ({
           action: `withdrawal.${action}`,
           target: { type: 'withdrawal', id: w.id, label: `Withdrawal ${w.id}` },
-          summary: `${DESCRIBE[action].title}: ${money(w.amount)} for ${name}${action.startsWith('sim_') ? ' (simulated provider event)' : ''}`,
+          summary: `${DESCRIBE[action].title}: ${money(w.amount)} for ${name}${action.startsWith('sim_') ? ' (demo provider event)' : ''}`,
           reason: reason || undefined,
         }),
       },
@@ -165,13 +166,13 @@ function WithdrawalDrawer({ w, onClose }: { w: WithdrawalRecord; onClose: () => 
           ...(w.reviewNote ? ([['Review note', w.reviewNote]] as [string, ReactNode][]) : []),
         ]}
       />
-      {sim.length ? (
+      {DEMO_TOOLS && sim.length ? (
         <Card muted>
           <div className="row" style={{ marginBottom: 8 }}>
-            <span className="strong">Simulated provider events</span>
+            <span className="strong">Demo provider events</span>
             <SimTag />
           </div>
-          <div className="small muted" style={{ marginBottom: 10 }}>No provider is connected. These buttons stand in for the events Paystack (test) would send.</div>
+          <div className="small muted" style={{ marginBottom: 10 }}>No provider is connected. These buttons stand in for the events the payment provider would send.</div>
           <div className="row wrap">
             <ActionButtons options={sim} run={run} describe={describe} />
           </div>
@@ -182,7 +183,7 @@ function WithdrawalDrawer({ w, onClose }: { w: WithdrawalRecord; onClose: () => 
       ) : null}
       <div>
         <SubHead>History</SubHead>
-        <Timeline items={[...w.history].reverse().map((h) => ({ at: h.at, title: <span className="row wrap" style={{ gap: 6 }}>{label(h.status)}{h.note?.includes('simulated') ? <SimTag /> : null}</span>, sub: [h.by.name, h.note].filter(Boolean).join(' · ') }))} />
+        <Timeline items={[...w.history].reverse().map((h) => ({ at: h.at, title: <span className="row wrap" style={{ gap: 6 }}>{label(h.status)}</span>, sub: [h.by.name, h.note].filter(Boolean).join(' · ') }))} />
       </div>
       <div>
         <SubHead>Ledger</SubHead>

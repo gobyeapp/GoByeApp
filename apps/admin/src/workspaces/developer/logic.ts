@@ -28,7 +28,7 @@ export const AREA_META: Record<IntegrationArea, { label: string; icon: IconName 
 };
 
 export const STATE_META: Record<ConnectionState, { tone: Tone; text: string; icon: IconName }> = {
-  prototype: { tone: 'neutral', text: 'Prototype', icon: 'code' },
+  prototype: { tone: 'neutral', text: 'Not connected', icon: 'plugin' },
   configured: { tone: 'info', text: 'Configured', icon: 'settings' },
   tested: { tone: 'success', text: 'Tested', icon: 'checkCircle' },
   live: { tone: 'success', text: 'Live', icon: 'radar' },

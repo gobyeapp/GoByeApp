@@ -156,7 +156,7 @@ export default function Cases() {
       <PageHead
         eyebrow="Care and safety"
         title="Support cases"
-        sub="Passenger and driver issues, each linked to its trip, people and payment. Test data."
+        sub="Passenger and driver issues, each linked to its trip, people and payment."
         actions={
           <Button variant="primary" icon="add" onClick={() => setCreating(true)} disabledReason={can('cases.work') ? undefined : 'Your role can view cases but not open them'}>
             New case
@@ -269,7 +269,7 @@ function CaseView({ id, onClose }: { id: string; onClose: () => void }) {
   if (!c) {
     return (
       <WideDrawer title="Case not found" onClose={onClose}>
-        <Empty icon="headphone" title="This case isn’t available">It may have been removed from the test data. Close this panel and pick another case.</Empty>
+        <Empty icon="headphone" title="This case isn’t available">It may have been removed. Close this panel and pick another case.</Empty>
       </WideDrawer>
     );
   }
@@ -562,7 +562,7 @@ function PaymentBlock({ c, onRequestRefund }: { c: CaseRecord; onRequestRefund: 
               </div>
             ))
           ) : (
-            <span className="muted small">No ledger entries for this trip in the test data.</span>
+            <span className="muted small">No ledger entries for this trip.</span>
           )}
         </div>
       ) : trip ? (

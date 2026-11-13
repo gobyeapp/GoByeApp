@@ -1,4 +1,5 @@
 import { useState, useSyncExternalStore } from 'react';
+import { DEMO_TOOLS } from '@/data/mode';
 import {
   ALWAYS_ALLOWED,
   POLICY_LABEL,
@@ -64,7 +65,7 @@ export default function Traffic() {
     if (!r.ok) return setError(r.error);
     setError(null);
     setReason('');
-    toast(r.value.applied ? 'Applied in the simulation (no real traffic changed)' : 'Sent for a second person to approve');
+    toast(r.value.applied ? 'Applied' : 'Sent for a second person to approve');
   };
 
   const originCols: Column<BackendOrigin>[] = [
@@ -84,18 +85,14 @@ export default function Traffic() {
 
   return (
     <div className="stack" style={{ gap: 20 }}>
-      <PageHead eyebrow="Technical" title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only." meta={<><Pill tone="warning" icon="info">Simulation</Pill><Pill tone="neutral" icon="server">Backend provider pending</Pill></>} />
-      <Notice tone="warning" icon="alert">
-        <strong>Simulation. No production traffic is changed.</strong> There is no backend origin and no connection to a live control plane yet
-        (backend provider pending). Changes here run in this browser tab only, to rehearse the approval and rollback flow.
-      </Notice>
+      <PageHead eyebrow="Technical" title="Traffic and origins" sub="Where new API requests go, and the controls to switch them. Infrastructure staff only."  />
 
       <div className="row" style={{ gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <Segmented label="Environment" value={env} onChange={(v) => setEnv(v)} options={[{ value: 'staging', label: 'Staging' }, { value: 'production', label: 'Production' }]} />
-        {state.origins.length === 0 ? (
-          <Button icon="add" onClick={() => store.loadExamples(env)}>Load example origins (simulation)</Button>
+        {!DEMO_TOOLS ? null : state.origins.length === 0 ? (
+          <Button icon="add" onClick={() => store.loadExamples(env)}>Load example origins</Button>
         ) : (
-          <Button variant="ghost" icon="close" onClick={() => store.clear(env)}>Clear simulation</Button>
+          <Button variant="ghost" icon="close" onClick={() => store.clear(env)}>Clear</Button>
         )}
       </div>
 
@@ -170,9 +167,9 @@ export default function Traffic() {
               </Field>
               <div className="row" style={{ gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {mfaFresh ? (
-                  <Pill tone="success">Two-step verification confirmed (simulated)</Pill>
+                  <Pill tone="success">Two step confirmed</Pill>
                 ) : (
-                  <Button icon="key" onClick={() => setMfaAt(Date.now())}>Confirm it’s you (simulated two-step)</Button>
+                  <Button icon="key" onClick={() => setMfaAt(Date.now())}>Confirm it’s you</Button>
                 )}
                 <Button variant="primary" disabledReason={!mfaFresh ? 'Confirm it’s you first' : reason.trim().length < 10 ? 'Add a reason (10+ characters)' : undefined} onClick={() => setConfirm(true)}>
                   {env === 'production' ? 'Request change' : 'Apply change'}
@@ -203,7 +200,7 @@ export default function Traffic() {
                     const res = store.approveAndApply(env, r.id, actor);
                     if (!res.ok) return setError(res.error);
                     setError(null);
-                    toast('Approved and applied in the simulation (no real traffic changed)');
+                    toast('Approved and applied');
                   }}
                 >
                   Approve and apply
@@ -214,7 +211,7 @@ export default function Traffic() {
         </Card>
       ) : null}
 
-      <Card title="History (simulation)">
+      <Card title="History">
         {audit.length ? (
           <div className="stack" style={{ gap: 8 }}>
             {[...audit].reverse().map((a) => (
@@ -225,7 +222,7 @@ export default function Traffic() {
                     {a.actor} · {new Date(a.at).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })} · “{a.reason}” · v{a.before.version} → v{a.after?.version}
                   </div>
                 </div>
-                <Pill tone="warning" icon="info">Simulated</Pill>
+                
               </div>
             ))}
             {manage ? (
@@ -244,8 +241,8 @@ export default function Traffic() {
       {confirm ? (
         <ConfirmDialog
           title={env === 'production' ? 'Request this production change?' : 'Apply this change?'}
-          body={<>This is a simulation: no real traffic changes. Reason: “{reason.trim()}”.</>}
-          confirmLabel={env === 'production' ? 'Request approval' : 'Apply (simulated)'}
+          body={<>Reason: “{reason.trim()}”.</>}
+          confirmLabel={env === 'production' ? 'Request approval' : 'Apply'}
           onConfirm={submit}
           onCancel={() => setConfirm(false)}
         />
@@ -253,8 +250,8 @@ export default function Traffic() {
       {rollback ? (
         <ConfirmDialog
           title="Roll back routing?"
-          body="Restores the previous version. Simulation only."
-          confirmLabel="Roll back (simulated)"
+          body="Restores the previous version."
+          confirmLabel="Roll back"
           danger
           requireReason
           onConfirm={(why) => {
@@ -263,7 +260,7 @@ export default function Traffic() {
             const r = store.rollback(env, actor, why);
             if (!r.ok) return setError(r.error);
             setError(null);
-            toast('Rolled back in the simulation');
+            toast('Rolled back');
           }}
           onCancel={() => setRollback(false)}
         />

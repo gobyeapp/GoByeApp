@@ -352,7 +352,7 @@ export default function Promotions() {
           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))', alignContent: 'start' }}>
             <Stat icon="layout" label="Active now" value={count(d.campaigns.filter((c) => c.status === 'active').length)} sub={`${count(d.campaigns.filter((c) => c.status === 'scheduled').length)} scheduled`} />
             <Stat icon="edit" label="Drafts" value={count(d.campaigns.filter((c) => c.status === 'draft').length)} sub="Not shown to passengers" />
-            <Stat icon="eye" label="Impressions" value={count(d.campaigns.reduce((n, c) => n + c.impressions, 0))} sub="All campaigns, test data" />
+            <Stat icon="eye" label="Impressions" value={count(d.campaigns.reduce((n, c) => n + c.impressions, 0))} sub="All campaigns" />
             <Stat icon="arrowRight" label="Opens" value={count(d.campaigns.reduce((n, c) => n + c.opens, 0))} sub="Card taps that opened the offer" />
           </div>
           </div>

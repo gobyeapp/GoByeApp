@@ -125,7 +125,7 @@ export function simulatedAutomationRuns(
   }
   {
     const at = now - 5 * HOUR;
-    push({ automationId: 'infra.alerts', triggeredBy: { kind: 'condition', ref: 'health: payments test webhook' }, subject: { type: 'provider', id: 'int-pay-test', label: 'Paystack (test)' }, idempotencyKey: `alert:webhook:${at}`, status: 'succeeded', queuedAt: at, startedAt: at, finishedAt: at + 900, attempts: [ok(at, 900)] });
+    push({ automationId: 'infra.alerts', triggeredBy: { kind: 'condition', ref: 'health: payments test webhook' }, subject: { type: 'provider', id: 'int-pay-test', label: 'Paystack' }, idempotencyKey: `alert:webhook:${at}`, status: 'succeeded', queuedAt: at, startedAt: at, finishedAt: at + 900, attempts: [ok(at, 900)] });
     const q = now + 2 * MIN;
     push({ automationId: 'payments.reconcile.daily', triggeredBy: { kind: 'schedule', ref: 'daily 02:00' }, subject: { type: 'day', id: 'next', label: 'Next run' }, idempotencyKey: 'paystack-test:next', status: 'queued', queuedAt: q, attempts: [] });
   }

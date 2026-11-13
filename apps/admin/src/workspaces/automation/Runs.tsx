@@ -40,7 +40,7 @@ export default function Runs() {
 
   return (
     <>
-      <PageHead eyebrow="Automation" title="Execution history" sub="Every run, its attempts and what happened. Simulated test data until a job runner is connected." />
+      <PageHead eyebrow="Automation" title="Execution history" sub="Every run, its attempts and what happened." />
       <div className="auto-top">
         <NotConnected />
         <div className="grid cols-4">

@@ -678,3 +678,25 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - Support: email support, report a problem, search.
   - Password change, two step setup and remote sign-out are disabled until real staff sign-in exists, and say so.
 
+## D-070 — No "prototype", "test data" or "simulated" labels in the admin (2026-11-13, owner)
+
+- **Owner's direction:** the admin is the system that goes live. It must not show prototype, test mode or simulated wording that would have to be removed later. The figures shown now are generated, and will come from the live API later, on the same screens.
+- **Removed:**
+  - the prototype banner and the "Test data · simulated" sidebar footer;
+  - every "Test data", "Simulated" and "Paystack (test)" pill;
+  - the prototype and simulation notices on Integrations, Payment providers, Staff, Automation, Traffic, Collections, Reports, Safety and Live;
+  - "(simulated)" in toasts, audit summaries and labels;
+  - the "(test)" suffix on provider and bank names.
+  - The integration state "Prototype" now reads "Not connected".
+- **Demo tools behind one switch** (`apps/admin/src/data/mode.ts`): set `VITE_DEMO_TOOLS=true` to show them. Production builds leave it unset, so they never ship.
+  - The tools: simulated provider events on withdrawals and refunds, reset data, simulate server failures, load example origins, and the Connected demo page.
+  - Where they show, they are labelled "Demo".
+  - The test suite turns them on.
+- **Less text:**
+  - page subtitles are one line, with the full text on hover;
+  - the eyebrow over each title is hidden, because the breadcrumb already names the section.
+- **Guard:** `apps/admin/src/shell/no-demo-labels.test.ts` fails if any page source shows prototype, test data, simulated or simulation wording.
+- **Changes CLAUDE.md:**
+  - the SimulatedBadge rule now applies to the rider and driver apps only;
+  - in the admin, unconnected services show as "Not connected" or as disabled actions with a reason, never as "simulated".
+

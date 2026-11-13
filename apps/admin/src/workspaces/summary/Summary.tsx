@@ -46,7 +46,6 @@ export default function Summary() {
         meta={
           <>
             <Pill tone="neutral" icon="eye">View only</Pill>
-            <Pill tone="neutral">Test data</Pill>
           </>
         }
       />

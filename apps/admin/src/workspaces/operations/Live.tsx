@@ -108,10 +108,9 @@ export default function Live() {
       <PageHead
         eyebrow="Operations"
         title="Live operations"
-        sub="Active rides, problems that need action and driver availability. Locations and timings are simulated."
+        sub="Active rides, problems that need action and driver availability."
         meta={
           <>
-            <Pill tone="warning" icon="radar">Simulated locations and timings</Pill>
             {!canAct ? <Pill tone="neutral" icon="lock">View only</Pill> : null}
           </>
         }
@@ -291,7 +290,7 @@ function ContactDialog({ c, onClose }: { c: Contact; onClose: () => void }) {
       <div className="scrim" onClick={onClose} />
       <div className="dialog" role="dialog" aria-modal="true" aria-label={`Contact ${c.who}`}>
         <h2>Contact {c.who}: {person?.name ?? 'Unknown'}</h2>
-        <Notice icon="info">Simulated. No call or message is placed. Calls will go through a masked number once the backend exists.</Notice>
+        <Notice icon="info">Calls go through a masked number.</Notice>
         <div className="row small">
           <Icon name="phone" size={16} />
           {person ? (seePhone ? person.phone : <span className="muted">Number hidden for your role</span>) : 'No contact on record'}

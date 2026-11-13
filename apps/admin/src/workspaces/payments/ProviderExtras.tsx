@@ -29,7 +29,7 @@ export function AdapterContract() {
           <Card key={p.key} title={p.name} actions={p.implemented ? <Pill tone="info" icon="time">Adapter planned</Pill> : <Pill tone="neutral" icon={null}>No adapter</Pill>}>
             <p className="small muted">
               {p.implemented
-                ? `${p.planned.length} of ${REQUIRED_CAPABILITIES.length} capabilities planned, 0 built. Only a simulated adapter exists today.`
+                ? `${p.planned.length} of ${REQUIRED_CAPABILITIES.length} capabilities planned, 0 built.`
                 : 'No adapter. It needs its own build, tests and checks before it could be chosen.'}
             </p>
           </Card>

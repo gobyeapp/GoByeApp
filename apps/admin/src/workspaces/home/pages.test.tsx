@@ -100,9 +100,9 @@ describe('My work', () => {
 });
 
 describe('Live operations and rides', () => {
-  it('Live shows the honest simulated map and opens a ride sheet', () => {
+  it('Live shows the map and opens a ride sheet', () => {
     mount(Live, 'stf-owner');
-    expect(text()).toContain('Simulated positions · map provider not chosen');
+    expect(screen.getByRole('img', { name: /Positions of/ })).toBeTruthy();
     const list = screen.getByRole('heading', { name: 'Active rides' }).closest('.card')!;
     fireEvent.click(within(list as HTMLElement).getAllByRole('button')[0]!);
     const sheet = screen.getByRole('dialog');

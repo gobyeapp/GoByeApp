@@ -48,7 +48,6 @@ export default function Overview() {
         meta={
           <>
             <Pill tone="brand" icon="mapPin">{scopeText}</Pill>
-            <Pill tone="neutral" icon="info">Test data</Pill>
           </>
         }
         actions={
@@ -70,7 +69,7 @@ export default function Overview() {
             onClick={open('/live')}
           />
           <Stat label="Completed rides" icon="checkCircle" value={count(act.completed)} trend={act.completedTrend} sub={act.completedTrend ? undefined : RANGE_TEXT[range]} onClick={open('/trips')} />
-          <Stat label="Available drivers" icon="steering" value={count(act.availableDrivers)} sub={`${count(act.busyDrivers)} on a trip · simulated status`} onClick={open('/live')} />
+          <Stat label="Available drivers" icon="steering" value={count(act.availableDrivers)} sub={`${count(act.busyDrivers)} on a trip`} onClick={open('/live')} />
           <Stat
             label="Pending ride requests"
             icon="radar"

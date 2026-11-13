@@ -68,7 +68,7 @@ export default function Schedules() {
         <div className="grid cols-4">
           <Stat icon="calendar" label="On a timetable" value={scheduled.length} />
           <Stat icon="time" label="Timer driven" value={timers.length} sub="Booking and offer expiry, alerts" />
-          <Stat icon="list" label="Queued (simulated)" value={d.automationRuns.filter((r) => r.status === 'queued').length} />
+          <Stat icon="list" label="Queued" value={d.automationRuns.filter((r) => r.status === 'queued').length} />
           <Stat icon="refresh" tone="warning" label="Waiting to retry" value={d.automationRuns.filter((r) => r.status === 'retry_scheduled').length} />
         </div>
       </div>
