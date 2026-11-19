@@ -1127,3 +1127,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Owner steps are in `DEPLOYMENT_CLOUDFLARE.md` §2b.
 - The paid parts (API containers, R2) are deferred.
 
+## 2026-11-19 — Cloudflare move: secrets fix and the Paid hosting switch (D-073)
+
+- **Site deploys:** the first "Deploy sites" runs failed with "missing secrets" even though the repository secrets were listed. The workflow now reads the two Cloudflare secrets from the `staging` environment, and the owner has added them there.
+- **Admin:** new Technical → Hosting page with the owner-only Paid hosting switch (off). Core `platform/hosting.ts`; 3 tests.
+- **Tests:** core 294, admin 416, typecheck and lint clean.
+- **Next:** the owner re-runs "Deploy sites (Cloudflare)" with preview and checks the two workers.dev addresses.
+

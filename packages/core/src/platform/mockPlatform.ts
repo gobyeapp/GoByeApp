@@ -1,3 +1,4 @@
+import type { PaidHostingState } from './hosting';
 import type { FeeSchedule } from '../gateway/fees';
 import { seedVendors, type Budget, type Expense, type Vendor } from '../costs';
 import { emptySubscriptionState, planForAmount, recordPassPayment, subscriptionTimelineResponse, voidPass, type SubscriptionState } from '../subscriptions';
@@ -70,6 +71,8 @@ export interface PlatformDataset {
   budgets: Budget[];
   /** Authoritative pass timelines per driver (D-058). `DriverRecord.access` is derived from these. */
   subscriptions: SubscriptionState[];
+  /** D-073: owner switch for the paid hosting parts (off until the owner turns it on). */
+  paidHosting: PaidHostingState;
 }
 
 const HOUR = 3_600_000;
@@ -604,5 +607,5 @@ export function createPlatformDataset(now: number = Date.UTC(2026, 9, 21, 20, 0)
   const automationChanges = simulatedSettingChanges(now, { mkt: { id: 'stf-mkt', name: 'Lola Marketing' }, owner: { id: 'stf-owner', name: 'Liquid (Owner)' }, care: { id: 'stf-care', name: 'Ruth Care' } });
   approvals.push({ id: 'apr-0006', kind: 'automation_config', title: 'Daily package reminder: 2 → 3 hours before', requestedBy: actor('stf-mkt'), requestedAt: now - 5 * HOUR, target: { type: 'automation', id: 'subscription.reminder', label: 'Package renewal reminders' }, status: 'pending', approverRoles: ['owner', 'admin'], note: 'asc-0001' });
 
-  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges, vendors: seedVendors(), expenses: [], budgets: [], subscriptions };
+  return { generatedAt: now, staff, passengers, drivers, trips, cases, ledger, collections, withdrawals, refunds, settlements, integrations, configVersions, campaigns, announcements, approvals, events, audit, feeSchedules, automationRuns, automationChanges, vendors: seedVendors(), expenses: [], budgets: [], subscriptions, paidHosting: { enabled: false } };
 }

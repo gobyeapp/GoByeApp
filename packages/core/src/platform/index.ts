@@ -7,3 +7,4 @@ export * from './mockPlatform';
 export * from './dataPortability';
 export * from './identityChecks';
 export * from './serviceUsage';
+export * from './hosting';

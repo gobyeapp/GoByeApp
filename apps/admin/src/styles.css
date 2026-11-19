@@ -667,3 +667,10 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .side-scroll { gap: 2px; }
 @media (min-width: 961px) { .shell.collapsed .nav-link.nested { padding: 0; } }
 .nav-group:not(.nav-sec) { margin-bottom: 10px; }
+
+/* ---------- Switch (D-073) ---------- */
+.switch { width: 40px; height: 22px; border-radius: var(--r-pill); border: 1px solid var(--border-strong); background: var(--track); position: relative; cursor: pointer; padding: 0; transition: background var(--t-fast); flex-shrink: 0; }
+.switch span { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); transition: transform var(--t-fast); }
+.switch.on { background: var(--primary); border-color: var(--primary); }
+.switch.on span { transform: translateX(18px); background: var(--on-primary); }
+.switch:disabled { opacity: 0.5; cursor: not-allowed; }

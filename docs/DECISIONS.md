@@ -726,3 +726,16 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - Supabase (database and sign-in) is unchanged.
 - **Safety:** the admin still signs in by choosing an account, so before production it goes behind Cloudflare Access (an allow list of team emails).
 
+## D-073 — Paid hosting stays off behind an owner switch (2026-11-19, owner)
+
+- **The owner's choice:** Cloudflare is the main home and StackShift stays as the backup. The paid parts stay off until the owner turns them on.
+  - The paid parts are Workers Paid ($5), the API containers, the API front door and R2 storage.
+- **Admin:** Technical → **Hosting** (`/infrastructure/hosting`), backed by `@gobye/core` `platform/hosting.ts` (`HOSTING_PARTS`, `hostingCost`) and `PlatformDataset.paidHosting` (off at start). The page shows:
+  - each part, its provider, its monthly cost and its status;
+  - a **Paid hosting** switch that only the owner can use (`staff.manage`).
+- **What the switch does:** turning it on asks for confirmation and writes an audit entry (`hosting.paid_on`) recording the approval.
+- **After the switch, the owner still:**
+  - turns on Workers Paid in Cloudflare;
+  - runs "Deploy API (staging)".
+- **Site deploys:** `deploy-sites.yml` now reads `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` from the **staging** environment, because the repository-level secrets came through empty in runs.
+
