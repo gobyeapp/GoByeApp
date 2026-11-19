@@ -49,7 +49,7 @@ The owner chose to move what is free now and leave paid parts (Workers Paid, the
 1. In Cloudflare, create an API token with:
    - **Account:** Workers Scripts Edit and Account Settings Read;
    - **Zone gobye.app:** Workers Routes Edit and DNS Edit.
-2. In GitHub, go to Settings → Secrets and variables → Actions and add the **repository** secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+2. In GitHub, go to Settings → Environments → staging and add the environment secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 3. Run Actions → **Deploy sites (Cloudflare)** with `target = preview`, then open the two workers.dev addresses it prints.
 4. If they look right:
    - in Cloudflare DNS, delete the Vercel records for `gobye.app`, `www` and `admin`;
