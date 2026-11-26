@@ -3,6 +3,7 @@ import {
   PendingScanner,
   createFileService,
   createMemoryFileRepository,
+  createSqlFileRepository,
   type DeployEnvironment,
   type FileAuditEvent,
   type FileErrorCode,
@@ -10,9 +11,11 @@ import {
   type FileRecord,
   type FileService,
   type MalwareScanner,
+  type SqlQuerier,
 } from '@gobye/core';
 import { ASSERTION_HEADER, verifyAssertion } from '../../r2/assertion';
 import { createR2ObjectStore, type R2BucketLike } from '../../r2/bindings';
+import { callerFromToken } from './session';
 
 /**
  * Upload signer Worker (D-051). Reached only through the API gateway on `/v1/files/*`, which
@@ -35,11 +38,36 @@ export interface UploadSignerEnv {
   DOCUMENTS: R2BucketLike;
   EVIDENCE: R2BucketLike;
   PUBLIC_MEDIA: R2BucketLike;
+  /** Hyperdrive binding to the backend database (ops.files). Required outside development (D-082). */
+  HYPERDRIVE?: { connectionString: string };
+  /** Supabase project URL: lets the Worker verify the app's own session when no gateway assertion is sent. */
+  SUPABASE_URL?: string;
+}
+
+/** One database connection for one request (Hyperdrive pools the real connections). */
+export interface DatabaseSession {
+  querier: SqlQuerier;
+  close(): Promise<void>;
+}
+
+/** node-postgres through Hyperdrive. No session settings are sent at start-up (C-1). */
+async function openHyperdrive(env: UploadSignerEnv): Promise<DatabaseSession | null> {
+  if (!env.HYPERDRIVE) return null;
+  const { Client } = (await import('pg')) as unknown as {
+    Client: new (o: { connectionString: string }) => { connect(): Promise<void>; query(text: string, params?: unknown[]): Promise<{ rows: unknown[] }>; end(): Promise<void> };
+  };
+  const client = new Client({ connectionString: env.HYPERDRIVE.connectionString });
+  await client.connect();
+  return { querier: client, close: () => client.end().catch(() => undefined) };
 }
 
 export interface UploadSignerDeps {
-  /** Metadata store. In-memory until a database is chosen (pending provider selection). */
+  /** Metadata store for tests. Deployed Workers use ops.files through Hyperdrive; development uses memory. */
   repo?: FileMetadataRepository;
+  /** Opens the database for a request (default: Hyperdrive with node-postgres). */
+  openDatabase?: (env: UploadSignerEnv) => Promise<DatabaseSession | null>;
+  /** Signing keys for session tokens (tests); deployed Workers fetch Supabase's JWKS. */
+  getKey?: import('jose').JWTVerifyGetKey;
   scanner?: MalwareScanner;
   audit?: (e: FileAuditEvent) => void;
   now?: () => number;
@@ -91,14 +119,22 @@ function log(e: Record<string, unknown>) {
 }
 
 export function createUploadSigner(deps: UploadSignerDeps = {}) {
-  const repo = deps.repo ?? createMemoryFileRepository();
-  let service: FileService | null = null;
-  let boundTo: UploadSignerEnv | null = null;
+  const memory = createMemoryFileRepository();
+  const openDatabase = deps.openDatabase ?? openHyperdrive;
 
-  const svc = (env: UploadSignerEnv) => {
-    if (!service || boundTo !== env) {
-      boundTo = env;
-      service = createFileService({
+  /**
+   * Where file metadata lives for this request: the test repository, the database, or (development only)
+   * memory. A deployed Worker without a database refuses rather than forgetting files between isolates.
+   */
+  const metadata = async (env: UploadSignerEnv): Promise<{ repo: FileMetadataRepository; db?: SqlQuerier; close(): Promise<void> } | null> => {
+    if (deps.repo) return { repo: deps.repo, close: async () => undefined };
+    const db = await openDatabase(env);
+    if (db) return { repo: createSqlFileRepository(db.querier), db: db.querier, close: db.close };
+    return env.DEPLOY_ENV === 'development' ? { repo: memory, close: async () => undefined } : null;
+  };
+
+  const svc = (env: UploadSignerEnv, repo: FileMetadataRepository): FileService =>
+      createFileService({
         env: env.DEPLOY_ENV,
         repo,
         scanner: deps.scanner ?? PendingScanner,
@@ -113,9 +149,6 @@ export function createUploadSigner(deps: UploadSignerDeps = {}) {
           buckets: { 'private-uploads': env.UPLOADS, 'private-documents': env.DOCUMENTS, 'private-evidence': env.EVIDENCE, 'public-media': env.PUBLIC_MEDIA },
         }),
       });
-    }
-    return service;
-  };
 
   async function readJson(request: Request): Promise<Record<string, unknown> | null> {
     const len = Number(request.headers.get('content-length') ?? '0');
@@ -131,19 +164,43 @@ export function createUploadSigner(deps: UploadSignerDeps = {}) {
   }
 
   return {
+    /** Daily clean-up (Cron Trigger): expire abandoned uploads, and scan again files still waiting. */
+    async scheduled(_event: unknown, env: UploadSignerEnv): Promise<void> {
+      const meta = await metadata(env);
+      if (!meta) return;
+      try {
+        const s = svc(env, meta.repo);
+        const expired = await s.expireStale();
+        const rescanned = await s.rescanPending();
+        log({ event: 'cleanup', expired, rescanned });
+      } finally {
+        await meta.close();
+      }
+    },
+
     async fetch(request: Request, env: UploadSignerEnv): Promise<Response> {
       const started = (deps.now ?? Date.now)();
       const requestId = /^[A-Za-z0-9-]{8,64}$/.test(request.headers.get('x-request-id') ?? '') ? request.headers.get('x-request-id')! : crypto.randomUUID();
       const url = new URL(request.url);
       const path = url.pathname.replace(/\/+$/, '');
       let status = 500;
+      let closeDb: () => Promise<void> = async () => undefined;
       try {
-        const caller = await verifyAssertion(request.headers.get(ASSERTION_HEADER), env.GATEWAY_ASSERTION_SECRET, (deps.now ?? Date.now)());
+        const meta = await metadata(env);
+        if (!meta) {
+          status = 503;
+          return json(503, errorBody('NOT_CONFIGURED', 'File storage isn’t connected yet.', requestId), requestId);
+        }
+        closeDb = meta.close;
+        // The gateway's signed assertion when there is one; otherwise the app's own Supabase session.
+        const caller =
+          (await verifyAssertion(request.headers.get(ASSERTION_HEADER), env.GATEWAY_ASSERTION_SECRET, (deps.now ?? Date.now)())) ??
+          (meta.db && env.SUPABASE_URL ? await callerFromToken({ authorization: request.headers.get('authorization'), supabaseUrl: env.SUPABASE_URL, db: meta.db, getKey: deps.getKey }) : null);
         if (!caller) {
           status = 401;
           return json(401, errorBody('unauthenticated', 'Sign in to continue.', requestId), requestId);
         }
-        const s = svc(env);
+        const s = svc(env, meta.repo);
         let m: RegExpMatchArray | null;
 
         if (request.method === 'POST' && path === '/v1/files/uploads') {
@@ -184,6 +241,7 @@ export function createUploadSigner(deps: UploadSignerDeps = {}) {
         log({ event: 'error', requestId, error: e instanceof Error ? e.name : 'unknown' });
         return json((status = 500), errorBody('internal', 'Something went wrong. Try again.', requestId), requestId);
       } finally {
+        await closeDb();
         log({ event: 'request', requestId, method: request.method, route: path.replace(/[a-z0-9-]{8,64}/g, ':id'), status, ms: (deps.now ?? Date.now)() - started });
       }
     },

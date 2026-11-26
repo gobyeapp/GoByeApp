@@ -146,6 +146,9 @@ Tests use Node's built-in `node:test`; no test framework dependency.
 |---|---|---|---|
 | @cloudflare/containers | 0.3.7 | MIT OR Apache-2.0 | Container class for running the API image on Cloudflare Containers (`src/workers/api-container`) |
 
+| pg | ^8.23.1 | MIT | node-postgres in the upload signer: file records in ops.files through Hyperdrive (D-082) |
+| jose | ^6.2.13 | MIT | The upload signer checks Supabase session tokens (D-082) |
+
 Wrangler is not installed in the repo. Workflows and docs run the pinned `npx wrangler@4.161.0`.
 
 

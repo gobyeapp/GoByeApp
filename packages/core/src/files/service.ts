@@ -121,10 +121,15 @@ export interface FileServiceDeps {
   publicMediaBaseUrl?: string;
 }
 
-const defaultId = () => {
-  let s = '';
-  for (let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
-  return s;
+/** A UUID v4 (ops.files.id is a uuid column). Uses the platform's crypto when present. */
+const defaultId = (): string => {
+  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  if (c?.randomUUID) return c.randomUUID();
+  const h = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16));
+  h[12] = '4';
+  h[16] = ((parseInt(h[16]!, 16) & 0x3) | 0x8).toString(16);
+  const s = h.join('');
+  return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20)}`;
 };
 
 const isStaffFor = (caller: FileCaller, fileClass: FileClass) => caller.roles.some((r) => STAFF_READERS[fileClass].includes(r));

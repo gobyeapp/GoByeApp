@@ -1,4 +1,4 @@
-import type { AccessClass, DeployEnvironment, FileClass } from './types';
+import type { AccessClass, DeployEnvironment, FileCaller, FileClass } from './types';
 
 /**
  * Per-class storage rules: what may be uploaded, how big, where it lives and how long it is kept.
@@ -110,4 +110,23 @@ export function safeDisplayName(name: string): string {
   // Keep letters (any script), digits, space, dot, dash, underscore; drop control chars and the rest.
   const cleaned = base.replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/\s+/g, ' ').replace(/^\.+/, '').trim();
   return (cleaned || 'file').slice(0, 80);
+}
+
+/**
+ * File roles for a signed-in person (WP3b, D-082), from what the database says about them, never from the
+ * token's user-editable metadata. Staff roles count only after the second sign-in step (aal2).
+ */
+export function fileRolesFor(p: { active: boolean; isRider: boolean; isDriver: boolean; staffRoles: readonly string[]; aal2: boolean }): FileCaller['roles'] {
+  const out = new Set<FileCaller['roles'][number]>();
+  if (p.active && p.isRider) out.add('rider');
+  if (p.active && p.isDriver) out.add('driver');
+  if (p.aal2) {
+    for (const r of p.staffRoles) {
+      if (r === 'onboarding' || r === 'owner' || r === 'admin') out.add('staff_verification');
+      if (r === 'safety') out.add('staff_safety');
+      if (r === 'care') out.add('staff_support');
+      if (r === 'owner' || r === 'admin') out.add('admin');
+    }
+  }
+  return [...out];
 }

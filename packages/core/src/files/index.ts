@@ -6,3 +6,4 @@ export * from './lifecycle';
 export * from './service';
 export * from './video';
 export * from './sha256';
+export * from './sqlRepository';

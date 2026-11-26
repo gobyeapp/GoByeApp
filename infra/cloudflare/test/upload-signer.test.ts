@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createTestScanner, type FileAuditEvent, type MalwareScanner } from '@gobye/core';
+import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT } from 'jose';
+import { createMemoryFileRepository, createTestScanner, type FileAuditEvent, type MalwareScanner } from '@gobye/core';
 import { ASSERTION_HEADER, signAssertion } from '../src/r2/assertion';
 import { createUploadSigner, type UploadSignerEnv } from '../src/workers/upload-signer';
 import { clientPut, fakeBucket, sha256Hex } from './r2-fake';
@@ -32,7 +33,7 @@ function setup(scanner: MalwareScanner = createTestScanner('clean')) {
     PUBLIC_MEDIA: fakeBucket(),
   };
   const byName = { 'gobye-staging-private-uploads': env.UPLOADS, 'gobye-staging-private-documents': env.DOCUMENTS, 'gobye-staging-private-evidence': env.EVIDENCE, 'gobye-staging-public-media': env.PUBLIC_MEDIA };
-  const worker = createUploadSigner({ scanner, audit: (e) => audit.push(e), now: () => t, newId: () => `file${String(++n).padStart(8, '0')}` });
+  const worker = createUploadSigner({ repo: createMemoryFileRepository(), scanner, audit: (e) => audit.push(e), now: () => t, newId: () => `file${String(++n).padStart(8, '0')}` });
   const call = async (method: string, path: string, who: { sub: string; roles: string[] } | null, body?: unknown, extra: Record<string, string> = {}) => {
     const headers: Record<string, string> = { 'content-type': 'application/json', ...extra };
     if (who) headers[ASSERTION_HEADER] = await signAssertion({ sub: who.sub, roles: who.roles as never, iat: t }, SECRET);
@@ -187,5 +188,54 @@ describe('upload signer worker', () => {
     const huge = await s.call('POST', '/v1/files/uploads', driver, { filename: 'x'.repeat(5000) });
     expect(huge.status).toBe(400);
     expect(JSON.stringify(huge.body)).not.toMatch(/gobye-staging|TESTSECRET|stack/);
+  });
+
+  it('a deployed Worker without its database refuses instead of keeping files in memory (D-082)', async () => {
+    const worker = createUploadSigner({ openDatabase: async () => null });
+    const env = { DEPLOY_ENV: 'staging', GATEWAY_ASSERTION_SECRET: SECRET } as unknown as UploadSignerEnv;
+    const headers = { [ASSERTION_HEADER]: await signAssertion({ sub: driver.sub, roles: driver.roles as never, iat: Date.now() }, SECRET), 'content-type': 'application/json' };
+    const res = await worker.fetch(new Request('https://api.gobye.app/v1/files', { headers }), env);
+    expect(res.status).toBe(503);
+    expect(((await res.json()) as { error: { code: string } }).error.code).toBe('NOT_CONFIGURED');
+  });
+
+  it('opens and closes the database once per request, and runs the daily clean-up', async () => {
+    const queries: string[] = [];
+    let closed = 0;
+    const querier = { query: async (text: string) => (queries.push(text.trim().split(/\s+/)[0]!), { rows: [] }) };
+    const worker = createUploadSigner({ openDatabase: async () => ({ querier, close: async () => void closed++ }) });
+    const env = { DEPLOY_ENV: 'staging', GATEWAY_ASSERTION_SECRET: SECRET } as unknown as UploadSignerEnv;
+    const headers = { [ASSERTION_HEADER]: await signAssertion({ sub: driver.sub, roles: driver.roles as never, iat: Date.now() }, SECRET) };
+    const res = await worker.fetch(new Request('https://api.gobye.app/v1/files', { headers }), env);
+    expect(res.status).toBe(200);
+    expect(closed).toBe(1);
+    expect(queries).toEqual(['select']);
+    await worker.scheduled({}, env);
+    expect(closed).toBe(2);
+    expect(queries.length).toBeGreaterThan(1);
+  });
+
+  it('without a gateway assertion, verifies the app’s Supabase session and takes roles from the database', async () => {
+    const { publicKey, privateKey } = await generateKeyPair('ES256');
+    const jwk = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'ES256' };
+    const getKey = createLocalJWKSet({ keys: [jwk] });
+    const SB = 'https://abc.supabase.co';
+    const token = (claims: Record<string, unknown>, iss = `${SB}/auth/v1`) =>
+      new SignJWT({ role: 'authenticated', aal: 'aal1', ...claims }).setProtectedHeader({ alg: 'ES256', kid: 'k1' }).setIssuer(iss).setAudience('authenticated').setIssuedAt().setExpirationTime('1h').sign(privateKey);
+    const people: Record<string, { user_status: string | null; is_rider: boolean; is_driver: boolean; staff_roles: string[] | null }> = {
+      '11111111-1111-4111-8111-111111111111': { user_status: 'active', is_rider: false, is_driver: true, staff_roles: null },
+      '22222222-2222-4222-8222-222222222222': { user_status: null, is_rider: false, is_driver: false, staff_roles: ['onboarding'] },
+    };
+    const querier = { query: async (text: string, params?: unknown[]) => (text.includes('app.staff_members') ? { rows: [people[params![0] as string]] } : { rows: [] }) };
+    const worker = createUploadSigner({ openDatabase: async () => ({ querier, close: async () => undefined }), getKey });
+    const env = { DEPLOY_ENV: 'staging', SUPABASE_URL: SB } as unknown as UploadSignerEnv;
+    const list = async (bearer: string) => (await worker.fetch(new Request('https://api.gobye.app/v1/files', { headers: { authorization: `Bearer ${bearer}` } }), env)).status;
+
+    expect(await list(await token({ sub: '11111111-1111-4111-8111-111111111111' }))).toBe(200);
+    expect(await list(await token({ sub: '22222222-2222-4222-8222-222222222222' }))).toBe(401); // staff without a second factor
+    expect(await list(await token({ sub: '22222222-2222-4222-8222-222222222222', aal: 'aal2' }))).toBe(200);
+    expect(await list(await token({ sub: '11111111-1111-4111-8111-111111111111' }, 'https://evil.example/auth/v1'))).toBe(401);
+    expect(await list(await token({ sub: '11111111-1111-4111-8111-111111111111', role: 'service_role' }))).toBe(401);
+    expect(await list('not-a-token')).toBe(401);
   });
 });

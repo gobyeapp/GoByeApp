@@ -152,6 +152,8 @@ The schema allows one application per driver; resubmission continues it.
 - audit rows;
 - file access logging.
 
+> **WP3b, file storage on the database, built 2026-11-26 (D-082):** the upload signer uses ops.files through Hyperdrive and checks app sessions itself. The virus scanner is still to be chosen.
+
 ### WP4: Driver App and admin connected
 
 > **Built 2026-11-26 (D-080, D-081),** except the document viewer (it needs file storage, WP3b) and Turnstile on staff sign-in. The Driver App mirrors its application to the API; the admin has real staff sign-in with an authenticator code and a Driver applications page.

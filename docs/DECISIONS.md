@@ -869,3 +869,23 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   2. Invite each staff member (Authentication → Users → Invite).
   3. Add their row to `app.staff_members`, with their Supabase user id, name, email, roles and cities.
   4. Build the admin with the variables above.
+
+## D-082 — File storage connected to the database (Backend Phase 2, WP3b) (2026-11-26)
+
+- **The upload signer Worker** keeps file records in `ops.files` (migration 0005) through **Cloudflare Hyperdrive** with node-postgres. Hyperdrive is on the Workers Free plan (100,000 queries a day).
+  - `createSqlFileRepository` (core) gives the tested file service the same contract on the database.
+  - One connection per request, closed at the end.
+  - A deployed Worker without its database answers `503 NOT_CONFIGURED` rather than keeping files in memory. Memory is for development only.
+- **Who is calling:** the gateway's signed assertion when there is one. Otherwise the Worker checks the app's own Supabase session itself: signing keys, issuer, audience, expiry, a real user, not anonymous. File roles then come from the database (`fileRolesFor`, core):
+  - rider and driver from their records;
+  - onboarding, owner and admin read verification files; safety reads evidence; care has support access; owner and admin also get admin;
+  - staff roles count only after the second sign-in step;
+  - nothing ever comes from the token's user-editable metadata.
+- **File ids** are now real UUIDs, to match the `uuid` column and the API's checks.
+- **Daily clean-up** (Cron Trigger, free): abandoned uploads expire, and files still waiting are scanned again.
+- **Still no virus scanner (owner decision).** Every completed upload stays "checking" and is never served, so drivers can't submit yet (fail closed). Options include a ClamAV container or a scanning service, each with its own cost.
+- **To deploy (owner, all free):**
+  - create the four staging R2 buckets and an R2 API token;
+  - `wrangler hyperdrive create` with the gobye-staging pooler URL (the `gobye_api` role), and paste the id into `r2/wrangler.upload-signer.toml`;
+  - the Worker secrets;
+  - then deploy. The Worker is only reachable through the gateway on `api.gobye.app`, so gobye.app has to be on Cloudflare first.

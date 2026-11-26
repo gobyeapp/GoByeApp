@@ -1231,3 +1231,22 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Next:**
   - WP3b, file uploads (the upload signer on the database and R2, plus a scanner) and the staff document viewer;
   - deploying the API is the step that makes all of this usable, and it needs paid hosting (owner decision).
+
+## 2026-11-26 — Backend Phase 2, WP3b: file storage on the database (D-082)
+
+- **Core:**
+  - `files/sqlRepository.ts` (ops.files);
+  - `fileRolesFor`;
+  - file ids are now UUIDs.
+- **Upload signer Worker:**
+  - Hyperdrive and node-postgres, one connection per request;
+  - `503 NOT_CONFIGURED` without a database outside development;
+  - checks the app's Supabase session when there's no gateway assertion (`session.ts`, jose);
+  - daily clean-up through `scheduled`;
+  - `wrangler.upload-signer.toml` gets `nodejs_compat`, a cron, a Hyperdrive binding placeholder and `SUPABASE_URL`.
+- **Tests:**
+  - API 112, with 3 new tests that run the real file service on PostgreSQL: upload, verify, scan, approve; no scanner means it stays unreadable; abandoned uploads expire. The 5 pooler tests are skipped (CI only).
+  - Infra 53, with 4 new: no database means 503; one connection per request; the daily clean-up; the session check with roles.
+  - Core 310. Typecheck and lint clean.
+  - `wrangler deploy --dry-run --env staging` bundles at 70 KB gzip.
+- **Owner steps:** R2 buckets and token, Hyperdrive, Worker secrets, gobye.app on Cloudflare, and choosing a virus scanner.

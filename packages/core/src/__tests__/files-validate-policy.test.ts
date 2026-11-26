@@ -1,4 +1,4 @@
-import { FILE_RULES, bucketName, detectMime, objectKeyFor, ownerSegment, safeDisplayName, validateClaims, validateContent, canMove, afterScan } from '../index';
+import { FILE_RULES, bucketName, fileRolesFor, detectMime, objectKeyFor, ownerSegment, safeDisplayName, validateClaims, validateContent, canMove, afterScan } from '../index';
 
 const bytes = (...xs: (number | string)[]) => new Uint8Array(xs.flatMap((x) => (typeof x === 'string' ? [...x].map((c) => c.charCodeAt(0)) : [x])));
 const JPEG = bytes(0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 'JFIF', 0, 1, 1, 0);
@@ -67,5 +67,16 @@ describe('storage policy', () => {
     expect(afterScan({ status: 'infected' })).toBe('quarantined');
     expect(afterScan({ status: 'pending' })).toBe('scanning');
     expect(afterScan({ status: 'error' })).toBe('scanning');
+  });
+});
+
+describe('file roles from the database (D-082)', () => {
+  it('maps riders, drivers and staff; staff only with a second factor; nothing for an inactive account', () => {
+    expect(fileRolesFor({ active: true, isRider: true, isDriver: true, staffRoles: [], aal2: false })).toEqual(['rider', 'driver']);
+    expect(fileRolesFor({ active: false, isRider: true, isDriver: false, staffRoles: [], aal2: false })).toEqual([]);
+    expect(fileRolesFor({ active: false, isRider: false, isDriver: false, staffRoles: ['onboarding', 'safety'], aal2: false })).toEqual([]);
+    expect(fileRolesFor({ active: false, isRider: false, isDriver: false, staffRoles: ['onboarding', 'safety'], aal2: true })).toEqual(['staff_verification', 'staff_safety']);
+    expect(fileRolesFor({ active: false, isRider: false, isDriver: false, staffRoles: ['owner'], aal2: true })).toEqual(['staff_verification', 'admin']);
+    expect(fileRolesFor({ active: false, isRider: false, isDriver: false, staffRoles: ['finance', 'marketing'], aal2: true })).toEqual([]);
   });
 });
