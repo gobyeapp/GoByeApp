@@ -22,7 +22,9 @@
     "infra:test": "npm run test --workspace infra/cloudflare",
     "check:env": "node tools/check-env.mjs",
     "cloudflare:setup": "node tools/cloudflare-setup.mjs",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "rider:apk": "npm run build:apk --workspace apps/rider",
+    "driver:apk": "npm run build:apk --workspace apps/driver"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

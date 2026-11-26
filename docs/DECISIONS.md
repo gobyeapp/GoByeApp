@@ -739,3 +739,19 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - runs "Deploy API (staging)".
 - **Site deploys:** `deploy-sites.yml` now reads `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` from the **staging** environment, because the repository-level secrets came through empty in runs.
 
+## D-074 — Mobile test builds on EAS Build, free plan (2026-11-26, owner)
+
+- **Files:**
+  - `apps/rider/eas.json` and `apps/driver/eas.json`, each with the profiles `preview`, `demo` and `ios-device`;
+  - the app scripts `build:apk` and `build:ios-sim`, and the root scripts `rider:apk` and `driver:apk`;
+  - the manual workflow `.github/workflows/build-apps.yml` (`--no-wait`, needs `EXPO_TOKEN` in the staging environment).
+- **Configuration:**
+  - builds run on simulated services (`EXPO_PUBLIC_ENV=development`, `EXPO_PUBLIC_USE_MOCKS=true`), with no `*.gobye.app` address;
+  - Android `preview` is an APK for internal distribution, and iOS `preview` is a Simulator build;
+  - the app version comes from `app.json` (`appVersionSource: local`).
+- **Free plan only:** 15 Android and 15 iOS builds a month at low priority. It never charges; builds stop at the limit.
+- **Needs the owner first:**
+  - iOS on real devices (`ios-device`) and TestFlight need the Apple Developer Program, $99/yr;
+  - the Supabase demo relay values go in EAS environment variables, never in git.
+- Steps: `docs/MOBILE_BUILDS.md`.
+

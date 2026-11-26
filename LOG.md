@@ -1134,3 +1134,15 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Tests:** core 294, admin 416, typecheck and lint clean.
 - **Next:** the owner re-runs "Deploy sites (Cloudflare)" with preview and checks the two workers.dev addresses.
 
+## 2026-11-26 — EAS Build set up for test builds (D-074)
+
+- Added `eas.json` to the rider and driver apps (`preview` gives an Android APK or an iOS Simulator build; `demo`; `ios-device` waits for the Apple account), the build scripts, the manual "Build apps (EAS)" workflow, and `docs/MOBILE_BUILDS.md`.
+- **Checked here:**
+  - `@expo/eas-json` parses every profile;
+  - `expo export` for Android and iOS passes for both apps;
+  - `expo prebuild --platform android` passes (`app.gobye.rider` and `app.gobye.driver`, folders removed afterwards).
+- **Not run here:** `eas build`, which needs the owner's Expo login. The 2 network-only checks in `expo-doctor` could not run either.
+- **Next:**
+  - the owner runs `eas login`, `eas init` and `npm run build:apk` in each app, then commits `app.json`;
+  - then installs the APK on an Android phone (DEVICE_TEST_MATRIX).
+

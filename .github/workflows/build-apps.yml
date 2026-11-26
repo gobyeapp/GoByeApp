@@ -1,0 +1,64 @@
+# Test builds of the rider and driver apps on EAS Build (D-074, docs/MOBILE_BUILDS.md).
+# Manual only (Actions → "Build apps (EAS)" → Run workflow). Never runs on push: each run uses the
+# Expo free plan's monthly allowance (15 Android + 15 iOS builds), and the free plan never charges.
+#
+# Before the first run here:
+#   1. Do the first build of each app from your computer (`eas init`, then `npm run build:apk` in the
+#      app folder): that creates the EAS project id (commit the app.json change) and the Android keystore.
+#   2. Create an Expo access token (expo.dev → Account settings → Access tokens) and add it as the secret
+#      EXPO_TOKEN in Settings → Environments → staging.
+name: Build apps (EAS)
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "Which app"
+        type: choice
+        options: [rider, driver, both]
+        default: both
+      platform:
+        description: "android = installable APK · ios = iOS Simulator build (no Apple account needed)"
+        type: choice
+        options: [android, ios]
+        default: android
+      profile:
+        description: "preview = simulated services · demo = plus the connected demo settings stored on EAS"
+        type: choice
+        options: [preview, demo]
+        default: preview
+permissions:
+  contents: read
+concurrency:
+  group: build-apps
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: ${{ inputs.app }} · ${{ inputs.platform }} · ${{ inputs.profile }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: staging
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EAS: npx --yes eas-cli@27.11.0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: "22", cache: npm }
+      - name: Required settings present
+        run: |
+          [ -n "$EXPO_TOKEN" ] || { echo "::error::Add EXPO_TOKEN to Settings → Environments → staging"; exit 1; }
+          for a in rider driver; do
+            if [ "${{ inputs.app }}" = both ] || [ "${{ inputs.app }}" = "$a" ]; then
+              grep -q '"projectId"' "apps/$a/app.json" || { echo "::error::apps/$a has no EAS project id yet: run 'eas init' in apps/$a and commit app.json"; exit 1; }
+            fi
+          done
+      - run: npm ci --no-audit --no-fund
+      - name: Start the builds on EAS (results on expo.dev)
+        run: |
+          for a in rider driver; do
+            if [ "${{ inputs.app }}" = both ] || [ "${{ inputs.app }}" = "$a" ]; then
+              (cd "apps/$a" && $EAS build --platform ${{ inputs.platform }} --profile ${{ inputs.profile }} --non-interactive --no-wait)
+            fi
+          done
+          echo "Builds queued. Follow them on https://expo.dev (free plan: low priority, can take a while at busy times)."

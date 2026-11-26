@@ -87,9 +87,18 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Flat and compact; light by default, with a full dark theme through `data-theme` tokens in `apps/admin/src/styles.css`. Never hardcode a colour in admin CSS or TSX: use the tokens, including `--chart*` for charts.
 - Figures and charts first, short labels, little prose. Use `ui/charts.tsx` (`Kpi`, `Sparkline`, `BarChart`, `Donut`, `Ring`, `HBars`) before writing paragraphs.
 
+## Mobile builds (D-074)
+
+- EAS Build on the free plan only (`apps/<app>/eas.json`, `docs/MOBILE_BUILDS.md`). Run `eas build` from the app folder. Test builds use simulated services and never a `*.gobye.app` address until those are live.
+- Never enable a paid Expo plan, and never start an iOS device or TestFlight build (Apple Developer Program, $99/yr) without the owner's approval.
+
 ## Documentation maintenance
 
 At the end of each meaningful session: append to `LOG.md`; update `docs/IMPLEMENTATION_PLAN.md`, `docs/SCREEN_INVENTORY.md` statuses, `docs/DECISIONS.md`, `docs/TEST_PLAN.md` (tests actually run), `docs/OPEN_QUESTIONS.md`, `docs/BACKEND_HANDOVER.md` if contracts changed; state the next task. Code and docs must never disagree.
+
+## Commits
+
+- Author and committer: `Ibrahim <ibroakoss@gmail.com>`. No AI or Claude attribution in commit messages, trailers, PR text or code comments.
 
 ## Testing requirements
 
