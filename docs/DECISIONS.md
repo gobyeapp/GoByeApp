@@ -794,3 +794,23 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - D-062 (device verification) is still proposed;
   - the apps' sign-in (WP2) is next.
 
+
+## D-078 — Real sign-in in the apps behind a switch (Backend Phase 2, WP2) (2026-11-26)
+
+- **Switch:** `EXPO_PUBLIC_AUTH=supabase` with `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (public by design). The default stays `mock`, so demos and test builds are unchanged. **Only sign-in becomes real**: trips, payments and the rest still follow `EXPO_PUBLIC_USE_MOCKS`. A production app build refuses `mock` sign-in, and a `sb_secret_` key in the publishable slot fails the build.
+- **Profile on our API:** `EXPO_PUBLIC_ACCOUNTS_API=true` makes the apps create and read the GoBye profile (`GET /v1/me`, `POST /v1/me/profile` with the current consents and the device). It stays off until the API is deployed. Until then the name and city live in the Supabase account's metadata, and account deletion says to contact support.
+- **Package** `packages/auth-client` (`@supabase/supabase-js` 2.119.0), kept out of the pure core. The apps wire it in `src/state/realAuth.ts`.
+- **Flows**, on the same screens:
+  - **Sign up is phone-first:** Supabase account with phone and password (Supabase sends the code); name, email and city go in metadata; after the code, the profile is created and the email is added to the account (Supabase sends a confirmation link).
+  - **Sign in** with email or phone and a password, then a code to the account's phone. The password step signs straight out locally, so the session only starts after the code. This keeps D-045 / D-048 ("every sign-in ends with a phone code") without the device rule in D-062.
+  - **Password reset** by an emailed code, then a new password, then a local sign-out.
+  - **Apple and Google** say "coming soon": they need native modules and store accounts.
+- **Changes from the plan:**
+  - the session is stored in the Keychain / Keystore in chunks, rather than encrypted in AsyncStorage with a key in SecureStore (simpler, and no crypto package needed);
+  - sign-up starts with the phone rather than the email, so the phone code is the first proof.
+- **Errors** are neutral and mapped from Supabase codes (`friendlyAuthError`).
+- `toE164` now accepts local numbers (`0803 123 4567`). `GET /v1/me` now returns `fullName`.
+- **Needs before it works on staging (owner):**
+  - an SMS provider in Supabase Auth (A-4);
+  - phone sign-in switched on;
+  - the email templates for reset and confirmation showing `{{ .Token }}`.

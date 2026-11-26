@@ -91,6 +91,8 @@ Built as planned, with these differences: the migration is `0007_accounts.sql` (
 
 ### WP2: apps, real sign-in behind a switch
 
+> **Built 2026-11-26 (D-078).** Differences from the plan below: the switch is `EXPO_PUBLIC_AUTH=supabase` (not `USE_MOCKS=false`), and the key is `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; sign-up is phone-first; every password sign-in ends with a phone code (no A-3(b) device rule yet); sessions sit in SecureStore in chunks; Apple and Google are not built yet. Profiles go to the API only with `EXPO_PUBLIC_ACCOUNTS_API=true`.
+
 **Shared client:** a `packages/core`-compatible `createSupabaseAuthService(config)` in a new small package `packages/auth-client` (it imports `@supabase/supabase-js`, so it stays out of the pure core).
 
 - **Session storage:** `expo-secure-store` holds an encryption key. The encrypted session goes in AsyncStorage, because SecureStore values are small. `autoRefreshToken` stops when the app goes to the background and resumes when it comes back.

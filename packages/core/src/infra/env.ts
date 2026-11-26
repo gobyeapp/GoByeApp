@@ -23,6 +23,15 @@ export interface PublicConfig {
   useMocks: boolean;
   /** Demo relay (D-049) for the connected demo; development / staging only. */
   demoRelayUrl?: string;
+  /**
+   * Sign-in (Backend Phase 2, WP2, D-078). 'mock' = generated accounts; 'supabase' = real accounts with
+   * phone codes. Only sign-in changes: trips, payments and the rest follow `useMocks`.
+   */
+  auth: 'mock' | 'supabase';
+  /** Supabase project address and publishable (anon) key: public by design, protected by RLS. */
+  supabase?: { url: string; anonKey: string };
+  /** Create and read GoBye profiles on the API after sign-in. Off until the API is deployed. */
+  accountsApi: boolean;
 }
 
 /** Server-only variables. If any of these names appears in a public bundle, configuration fails. */
@@ -135,8 +144,25 @@ export function parsePublicConfig(raw: Record<string, string | undefined>, sourc
   const relay = get('DEMO_RELAY_URL')?.trim();
   if (relay && environment === 'production') problems.push({ name: `${p}DEMO_RELAY_URL`, problem: 'The demo relay is for development and staging only.' });
 
+  // The apps' own sign-in. Production apps must use real accounts; other bundles ignore this setting.
+  const appProd = source === 'expo' && environment === 'production';
+  const authRaw = (get('AUTH') ?? '').trim().toLowerCase() || (appProd ? 'supabase' : 'mock');
+  if (authRaw !== 'mock' && authRaw !== 'supabase') problems.push({ name: `${p}AUTH`, problem: 'Must be mock or supabase.' });
+  const auth = authRaw === 'supabase' ? 'supabase' : 'mock';
+  if (auth === 'mock' && appProd) problems.push({ name: `${p}AUTH`, problem: 'Generated accounts are not allowed in a production build.' });
+  let supabase: PublicConfig['supabase'];
+  if (auth === 'supabase') {
+    const sbUrl = url(`${p}SUPABASE_URL`, get('SUPABASE_URL'), environment, ['https'], problems);
+    const anonKey = (get('SUPABASE_PUBLISHABLE_KEY') ?? '').trim();
+    if (!anonKey) problems.push({ name: `${p}SUPABASE_PUBLISHABLE_KEY`, problem: 'Missing.' });
+    else if (anonKey.startsWith('sb_secret_')) problems.push({ name: `${p}SUPABASE_PUBLISHABLE_KEY`, problem: 'This is a secret key. Use the publishable key and rotate this one.' });
+    supabase = { url: sbUrl, anonKey };
+  }
+  const accRaw = get('ACCOUNTS_API')?.trim().toLowerCase();
+  const accountsApi = accRaw === 'true' || accRaw === '1';
+
   if (problems.length) return { ok: false, error: problems };
-  return { ok: true, value: { environment, apiBaseUrl, realtimeUrl, mediaBaseUrl, useMocks, demoRelayUrl: relay || undefined } };
+  return { ok: true, value: { environment, apiBaseUrl, realtimeUrl, mediaBaseUrl, useMocks, demoRelayUrl: relay || undefined, auth, supabase, accountsApi } };
 }
 
 /** One line per problem, for build logs and the developer screen. */

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { assertMocksAllowed, createMockServices, type GoByeServices, type MockAccount, type Result, type SocialProvider } from '@gobye/core';
 import { publicConfig } from './publicConfig';
+import { hasRealSession, realAuth } from './realAuth';
 import { KEYS, clearAll, readJson, readSecret, writeJson, writeSecret } from './storage';
 
 type SessionStatus = 'loading' | 'signed_out' | 'signed_in';
@@ -64,6 +65,8 @@ function splitName(full: string): { firstName: string; lastName: string } {
 export function SessionProvider({ children, services }: { children: ReactNode; services?: GoByeServices }) {
   const auth = useMemo(() => {
     if (services) return services.auth;
+    // EXPO_PUBLIC_AUTH=supabase: real accounts and phone codes (WP2, D-078).
+    if (realAuth) return realAuth.service;
     // Simulated services refuse to start in a production build (D-051).
     assertMocksAllowed(publicConfig);
     return createMockServices({ authStore }).auth;
@@ -77,8 +80,9 @@ export function SessionProvider({ children, services }: { children: ReactNode; s
 
   useEffect(() => {
     (async () => {
-      const [t, s] = await Promise.all([readSecret(KEYS.token), readJson<StoredSession>(KEYS.session)]);
-      setToken(t);
+      const [t, s, live] = await Promise.all([readSecret(KEYS.token), readJson<StoredSession>(KEYS.session), hasRealSession()]);
+      // Real sign-in: a session that ended (expired, revoked, deleted) signs the driver out.
+      setToken(live ? t : null);
       if (s) setStored(s);
       setLoaded(true);
     })();
@@ -107,7 +111,7 @@ export function SessionProvider({ children, services }: { children: ReactNode; s
       pendingPhone,
       markWelcomeSeen: () => persist({ ...stored, welcomeSeen: true }),
       async signUp({ city, ...details }) {
-        const r = await auth.signUp(details);
+        const r = await auth.signUp({ ...details, city: city === 'Abuja' ? 'abuja' : 'lagos' });
         if (!r.ok) return r;
         setPendingProfile({ ...splitName(details.fullName), email: details.email.trim(), city });
         return sendCode(r.value.phone!);

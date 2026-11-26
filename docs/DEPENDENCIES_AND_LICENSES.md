@@ -148,3 +148,11 @@ Tests use Node's built-in `node:test`; no test framework dependency.
 
 Wrangler is not installed in the repo. Workflows and docs run the pinned `npx wrangler@4.161.0`.
 
+
+## Sign-in client (packages/auth-client, added 2026-11-26, D-078)
+
+| Package | Version | Licence | Purpose |
+|---|---|---|---|
+| @supabase/supabase-js | 2.119.0 | MIT | Supabase Auth in the rider and driver apps (sign-up, phone codes, sessions); pinned exactly |
+
+Used only when `EXPO_PUBLIC_AUTH=supabase`. Sessions are stored with the existing `expo-secure-store`.

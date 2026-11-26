@@ -16,6 +16,10 @@ const raw: Record<string, string | undefined> = {
   EXPO_PUBLIC_MEDIA_BASE_URL: process.env.EXPO_PUBLIC_MEDIA_BASE_URL,
   EXPO_PUBLIC_USE_MOCKS: process.env.EXPO_PUBLIC_USE_MOCKS,
   EXPO_PUBLIC_DEMO_RELAY_URL: process.env.EXPO_PUBLIC_DEMO_RELAY_URL,
+  EXPO_PUBLIC_AUTH: process.env.EXPO_PUBLIC_AUTH,
+  EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
+  EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  EXPO_PUBLIC_ACCOUNTS_API: process.env.EXPO_PUBLIC_ACCOUNTS_API,
 };
 
 const parsed = parsePublicConfig(raw, 'expo');
@@ -29,4 +33,4 @@ export const configProblems: string = parsed.ok ? '' : describeConfigProblems(pa
  */
 export const publicConfig: PublicConfig = parsed.ok
   ? parsed.value
-  : { environment: 'development', apiBaseUrl: 'http://localhost:8787/v1', realtimeUrl: 'ws://localhost:8787/v1/realtime', mediaBaseUrl: 'http://localhost:8787/media', useMocks: true };
+  : { environment: 'development', apiBaseUrl: 'http://localhost:8787/v1', realtimeUrl: 'ws://localhost:8787/v1/realtime', mediaBaseUrl: 'http://localhost:8787/media', useMocks: true, auth: 'mock', accountsApi: false };

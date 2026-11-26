@@ -1,0 +1,15 @@
+{
+  "name": "@gobye/auth-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Real sign-in for the GoBye apps (Backend Phase 2, WP2): the AuthService interface from @gobye/core implemented with Supabase Auth and the GoBye accounts API. Kept out of the pure core because it imports @supabase/supabase-js.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.119.0"
+  }
+}

@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/metro-runtime": "~57.0.17",
+    "@gobye/auth-client": "*",
     "@gobye/core": "*",
     "@gobye/ui": "*",
     "@mingcute/react-native": "3.0.2",

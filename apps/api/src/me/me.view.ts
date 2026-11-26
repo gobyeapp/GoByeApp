@@ -11,6 +11,7 @@ export async function meView(q: Querier, p: Principal) {
   const accepted = user
     ? (await q.query<{ document: ConsentDocument; version: string }>(`select document, version from app.consents where user_id = $1`, [p.userId])).rows
     : [];
+  const name = user ? (await q.query<{ full_name: string }>(`select full_name from app.users where id = $1`, [p.userId])).rows[0] : undefined;
   const deletion = user
     ? (await q.query<{ status: string; scheduled_for: Date }>(`select status, scheduled_for from app.account_deletions where user_id = $1 and status = 'scheduled'`, [p.userId])).rows[0]
     : undefined;
@@ -18,6 +19,7 @@ export async function meView(q: Querier, p: Principal) {
     userId: p.userId,
     signupComplete: !!user,
     status: user?.status ?? null,
+    fullName: name?.full_name ?? null,
     phoneConfirmed: !!p.phone,
     rider: user?.isRider ?? false,
     driver: user?.isDriver ? { city: user.driverCity, verification: user.driverVerification } : null,

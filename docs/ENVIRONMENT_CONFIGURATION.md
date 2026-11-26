@@ -36,6 +36,9 @@ LOAD_BALANCING_FAILOVER.md), so moving the backend never needs an app release.
 | `EXPO_PUBLIC_MEDIA_BASE_URL` / `VITE_MEDIA_BASE_URL` | Approved public media only | https outside development; private files never use it |
 | `EXPO_PUBLIC_USE_MOCKS` / `VITE_USE_MOCKS` | Simulated services | true/false; refused in production |
 | `EXPO_PUBLIC_DEMO_RELAY_URL` / `VITE_DEMO_RELAY_URL`, `…_DEMO_RELAY_KEY` | Connected demo (D-049) | Development/staging only; the key is a Supabase **anon** key or empty |
+| `EXPO_PUBLIC_AUTH` | Apps' sign-in (D-078): `mock` or `supabase` | Default `mock`; production app builds must use `supabase` |
+| `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase project for real sign-in | Required with `AUTH=supabase`; https; the publishable (anon) key only, a `sb_secret_` key fails |
+| `EXPO_PUBLIC_ACCOUNTS_API` | Create / read GoBye profiles on the API after sign-in | true/false, default false until the API is deployed |
 
 `parsePublicConfig` returns every problem at once; `describeConfigProblems` turns them into lines for
 logs. The apps fall back to a local, simulated configuration when the config is invalid, so a bad `.env`

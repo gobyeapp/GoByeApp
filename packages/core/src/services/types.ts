@@ -61,7 +61,7 @@ export interface PhoneStep {
 
 export interface AuthService {
   /** Create an account with email + password; the phone is verified next (requestOtp → verifyOtp). */
-  signUp(input: { fullName: string; email: string; phone: string; password: string }): Promise<Result<PhoneStep>>;
+  signUp(input: { fullName: string; email: string; phone: string; password: string; city?: 'lagos' | 'abuja' }): Promise<Result<PhoneStep>>;
   /** Email or phone + password, then a code to the account's phone (two steps). */
   signIn(identifier: string, password: string): Promise<Result<PhoneStep>>;
   /** Apple / Google. Existing account → code to its phone; new account → ask for a phone first. */

@@ -65,6 +65,7 @@ describe('accounts API', async () => {
     assert.equal(r.statusCode, 201, r.body);
     const me = r.json().data;
     assert.equal(me.signupComplete, true);
+    assert.equal(me.fullName, 'Ada Obi');
     assert.equal(me.rider, true);
     assert.deepEqual(me.consentsNeeded, []);
     const dev = await call('POST', '/v1/me/devices', sub, { installId: 'install_rider_0001', platform: 'android' });
@@ -131,6 +132,7 @@ describe('accounts API', async () => {
     assert.equal((await call('DELETE', '/v1/me', sub)).statusCode, 403);
     const me = await t.inject({ method: 'GET', url: '/v1/me', headers: bearer(await tok(sub)) });
     assert.equal(me.json().data.signupComplete, false);
+    assert.equal(me.json().data.fullName, null);
     assert.equal(me.json().data.phoneConfirmed, true);
   });
 

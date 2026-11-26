@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { assertMocksAllowed, createMockServices, createRelayMatching, createRelayTrips, type GoByeServices, type MockAccount, type WalletTransaction } from '@gobye/core';
 import { getRelayRider, relay } from './relay';
 import { publicConfig } from './publicConfig';
+import { realAuth } from './realAuth';
 import { KEYS, readJson, writeJson } from './storage';
 
 const WALLET_KEY = KEYS.mockWallet;
@@ -29,7 +30,9 @@ export function ServicesProvider({ children, services }: { children: ReactNode; 
     if (services) return services;
     // Simulated services refuse to start in a production build (D-051): a store build must use the real backend.
     assertMocksAllowed(publicConfig);
-    const mock = createMockServices({ walletStore, authStore });
+    const generated = createMockServices({ walletStore, authStore });
+    // EXPO_PUBLIC_AUTH=supabase: real accounts and phone codes (WP2, D-078); everything else stays simulated.
+    const mock = realAuth ? { ...generated, auth: realAuth.service } : generated;
     // Demo relay connected (D-049): real drivers in the driver app take the ride; nobody online → "no drivers".
     return relay ? { ...mock, matching: createRelayMatching(relay, { rider: getRelayRider }), trips: createRelayTrips(relay) } : mock;
   }, [services]);

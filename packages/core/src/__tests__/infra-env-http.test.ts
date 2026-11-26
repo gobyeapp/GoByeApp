@@ -21,7 +21,18 @@ import type { Kobo } from '../types';
 describe('public configuration', () => {
   it('defaults to development with mocks and local addresses', () => {
     const r = parsePublicConfig({}, 'expo');
-    expect(r).toEqual({ ok: true, value: { environment: 'development', apiBaseUrl: 'http://localhost:8787/v1', realtimeUrl: 'ws://localhost:8787/v1/realtime', mediaBaseUrl: 'http://localhost:8787/media', useMocks: true, demoRelayUrl: undefined } });
+    expect(r).toEqual({ ok: true, value: { environment: 'development', apiBaseUrl: 'http://localhost:8787/v1', realtimeUrl: 'ws://localhost:8787/v1/realtime', mediaBaseUrl: 'http://localhost:8787/media', useMocks: true, demoRelayUrl: undefined, auth: 'mock', supabase: undefined, accountsApi: false } });
+  });
+
+  it('reads the sign-in settings (WP2) and keeps generated accounts out of production apps', () => {
+    const r = parsePublicConfig({ EXPO_PUBLIC_AUTH: 'supabase', EXPO_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co/', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_x', EXPO_PUBLIC_ACCOUNTS_API: 'true' }, 'expo');
+    expect(r.ok && r.value).toMatchObject({ auth: 'supabase', supabase: { url: 'https://abc.supabase.co', anonKey: 'sb_publishable_x' }, accountsApi: true });
+    const missing = parsePublicConfig({ EXPO_PUBLIC_AUTH: 'supabase' }, 'expo');
+    expect(!missing.ok && missing.error.map((p) => p.name)).toEqual(['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY']);
+    const secret = parsePublicConfig({ EXPO_PUBLIC_AUTH: 'supabase', EXPO_PUBLIC_SUPABASE_URL: 'https://abc.supabase.co', EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_secret_x' }, 'expo');
+    expect(secret.ok).toBe(false);
+    const prod = parsePublicConfig({ EXPO_PUBLIC_ENV: 'production', EXPO_PUBLIC_API_BASE_URL: 'https://api.gobye.app/v1', EXPO_PUBLIC_REALTIME_URL: 'wss://realtime.gobye.app/v1', EXPO_PUBLIC_MEDIA_BASE_URL: 'https://media.gobye.app', EXPO_PUBLIC_USE_MOCKS: 'false', EXPO_PUBLIC_AUTH: 'mock' }, 'expo');
+    expect(!prod.ok && prod.error.map((p) => p.name)).toEqual(['EXPO_PUBLIC_AUTH']);
   });
 
   it('accepts a production config with https / wss, no mocks, and trims trailing slashes', () => {

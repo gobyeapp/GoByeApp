@@ -1176,3 +1176,20 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Owner step:** Actions → Staging database → `up`, to apply 0007 to gobye-staging.
 - **Next:** WP2, real sign-in in the apps behind `EXPO_PUBLIC_USE_MOCKS=false`, which needs the Supabase Auth settings from WP0 step 4.
 
+
+## 2026-11-26 — Backend Phase 2, WP2: real sign-in in the apps (D-078)
+
+- **New package** `packages/auth-client`: `createSupabaseAuthService` (the existing `AuthService` interface, on Supabase Auth), chunked Keychain / Keystore session storage, the Supabase client and the accounts API calls.
+- **Apps:** `src/state/realAuth.ts` in rider and driver. When `EXPO_PUBLIC_AUTH=supabase`, sign-in is real and everything else stays simulated. A session that has ended signs the person out at start-up. The driver passes the chosen city to sign-up.
+- **Core:** `parsePublicConfig` reads `AUTH`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` and `ACCOUNTS_API`. `toE164` accepts local numbers. `AuthService.signUp` takes an optional city. New core tests for the account rules.
+- **API:** `GET /v1/me` returns `fullName`.
+- **Checked here (cloud workspace, not on a device):**
+  - typecheck and lint clean;
+  - tests: core 300, auth-client 7, rider 37, driver 14, API 104 (5 pooler tests skipped, CI only), admin and infra pass;
+  - `expo export` for Android and iOS, for both apps (the rider with real sign-in switched on), plus the rider web build.
+  - **No sign-in was tried against Supabase:** staging has no SMS provider yet.
+- **Owner steps:**
+  - choose the SMS provider (A-4) and switch on phone sign-in in Supabase Auth;
+  - put `{{ .Token }}` in the reset and confirmation email templates;
+  - then set the three EAS variables for a test build.
+- **Next:** WP3, the driver application connected to the API.

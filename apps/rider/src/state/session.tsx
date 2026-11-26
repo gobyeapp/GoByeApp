@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Passenger, Result, SocialProvider } from '@gobye/core';
 import { useServices } from './services';
+import { hasRealSession } from './realAuth';
 import { KEYS, clearAll, readJson, readSecret, writeJson, writeSecret } from './storage';
 
 type SessionStatus = 'loading' | 'signed_out' | 'needs_profile' | 'signed_in';
@@ -52,8 +53,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const [t, s] = await Promise.all([readSecret(KEYS.token), readJson<StoredSession>(KEYS.session)]);
-      setToken(t);
+      const [t, s, live] = await Promise.all([readSecret(KEYS.token), readJson<StoredSession>(KEYS.session), hasRealSession()]);
+      // Real sign-in (D-078): a session that ended (expired, revoked, deleted) signs the rider out.
+      setToken(live ? t : null);
       if (s) setStored(s);
       setLoaded(true);
     })();

@@ -42,8 +42,11 @@ export function isNigerianPhone(e164: string | null | undefined): boolean {
 /** Supabase writes phone numbers without the "+"; the database stores E.164 with it. */
 export function toE164(phone: string | null | undefined): string | null {
   if (!phone) return null;
-  const p = phone.trim().replace(/[\s-]/g, '');
-  return p.startsWith('+') ? p : `+${p}`;
+  const p = phone.trim().replace(/[\s()-]/g, '');
+  if (p.startsWith('+')) return p;
+  // A local Nigerian number as people type it: 0803 123 4567 → +2348031234567.
+  if (/^0[789][01]\d{8}$/.test(p)) return `+234${p.slice(1)}`;
+  return `+${p}`;
 }
 
 /** Days between asking to delete an account and the data being removed (time to change one's mind). */
