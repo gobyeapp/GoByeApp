@@ -399,11 +399,23 @@ These endpoints exist and are covered by automated tests (`apps/api/test`). They
 | GET | `/health/live` | none (no gateway signature needed) | — | (raw) `{ status: "ok", version }` | — |
 | GET | `/health/ready` | none | — | (raw) `{ status: "ok" \| "degraded" \| "unavailable", version }`; 503 when unavailable (database down or schema behind) | — |
 | GET | `/v1/ops/health` | staff `logs.view` + MFA | — | `{ status, version, checks: { database, schema, auth_keys }, timingsMs, environment }` | 401, 403 `MFA_REQUIRED` / `forbidden` |
-| GET | `/v1/me` | any valid session | — | `{ userId, signupComplete, status, rider, driver: { city, verification } \| null, staff: { roles, cities, status, mfaRequired, permissions[] } \| null, session: { aal } }` | 401 `unauthenticated` / `TOKEN_EXPIRED`, 403 `ACCOUNT_SUSPENDED` |
+| GET | `/v1/me` | any valid session | — | `{ userId, signupComplete, status, phoneConfirmed, rider, driver: { city, verification } \| null, consentsNeeded: [{ document, version }], deletion: { status: "scheduled", scheduledFor } \| null, staff: { roles, cities, status, mfaRequired, permissions[] } \| null, session: { aal } }` | 401 `unauthenticated` / `TOKEN_EXPIRED`, 403 `ACCOUNT_SUSPENDED` |
 | GET | `/v1/drivers/{driverId}/subscription` | the driver themself, or staff `drivers.view` + MFA within their cities | path `driverId` (UUID) | `SubscriptionTimelineResponse` (D-058, `packages/core/src/subscriptions`) | 404 when not yours and no permission; 403 outside city scope; 422 bad id |
 | POST | `/v1/costs/expenses` | staff `costs.manage` + MFA | Headers: `Idempotency-Key`. Body (strict): `{ vendorId, description, amountKobo (int > 0), month "YYYY-MM", incurredAt ISO-8601 with offset, recurring?, original?: { currency: "USD", cents, fxRate }, note? }` | `201 { id, vendorId, category, description, amountKobo, month, status: "pending_approval", recurring, incurredAt, createdAt }`; a replay returns the same body with `idempotent-replayed: true` | 422 `validation_failed` (`details` per field, missing key), 409 `idempotency_conflict`, 403 |
 | GET | `/v1/costs/expenses?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ items: Expense[] }` | 422, 403 |
 | GET | `/v1/costs/break-even?month=YYYY-MM` | staff `costs.view` + MFA | — | `{ month, operatingCost, subscriptionRevenue, coverage, gap, monthlyPassesNeeded, dailyPassesNeeded, passesSold, excluded: { marketingCostKobo, pendingApprovalKobo }, rules }` (all money in kobo; marketing and unapproved costs excluded; refunded or reversed passes excluded; months in Lagos time) | 422, 403 |
+
+**Accounts (Backend Phase 2, WP1, D-077).** Every write needs `Idempotency-Key` and records an audit row in the same transaction. Success bodies are the `/v1/me` body unless shown.
+
+| Method | Path | Auth | Request | Response `data` | Errors |
+|---|---|---|---|---|---|
+| POST | `/v1/me/profile` | a session with a **confirmed Nigerian phone** (`+234`) and no profile yet | `{ role: "rider" \| "driver", fullName, city? (required for driver: lagos \| abuja), consents: [{ document: "terms" \| "privacy", version }] (current versions), device?: { installId, platform: ios \| android \| web, appVersion? } }` | `201` `/v1/me` | 422 (no confirmed +234 phone, old consent version, missing city, unknown field), 409 profile exists / phone used by another account |
+| PATCH | `/v1/me/profile` | signed-up self | `{ fullName }` (email and phone change through Supabase) | `200` `/v1/me` | 403 not signed up, 422 |
+| POST | `/v1/me/roles` | signed-up self | `{ role, city? }` | `201` `/v1/me` | 409 role already held, 422 |
+| POST | `/v1/me/consents` | signed-up self | `{ consents: [...] }` | `201` `/v1/me` | 422 |
+| POST | `/v1/me/devices` | signed-up self | `{ installId, platform, appVersion? }` | `200 { deviceId, verificationRequired }` (the sign-up device is verified; a new one needs a phone code, proposed D-062) | 403, 422 |
+| DELETE | `/v1/me` | signed-up self | — | `202 { status: "scheduled", scheduledFor }` (14 days; job `account.delete` then anonymises and removes the sign-in account) | 403, 409 already deleted |
+| POST | `/v1/me/deletion/cancel` | signed-up self | `{}` | `200 { status: "cancelled" }` | 404 nothing to cancel |
 
 **WhatsApp quick booking (D-064, `WHATSAPP_BOOKING.md`); 404 unless `WHATSAPP_PROVIDER` is set:**
 

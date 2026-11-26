@@ -11,6 +11,7 @@ import { EnvelopeExceptionFilter } from './common/exception.filter';
 import { EnvelopeInterceptor } from './common/envelope.interceptor';
 import { HealthController } from './health/health.controller';
 import { MeController } from './me/me.controller';
+import { AccountsController } from './me/accounts.controller';
 import { SubscriptionsController } from './subscriptions/subscriptions.controller';
 import { CostsController } from './costs/costs.controller';
 import { WhatsAppWebhookController } from './whatsapp/whatsapp.controller';
@@ -31,7 +32,7 @@ export class AppModule {
   static forRoot(d: AppDeps): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, SubscriptionsController, CostsController, WhatsAppWebhookController],
+      controllers: [HealthController, MeController, AccountsController, SubscriptionsController, CostsController, WhatsAppWebhookController],
       providers: [
         { provide: CONFIG, useValue: d.config },
         { provide: DATABASE, useValue: d.db },

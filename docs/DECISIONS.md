@@ -775,3 +775,22 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - location prompts, the camera, haptics and gestures behave as a browser allows.
   - Phone testing of the real app stays on the Android APK, and on iPhone once the Apple account exists.
 
+## D-077 — Accounts API built (Backend Phase 2, WP1) (2026-11-26)
+
+- **Endpoints:** `POST/PATCH /v1/me/profile`, `POST /v1/me/roles`, `POST /v1/me/consents`, `POST /v1/me/devices`, `DELETE /v1/me` and `POST /v1/me/deletion/cancel`. `GET /v1/me` now also returns `phoneConfirmed`, `consentsNeeded` and `deletion`. Contracts: `API_CONTRACTS.md` §10.
+- **Migration** `0007_accounts.sql`:
+  - `app.consents` (append-only; the IP is stored only as a salted hash, and only when `IP_HASH_SALT` is set);
+  - `app.devices`;
+  - `app.account_deletions`;
+  - the staff roles check now accepts `stakeholder` (D-068).
+- **Rules** (`@gobye/core` `accounts/`):
+  - sign-up needs a confirmed `+234` mobile number from the Supabase token, and one account per phone;
+  - consent must match `CURRENT_CONSENTS`, which are **placeholders** until legal supplies versions (A-10);
+  - deletion has a 14-day grace period, then the `account.delete` job anonymises the person (name, email and phone removed, devices deleted). Trips, money records, consents and audit keep the id only.
+- **Removing the Supabase sign-in account** uses `SUPABASE_SERVICE_ROLE_KEY`, which is worker only and stored as a Worker secret.
+  - Without the key, the job still anonymises our data and records `auth_user_deleted = false`.
+- **Still open:**
+  - confirm on staging that Supabase sets the `phone` claim only after the code is confirmed (WP0);
+  - D-062 (device verification) is still proposed;
+  - the apps' sign-in (WP2) is next.
+

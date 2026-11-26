@@ -1,6 +1,6 @@
 # Backend Phase 2 plan: real Rider and Driver authentication and onboarding
 
-**Status: PLAN ONLY.** Nothing in this document is implemented yet.
+**Status:** WP1 (accounts API) is **implemented and tested locally** (2026-11-26, D-077). Everything else here is still a plan.
 
 **Prerequisites** (from `BACKEND_PHASE_1_VERIFICATION.md`; Phase 1.5 status in §4 there):
 - correction **C-1** (pooler start-up parameter): **fixed in code and tested through PgBouncer**; still to prove on the Supabase pooler (`migrate.js check-runtime`);
@@ -61,7 +61,10 @@
 
 **Exit:** `/v1/me` answers 200 for a real staging account, and `health-check.mjs --expect-version` passes strictly (status `ok`, not `degraded`).
 
-### WP1: API, accounts (riders and drivers)
+### WP1: API, accounts (riders and drivers) — implemented (D-077)
+
+Built as planned, with these differences: the migration is `0007_accounts.sql` (0006 was already WhatsApp); deletion waits 14 days and can be cancelled (`POST /v1/me/deletion/cancel`); consent versions are placeholders until A-10; a device is marked verified only at sign-up until D-062 is approved; the `@RequireRole` guards arrive with the first rider- or driver-only route (WP3). Endpoints: `API_CONTRACTS.md` §10.
+
 
 **Migration `0006_accounts.sql`:**
 - `app.consents (user_id, document, version, accepted_at, ip_hash)`, append-only;

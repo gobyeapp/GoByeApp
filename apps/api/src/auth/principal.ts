@@ -9,6 +9,9 @@ import type { VerifiedToken } from './jwt';
 export interface Principal {
   userId: string;
   sessionId: string | null;
+  /** From the verified token (Supabase sets phone only once it is confirmed; checked on staging, WP0). */
+  email: string | null;
+  phone: string | null;
   aal: 'aal1' | 'aal2';
   /** null until the person completes sign-up (no app.users row yet). */
   user: { status: 'active' | 'suspended' | 'deleted'; isRider: boolean; isDriver: boolean; driverCity: string | null; driverVerification: string | null } | null;
@@ -30,6 +33,8 @@ export function buildPrincipal(token: VerifiedToken, rows: { user: Principal['us
   return {
     userId: token.userId,
     sessionId: token.sessionId,
+    email: token.email,
+    phone: token.phone,
     aal: token.aal,
     user: rows.user,
     staff: rows.staff,

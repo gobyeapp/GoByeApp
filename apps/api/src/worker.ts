@@ -1,6 +1,7 @@
 import { ConfigError, loadConfig } from './config/config';
 import { Database } from './database/database';
 import { defaultHandlers, startWorker } from './jobs/worker';
+import { accountHandlers } from './me/deletion.job';
 import { providersFromConfig } from './providers/providers';
 import { whatsappHandlers } from './whatsapp/whatsapp.service';
 
@@ -23,7 +24,7 @@ async function main() {
   }
   const log = (event: string, meta: object) => process.stdout.write(`${JSON.stringify({ time: new Date().toISOString(), service: 'gobye-worker', env: config.APP_ENV, event, ...meta })}\n`);
   const providers = providersFromConfig(config, log);
-  const w = startWorker(db, { ...defaultHandlers(), ...whatsappHandlers({ config, providers, log }) }, { pollMs: config.WORKER_POLL_MS, concurrency: config.WORKER_CONCURRENCY, log });
+  const w = startWorker(db, { ...defaultHandlers(), ...whatsappHandlers({ config, providers, log }), ...accountHandlers({ config }) }, { pollMs: config.WORKER_POLL_MS, concurrency: config.WORKER_CONCURRENCY, log });
   log('worker.started', { workerId: w.workerId });
   const stop = async () => {
     await w.stop();

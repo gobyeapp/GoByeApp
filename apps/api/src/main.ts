@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { ConfigError, loadConfig } from './config/config';
 import { createApp, depsFromConfig } from './app.factory';
 import { defaultHandlers, startWorker } from './jobs/worker';
+import { accountHandlers } from './me/deletion.job';
 import { whatsappHandlers } from './whatsapp/whatsapp.service';
 
 /** HTTP server. Listens on PORT (default 8080). Optionally runs the job worker in-process (WORKER_ENABLED). */
@@ -21,7 +22,7 @@ async function main() {
   await app.listen({ host: config.HOST, port: config.PORT });
 
   const worker = config.WORKER_ENABLED && deps.db.configured
-    ? startWorker(deps.db, { ...defaultHandlers(), ...whatsappHandlers({ config, providers: deps.providers }) }, {
+    ? startWorker(deps.db, { ...defaultHandlers(), ...whatsappHandlers({ config, providers: deps.providers }), ...accountHandlers({ config }) }, {
         pollMs: config.WORKER_POLL_MS,
         concurrency: config.WORKER_CONCURRENCY,
         log: (m, meta) => app.getHttpAdapter().getInstance().log.info({ ...meta, event: m }),

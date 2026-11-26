@@ -54,6 +54,14 @@ const schema = z.object({
   /* Supabase Auth (JWT verification only; the service-role key is never needed for requests). */
   SUPABASE_URL: url.optional(),
   SUPABASE_JWT_AUDIENCE: z.string().default('authenticated'),
+  /**
+   * Worker only (account deletion job): removes the person's sign-in account through the Supabase Auth
+   * admin API after our data is anonymised. Unset = our data is still anonymised and the job records that
+   * the sign-in account remains, for an owner to remove in Supabase.
+   */
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
+  /** Salt for hashing caller IPs on consent records (never the IP itself). Unset = no IP hash stored. */
+  IP_HASH_SALT: z.string().min(16).optional(),
   /** Legacy shared secret (HS256). Development/test only; production uses asymmetric signing keys via JWKS. */
   SUPABASE_JWT_SECRET: z.string().optional(),
   SUPABASE_ALLOW_HS256: bool(false),

@@ -20,6 +20,8 @@ export const CONTAINER_ENV_KEYS = [
   'AUTH_AUDIENCE',
   'SUPABASE_URL',
   'SUPABASE_JWT_AUDIENCE',
+  'SUPABASE_SERVICE_ROLE_KEY', // worker only: account deletion (WP1); a Worker secret, never a var
+  'IP_HASH_SALT',
   'STAFF_REQUIRE_MFA',
   'ORIGIN_AUTH_REQUIRED',
   'ORIGIN_AUTH_SECRET',

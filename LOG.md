@@ -1164,3 +1164,15 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - the wrangler dry run passes.
 - **Next:** the owner runs the workflow with site = rider and opens the address in Safari on the iPhone.
 
+## 2026-11-26 — Backend Phase 2, WP1: accounts API (D-077)
+
+- **API:** `apps/api/src/me/accounts.controller.ts` (profile, roles, consents, devices, deletion) plus `me.view.ts`, the shared `/v1/me` body, and `me/deletion.job.ts`.
+  - Migration `0007_accounts.sql`; the principal now carries the token's email and phone.
+  - New settings `SUPABASE_SERVICE_ROLE_KEY` and `IP_HASH_SALT`, both passed into the container.
+- **Core:** `accounts/` (consent versions, the +234 check, the deletion grace period, device rule).
+- **Tests:** API 104 passed against local PostgreSQL, 9 of them new for accounts.
+  - The 5 PgBouncer tests could not run here, because the pooler can't be installed in this workspace; CI runs them.
+  - Core 295, infra 49, typecheck and lint clean.
+- **Owner step:** Actions → Staging database → `up`, to apply 0007 to gobye-staging.
+- **Next:** WP2, real sign-in in the apps behind `EXPO_PUBLIC_USE_MOCKS=false`, which needs the Supabase Auth settings from WP0 step 4.
+
