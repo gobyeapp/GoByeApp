@@ -39,8 +39,8 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "blockedPermissions": [
         "ACCESS_BACKGROUND_LOCATION"
@@ -85,6 +85,13 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "description": "GoBye — Your ride. Your say. (Preview build on simulated services.)"
+    "description": "GoBye — Your ride. Your say. (Preview build on simulated services.)",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ee3ad19a-3c09-41fc-8f2c-d3a15e1fde8a"
+      }
+    },
+    "owner": "gobye"
   }
 }
