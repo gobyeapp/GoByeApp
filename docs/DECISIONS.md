@@ -849,3 +849,23 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Not yet checked:**
   - reading a picked photo into bytes and uploading it as a Blob from React Native has not been run on a phone;
   - the upload endpoints need the upload signer connected to the database and R2 (WP3b), so photo uploads fail until then.
+
+## D-081 — Real staff sign-in and the review queue in the admin (Backend Phase 2, WP4, part 2) (2026-11-26)
+
+- **Switch:** `VITE_AUTH=supabase` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` and `VITE_API_BASE_URL`. Outside development it also needs `VITE_ENV`, `VITE_REALTIME_URL` and `VITE_MEDIA_BASE_URL`, as `parsePublicConfig` requires. Without the switch the admin is unchanged: staff picker and its own dataset.
+- **Sign-in:**
+  - work email and password, then a 6-digit code from an authenticator app (Supabase MFA, TOTP);
+  - the first time, the page shows a QR code and a key to set the app up;
+  - after the code, `GET /v1/me` gives the staff member (id, name, email, roles, cities); an account that isn't active staff is signed out.
+- **Driver applications page** (`/drivers/applications`, only in this mode): the queue by status; the application in a side panel with checks, open items, details (ID numbers masked), document check states and history; **Approve**, **Ask for changes** (choose items, add a note) and **Reject** (with a reason).
+  - Every action sends the version it was read at. If someone else changed it, the panel reloads and says so.
+  - Staff without `drivers.verify` see the buttons disabled, with the reason.
+- **Not yet:**
+  - viewing document images (needs file storage, WP3b);
+  - every other admin page still shows the admin's own dataset in this mode. Only sign-in and this page are on the API, so the mode is for staging only.
+- **`GET /v1/me`** now includes `staff.id`, `name` and `email`.
+- **To use on staging (owner):**
+  1. In Supabase Auth, keep TOTP multi-factor on (it is on by default).
+  2. Invite each staff member (Authentication → Users → Invite).
+  3. Add their row to `app.staff_members`, with their Supabase user id, name, email, roles and cities.
+  4. Build the admin with the variables above.

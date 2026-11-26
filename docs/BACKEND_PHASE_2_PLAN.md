@@ -154,6 +154,8 @@ The schema allows one application per driver; resubmission continues it.
 
 ### WP4: Driver App and admin connected
 
+> **Built 2026-11-26 (D-080, D-081),** except the document viewer (it needs file storage, WP3b) and Turnstile on staff sign-in. The Driver App mirrors its application to the API; the admin has real staff sign-in with an authenticator code and a Driver applications page.
+
 - **Driver App:** registration steps call the API (the screens exist). Status screens read `GET /v1/drivers/me/application`. Uploads use presigned URLs, with progress and retry.
 - **Admin:**
   - staff sign-in through Supabase (email + password + TOTP; Turnstile);

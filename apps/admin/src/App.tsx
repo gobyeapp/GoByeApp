@@ -10,6 +10,8 @@ import { PlatformProvider, ToastProvider, usePlatform } from '@/data/store';
 import { ALL_ITEMS, NAV, ROLE_HOME, groupOf } from '@/nav';
 import { attentionNotes } from '@/shell/attention';
 import { CommandPalette } from '@/shell/CommandPalette';
+import { LiveSignIn } from '@/shell/LiveSignIn';
+import { LIVE } from '@/data/live';
 import { Popover } from '@/shell/Popover';
 import { Icon } from '@/ui/Icon';
 import { Dimensional } from '@/ui/Dimensional';
@@ -41,7 +43,8 @@ export default function App() {
  * "Reset test data" starts again.
  */
 function Root() {
-  const { staff, actor } = useSession();
+  const { staff, actor, restoring } = useSession();
+  if (restoring) return <main className="signin" aria-busy="true" />;
   return (
     <PlatformProvider actor={actor}>
       <ToastProvider>
@@ -87,8 +90,9 @@ function SignIn() {
       <section className="signin-panel" aria-labelledby="signin-title">
         <div>
           <h2 id="signin-title" style={{ fontSize: 20, fontWeight: 700 }}>Staff sign in</h2>
-          <p className="muted" style={{ marginTop: 4 }}>Choose your account.</p>
+          <p className="muted" style={{ marginTop: 4 }}>{LIVE ? 'Use your work email.' : 'Choose your account.'}</p>
         </div>
+        {LIVE ? <LiveSignIn /> : (
         <div className="staff-list" role="list">
           {TEST_STAFF.map((s) => (
             <button key={s.id} className="staff-option" role="listitem" onClick={() => signIn(s.id)} disabled={s.status !== 'active'} style={s.status !== 'active' ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
@@ -105,6 +109,7 @@ function SignIn() {
             </button>
           ))}
         </div>
+        )}
       </section>
     </main>
   );

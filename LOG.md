@@ -1214,3 +1214,20 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - `ServerNotice` on the status screen and the dashboard.
 - **Tests:** core 309 (7 new), driver 14, rider 37, API 109 (1 new end-to-end sync test, 5 pooler tests skipped), typecheck and lint clean. Android and iOS exports of the driver app pass with the switches on and off. **Nothing was run on a phone.**
 - **Next:** WP4 part 2, the admin. Real staff sign-in, and the review queue on the API.
+
+## 2026-11-26 — Backend Phase 2, WP4 part 2: real staff sign-in and the review queue (D-081)
+
+- **Admin:**
+  - `data/live.ts`: Supabase sign-in with an authenticator-app code, and the API client. `data/session.tsx` uses it when `VITE_AUTH=supabase`.
+  - `shell/LiveSignIn.tsx`.
+  - `workspaces/people/Applications.tsx` and `applicationsApi.ts`: the queue, the review panel, approve, ask for changes and reject.
+  - New dependency: `@supabase/supabase-js` 2.119.0.
+- **API:** `/v1/me` staff now has id, name and email.
+- **Tests:**
+  - admin 418, 2 new: the page against a fake API (open, approve with the version) and the client helpers;
+  - API 109 (5 pooler tests skipped);
+  - typecheck and lint clean.
+  - A live-mode admin build was opened in Chromium at 1280×800 and shows the email and password form with no page errors. **Not tried against Supabase.**
+- **Next:**
+  - WP3b, file uploads (the upload signer on the database and R2, plus a scanner) and the staff document viewer;
+  - deploying the API is the step that makes all of this usable, and it needs paid hosting (owner decision).

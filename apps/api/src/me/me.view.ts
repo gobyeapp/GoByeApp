@@ -15,6 +15,9 @@ export async function meView(q: Querier, p: Principal) {
   const deletion = user
     ? (await q.query<{ status: string; scheduled_for: Date }>(`select status, scheduled_for from app.account_deletions where user_id = $1 and status = 'scheduled'`, [p.userId])).rows[0]
     : undefined;
+  const staffRow = p.staff
+    ? (await q.query<{ full_name: string; email: string }>(`select full_name, email from app.staff_members where id = $1`, [p.staff.id])).rows[0]
+    : undefined;
   return {
     userId: p.userId,
     signupComplete: !!user,
@@ -26,7 +29,7 @@ export async function meView(q: Querier, p: Principal) {
     consentsNeeded: user ? consentsNeeded(accepted) : [],
     deletion: deletion ? { status: 'scheduled', scheduledFor: deletion.scheduled_for.toISOString() } : null,
     staff: p.staff
-      ? { roles: p.staff.roles, cities: p.staff.cities, status: p.staff.status, mfaRequired: p.mfaPending, permissions: [...p.permissions].sort() }
+      ? { id: p.staff.id, name: staffRow?.full_name ?? '', email: staffRow?.email ?? '', roles: p.staff.roles, cities: p.staff.cities, status: p.staff.status, mfaRequired: p.mfaPending, permissions: [...p.permissions].sort() }
       : null,
     session: { aal: p.aal },
   };

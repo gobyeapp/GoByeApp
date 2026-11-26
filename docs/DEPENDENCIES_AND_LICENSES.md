@@ -155,4 +155,4 @@ Wrangler is not installed in the repo. Workflows and docs run the pinned `npx wr
 |---|---|---|---|
 | @supabase/supabase-js | 2.119.0 | MIT | Supabase Auth in the rider and driver apps (sign-up, phone codes, sessions); pinned exactly |
 
-Used only when `EXPO_PUBLIC_AUTH=supabase`. Sessions are stored with the existing `expo-secure-store`.
+Also used by the admin (`apps/admin`, same version) for staff sign-in when `VITE_AUTH=supabase` (D-081). Used in the apps only when `EXPO_PUBLIC_AUTH=supabase`. Sessions are stored with the existing `expo-secure-store`.

@@ -674,3 +674,6 @@ table.table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .switch.on { background: var(--primary); border-color: var(--primary); }
 .switch.on span { transform: translateX(18px); background: var(--on-primary); }
 .switch:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Driver applications review (D-081) */
+.drawer-h { font-size: 13px; font-weight: 600; margin: 0 0 8px; }

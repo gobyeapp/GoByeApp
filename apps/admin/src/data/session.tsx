@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { LIVE, nextStep } from './live';
 import { can as canDo, createPlatformDataset, inCityScope, type Actor, type CityId, type Permission, type StaffMember } from '@gobye/core';
 
 /**
@@ -13,6 +14,10 @@ interface SessionValue {
   inScope: (city: CityId) => boolean;
   signIn: (id: string) => void;
   signOut: () => void;
+  /** Real staff sign-in (D-081): the signed-in staff member from GET /v1/me. */
+  setLiveStaff: (staff: StaffMember) => void;
+  /** Real sign-in is on and the saved session is still being checked. */
+  restoring: boolean;
 }
 
 const Ctx = createContext<SessionValue | null>(null);
@@ -29,7 +34,24 @@ function read(): string | null {
 
 export function SessionProvider({ children, initialStaffId }: { children: ReactNode; initialStaffId?: string }) {
   const [id, setId] = useState<string | null>(initialStaffId ?? read());
-  const staff = TEST_STAFF.find((s) => s.id === id && s.status === 'active') ?? null;
+  const [liveStaff, setLiveStaff] = useState<StaffMember | null>(null);
+  const [restoring, setRestoring] = useState(!!LIVE);
+  const staff = LIVE ? liveStaff : TEST_STAFF.find((s) => s.id === id && s.status === 'active') ?? null;
+
+  // Real sign-in: a saved session that already passed the second step goes straight in.
+  useEffect(() => {
+    if (!LIVE) return;
+    let alive = true;
+    (async () => {
+      const has = (await LIVE.supabase.auth.getSession()).data.session;
+      const r = has ? await nextStep(LIVE) : null;
+      if (alive && r?.ok && r.value.step === 'done') setLiveStaff(r.value.staff);
+      if (alive) setRestoring(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
   const signIn = useCallback((sid: string) => {
     setId(sid);
     try {
@@ -40,6 +62,8 @@ export function SessionProvider({ children, initialStaffId }: { children: ReactN
   }, []);
   const signOut = useCallback(() => {
     setId(null);
+    setLiveStaff(null);
+    if (LIVE) void LIVE.supabase.auth.signOut();
     try {
       sessionStorage.removeItem(KEY);
     } catch {
@@ -54,8 +78,10 @@ export function SessionProvider({ children, initialStaffId }: { children: ReactN
       inScope: (c) => (staff ? inCityScope(staff, c) : false),
       signIn,
       signOut,
+      setLiveStaff,
+      restoring,
     }),
-    [staff, signIn, signOut],
+    [staff, signIn, signOut, restoring],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

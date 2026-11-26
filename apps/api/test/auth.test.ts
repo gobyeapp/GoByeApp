@@ -91,6 +91,9 @@ describe('authentication and permissions', async () => {
     assert.deepEqual(aal1.staff.permissions, []);
     const aal2 = (await me(await keys.token({ sub: authUserId, aal: 'aal2' }))).json().data;
     assert.equal(aal2.staff.mfaRequired, false);
+    assert.equal(aal2.staff.name, 'Test Staff');
+    assert.match(aal2.staff.email, /@staff\.test$/);
+    assert.ok(aal2.staff.id);
     assert.ok(aal2.staff.permissions.includes('costs.manage'));
     assert.ok(!aal2.staff.permissions.includes('staff.manage'));
 

@@ -1,5 +1,6 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 import { DEMO_RELAY, DEMO_TOOLS } from '@/data/mode';
+import { LIVE } from '@/data/live';
 import { PERMISSIONS, payPerUseServices, type CityId, type Permission, type PlatformDataset, type StaffRole } from '@gobye/core';
 import type { IconName } from '@/ui/Icon';
 import { REVIEW_STATES } from '@/workspaces/people/logic';
@@ -57,6 +58,8 @@ export const NAV: NavGroup[] = [
     title: 'People',
     items: [
       { path: '/drivers', label: 'Drivers', icon: 'steering', anyOf: ['drivers.view'], page: L(() => import('@/workspaces/people/Drivers')), badge: (d, _n, s) => d.drivers.filter((x) => s(x.city) && REVIEW_STATES.includes(x.verification)).length, keywords: 'verification documents onboarding applications' },
+      // Real review queue on the GoBye API (D-081), only when this build is connected to it.
+      ...(LIVE ? [{ path: '/drivers/applications', label: 'Driver applications', icon: 'fileCheck', anyOf: ['drivers.view'], page: L(() => import('@/workspaces/people/Applications')), keywords: 'review approve reject verification queue' } as NavItem] : []),
       { path: '/passengers', label: 'Passengers', icon: 'user', anyOf: ['passengers.view'], page: L(() => import('@/workspaces/people/Passengers')), keywords: 'riders customers accounts' },
     ],
   },
