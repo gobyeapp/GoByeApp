@@ -764,3 +764,14 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 - **Admin, narrowing D-070:** the Connected demo page now also shows when the build has a relay address (`DEMO_RELAY` in `data/mode.ts`), without the other demo tools. When the address is unset, the page is removed from the bundle, exactly as before.
 - **Relay key:** publishable keys (`sb_publishable_…`) go in `apikey` only; a legacy anon key (JWT) also as a bearer token.
 - Steps: `docs/TEST_BUILDS.md`.
+
+## D-076 — The rider app in the browser, for iPhone testing without an Apple account (2026-11-26, owner)
+
+- **Why:** TestFlight and iPhone installs need the Apple Developer Program ($99/yr), which waits for the D-U-N-S number. The owner chose a web build to open in Safari until then.
+- **What:** `expo export --platform web` of `apps/rider`, served as static files on Cloudflare: `apps/rider/wrangler.toml`, Worker `gobye-rider-web-preview`.
+- **Deploy:** Actions → Deploy sites (Cloudflare), site **rider**, target **preview** (production is refused). It runs on simulated services, plus the connected demo relay (`DEMO_RELAY_URL`, `DEMO_RELAY_KEY` from the staging environment) when set, with the same secret-key guard as the admin. Pages are marked noindex.
+- **Limits:** close to the real app, not the same:
+  - the map is the drawn placeholder (`MapCanvas.web.tsx`);
+  - location prompts, the camera, haptics and gestures behave as a browser allows.
+  - Phone testing of the real app stays on the Android APK, and on iPhone once the Apple account exists.
+

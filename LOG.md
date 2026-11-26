@@ -1154,3 +1154,13 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Connected demo:** relay key handling for publishable keys; `deploy-sites.yml` passes the relay to preview admin builds; the admin's Connected demo page shows with a relay address alone.
 - **Checked here (cloud workspace, not on a device):** typecheck clean; lint clean; tests core 295 (1 new), rider 37, driver 14, admin 416; `expo export --platform android` for rider and driver; `expo config` shows the key and `extra.googleMapsAndroid` only when the variable is set; admin build drops the Connected demo page when the relay address is unset. **No EAS build was run and nothing was tested on a phone.**
 - **Next:** owner steps in `docs/TEST_BUILDS.md` (demo SQL, Google key, `eas init`, EAS variables, SHA-1, first `preview` build), then the end-to-end walk in `DEMO_CONNECTED.md` on two phones and the admin.
+
+## 2026-11-26 — Rider app in the browser for iPhone testing (D-076)
+
+- `deploy-sites.yml` has a new site option, **rider**, which builds the rider app for the web and deploys it to `gobye-rider-web-preview` on workers.dev (preview only). Config is in `apps/rider/wrangler.toml`, and `dist-web/` is git-ignored.
+- **Checked here:**
+  - the web export works (5.7 MB);
+  - it opens at iPhone 13 size in Chromium with no page errors, on the onboarding screen;
+  - the wrangler dry run passes.
+- **Next:** the owner runs the workflow with site = rider and opens the address in Safari on the iPhone.
+

@@ -16,9 +16,9 @@ on:
   workflow_dispatch:
     inputs:
       site:
-        description: "Which site"
+        description: "Which site (both = website and admin; rider = rider app in the browser, preview only)"
         type: choice
-        options: [both, website, admin]
+        options: [both, website, admin, rider]
         default: both
       target:
         description: "preview = workers.dev check · production = gobye.app and admin.gobye.app"
@@ -53,10 +53,10 @@ jobs:
           if [ -n "$missing" ]; then echo "::error::Add these to Settings → Environments → staging:$missing"; exit 1; fi
           echo "Settings present"
       - name: Website
-        if: inputs.site != 'admin'
+        if: inputs.site == 'both' || inputs.site == 'website'
         run: $WRANGLER deploy -c apps/web/wrangler.toml --env ${{ inputs.target }}
       - name: Build the admin (no demo tools)
-        if: inputs.site != 'website'
+        if: inputs.site == 'both' || inputs.site == 'admin'
         env:
           # Connected demo over Supabase gobye-staging (D-049, docs/TEST_BUILDS.md). TEST DATA ONLY.
           # Both are public by design (the key is the anon / publishable key, never service_role); kept as
@@ -71,8 +71,28 @@ jobs:
           test -f apps/admin/dist/index.html
           if grep -rq "VITE_DEMO_TOOLS" apps/admin/.env* 2>/dev/null; then echo "::error::Remove VITE_DEMO_TOOLS from apps/admin env files"; exit 1; fi
       - name: Admin
-        if: inputs.site != 'website'
+        if: inputs.site == 'both' || inputs.site == 'admin'
         run: $WRANGLER deploy -c apps/admin/wrangler.toml --env ${{ inputs.target }}
+      # Rider app in the browser (D-076): for trying the app on an iPhone in Safari without an Apple
+      # account. Simulated services, plus the connected demo relay when set. Preview (workers.dev) only.
+      - name: Build the rider app for the web
+        if: inputs.site == 'rider'
+        env:
+          EXPO_PUBLIC_ENV: development
+          EXPO_PUBLIC_USE_MOCKS: "true"
+          EXPO_PUBLIC_DEMO_RELAY_URL: ${{ vars.DEMO_RELAY_URL }}
+          EXPO_PUBLIC_DEMO_RELAY_KEY: ${{ secrets.DEMO_RELAY_KEY }}
+        run: |
+          if [ "${{ inputs.target }}" != preview ]; then echo "::error::The rider web build is for testing only: use target = preview"; exit 1; fi
+          node -e 'const k = process.env.EXPO_PUBLIC_DEMO_RELAY_KEY || ""; let role = ""; try { role = JSON.parse(Buffer.from(k.split(".")[1] || "", "base64url").toString()).role || ""; } catch {} if (k.startsWith("sb_secret_") || role === "service_role") { console.log("::error::DEMO_RELAY_KEY must be the anon / publishable key, never a secret key"); process.exit(1); }'
+          npm ci --no-audit --no-fund
+          cd apps/rider
+          CI=1 npx expo export --platform web --output-dir dist-web
+          printf '/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n' > dist-web/_headers
+          test -f dist-web/index.html
+      - name: Rider web
+        if: inputs.site == 'rider'
+        run: $WRANGLER deploy -c apps/rider/wrangler.toml --env preview
       - name: Where to look
         run: |
           if [ "${{ inputs.target }}" = "preview" ]; then

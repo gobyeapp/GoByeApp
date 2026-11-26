@@ -50,7 +50,7 @@ Root shortcuts: `npm run rider:apk` and `npm run driver:apk`, after `eas init` h
 ## iOS
 
 - **Now, free:** `npm run build:ios-sim` gives a Simulator build. It installs only in Xcode's Simulator on a Mac, not on an iPhone.
-- **iPhone, free:** use Expo Go with `npx expo start --tunnel`, if Expo Go in the App Store supports SDK 57. If it doesn't, use the web preview.
+- **iPhone, free, in Safari (D-076):** run Actions → Deploy sites (Cloudflare) with site **rider**, target **preview**, and open the `gobye-rider-web-preview` workers.dev address on the iPhone. You can also use Expo Go with `npx expo start --tunnel`, if Expo Go in the App Store supports SDK 57. If it doesn't, use the web preview.
 - **Real iPhones, TestFlight or ad hoc:** these need the Apple Developer Program ($99/yr, D-U-N-S first for a company account). Ask the owner before enrolling. After that, use `eas build -p ios --profile ios-device`, or a store profile for TestFlight.
 
 ## Map key and connected demo (D-075)
