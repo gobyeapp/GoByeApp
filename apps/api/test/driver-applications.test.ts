@@ -1,7 +1,7 @@
 import { after, before, describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { CURRENT_CONSENTS } from '@gobye/core';
+import { CURRENT_CONSENTS, createApiClient, createApplicationSync, createDriverApplicationApi, type DriverApplication } from '@gobye/core';
 import { addStaff, bearer, createTestDb, makeApp, makeKeys, NO_DB_REASON, postgresAvailable, type Keys, type TestApp, type TestDb } from './helpers';
 
 const consents = [
@@ -217,5 +217,46 @@ describe('driver applications API', async () => {
     await fill(sub);
     const self = await addStaff(tdb.db, { authUserId: sub, roles: ['onboarding'] });
     assert.equal((await staff('GET', `/v1/staff/driver-applications/${sub}`, self)).statusCode, 403);
+  });
+
+  test('the Driver App’s sync code works against this API (WP4)', { skip }, async () => {
+    const sub = await newDriver();
+    const token = await keys.token({ sub, phone: '2348031234567' });
+    const api = createApiClient({
+      baseUrl: 'http://api.test/v1',
+      getToken: () => token,
+      sleep: async () => undefined,
+      fetch: async (url, init) => {
+        const r = await t.inject({ method: init.method as 'GET', url: url.replace('http://api.test', ''), headers: init.headers, ...(init.body ? { payload: init.body } : {}) });
+        return { ok: r.statusCode < 400, status: r.statusCode, headers: { get: (k: string) => (r.headers[k.toLowerCase()] as string | undefined) ?? null }, text: async () => r.body };
+      },
+    });
+    const ids = { lic: await file(sub, 'driver_licence', 'approved'), me: await file(sub, 'identity_document', 'approved'), r: await file(sub, 'vehicle_document', 'approved'), i: await file(sub, 'vehicle_document', 'approved'), w: await file(sub, 'vehicle_document', 'approved') };
+    const uploaded = new Map(Object.entries({ 'file:///lic.jpg': ids.lic, 'file:///me.jpg': ids.me, 'file:///r.jpg': ids.r, 'file:///i.jpg': ids.i, 'file:///w.jpg': ids.w }));
+    let n = 0;
+    const sync = createApplicationSync({
+      api: createDriverApplicationApi(api),
+      upload: async () => ({ ok: false, error: 'not expected' }),
+      files: { get: (u) => uploaded.get(u), set: () => undefined },
+      newKey: () => `sync-${sub.slice(0, 8)}-${++n}`,
+    });
+    const local: DriverApplication = {
+      personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+      licence: { number: 'ABC123456789', expiry: '2031-01-01', photoUri: 'file:///lic.jpg' },
+      identity: { type: 'nin', number: '12345678901', selfieUri: 'file:///me.jpg' },
+      vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: `KJA ${String(Math.floor(Math.random() * 900) + 100)} AB` },
+      documents: { registration: 'file:///r.jpg', insurance: 'file:///i.jpg', roadworthiness: 'file:///w.jpg' },
+      status: 'in_progress',
+    };
+    for (const step of ['personal', 'licence', 'identity', 'vehicle', 'documents'] as const) {
+      const r = await sync.pushStep(local, step);
+      assert.ok(r.ok, r.ok ? '' : r.error);
+    }
+    // Another device saves meanwhile: the next save re-reads the version and still succeeds.
+    await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'Tunde', lastName: 'Bakare' }, version: 5 });
+    const again = await sync.pushStep(local, 'vehicle');
+    assert.ok(again.ok && again.value?.version === 7, JSON.stringify(again));
+    const sent = await sync.submit();
+    assert.ok(sent.ok && sent.value.status === 'pending_review', JSON.stringify(sent));
   });
 });

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { AppState, Platform } from 'react-native';
-import { createApiClient, type AuthService } from '@gobye/core';
+import { createApiClient, type ApiClient, type AuthService } from '@gobye/core';
 import { chunkedSecureStorage, createAccountsApi, createSupabaseAuth, createSupabaseAuthService, currentAccessToken, type DeviceInfo, type SupabaseAuthLike } from '@gobye/auth-client';
 import { publicConfig } from './publicConfig';
 
@@ -30,7 +30,7 @@ const webStorage = {
   removeItem: (k: string) => AsyncStorage.removeItem(k),
 };
 
-function build(): { service: AuthService; auth: SupabaseAuthLike } | null {
+function build(): { service: AuthService; auth: SupabaseAuthLike; api: ApiClient | null } | null {
   if (publicConfig.auth !== 'supabase' || !publicConfig.supabase) return null;
   const sb = createSupabaseAuth({ ...publicConfig.supabase, storage: Platform.OS === 'web' ? webStorage : chunkedSecureStorage(SecureStore) });
   // Refresh the session only while the app is open (Supabase's advice for React Native).
@@ -38,10 +38,11 @@ function build(): { service: AuthService; auth: SupabaseAuthLike } | null {
     AppState.addEventListener('change', (s) => (s === 'active' ? sb.startAutoRefresh() : sb.stopAutoRefresh()));
     sb.startAutoRefresh();
   }
-  const accounts = publicConfig.accountsApi
-    ? createAccountsApi(createApiClient({ baseUrl: publicConfig.apiBaseUrl, getToken: () => currentAccessToken(sb.auth), client: `driver/${Constants.expoConfig?.version ?? '0'}` }))
-    : undefined;
-  return { service: createSupabaseAuthService({ auth: sb.auth, role: 'driver', accounts, device }), auth: sb.auth };
+  const api = publicConfig.accountsApi
+    ? createApiClient({ baseUrl: publicConfig.apiBaseUrl, getToken: () => currentAccessToken(sb.auth), client: `driver/${Constants.expoConfig?.version ?? '0'}` })
+    : null;
+  const accounts = api ? createAccountsApi(api) : undefined;
+  return { service: createSupabaseAuthService({ auth: sb.auth, role: 'driver', accounts, device }), auth: sb.auth, api };
 }
 
 /**

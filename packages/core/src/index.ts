@@ -17,6 +17,7 @@ export * from './platform';
 export * from './driver/onboarding';
 export * from './driver/trips';
 export * from './driver/verification';
+export * from './driver/serverApplication';
 export * from './relay/types';
 export * from './relay/client';
 export * from './relay/rides';

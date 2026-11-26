@@ -8,6 +8,7 @@ import {
   haversineMeters,
   logRelayEvent,
   mergeReview,
+  mergeServerReview,
   openRidesForDriver,
   personRow,
   poll,
@@ -45,6 +46,7 @@ import {
   type DriverApplication,
   type DriverSummary,
   type OnboardingStepId,
+  type ServerApplicationView,
   type RelayApplication,
   type RelayRide,
   type Unsubscribe,
@@ -69,6 +71,7 @@ import {
 import { KEYS, readJson, writeJson } from './storage';
 import { WEB_QA, readPermission, requestPermission, useLocationStream } from './location';
 import { useRelay } from './relay';
+import { loadUploadedFiles, serverApplication } from './serverApplication';
 import { useSession } from './session';
 import { useSettings } from './settings';
 
@@ -118,6 +121,11 @@ interface DriverValue {
   resubmitApplication(): Result<true>;
   /** Connected to the demo relay: staff review in the admin, requests come from real riders. */
   relayConnected: boolean;
+  /**
+   * The application is kept on the GoBye API (D-080): staff review it for real. `state` shows the last
+   * save; on an error the driver can retry. Null when the application lives on the device only.
+   */
+  server: { state: 'saved' | 'saving' | 'error'; message?: string; retry(): void } | null;
   /* Access */
   /** The same timeline response the admin shows (D-058). */
   timeline: SubscriptionTimelineResponse;
@@ -246,7 +254,9 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
 
   /* ---------- Demo relay (D-049): people, application, review ---------- */
 
-  const relay = useRelay();
+  // With the application on the GoBye API (D-080), the demo relay is not used for it.
+  const relayRaw = useRelay();
+  const relay = serverApplication ? null : relayRaw;
   const session = useSession();
   const phone = session.phone;
   const profile = session.profile;
@@ -297,9 +307,62 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
     }, 3_000);
   }, [relay, phone, ready, pushApplication, persist]);
 
+  /* ---------- GoBye API (D-080): steps and submissions go to the server, staff review comes back ---------- */
+
+  const [server, setServer] = useState<{ state: 'saved' | 'saving' | 'error'; message?: string }>({ state: 'saved' });
+  /** Saves run one after another, in the order the driver made them. */
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
+  /** What to send again after an error: a step, or the submission. */
+  const failed = useRef<OnboardingStepId | 'submit' | null>(null);
+
+  const takeServer = useCallback(
+    (view: ServerApplicationView) => persist((prev) => ({ ...prev, application: mergeServerReview(prev.application, view) })),
+    [persist],
+  );
+
+  const enqueue = useCallback(
+    (what: OnboardingStepId | 'submit', before?: DriverApplication) => {
+      if (!serverApplication) return;
+      const sync = serverApplication;
+      setServer({ state: 'saving' });
+      queue.current = queue.current.then(async () => {
+        await loadUploadedFiles();
+        const r = what === 'submit' ? await sync.submit() : await sync.pushStep(storedRef.current.application, what);
+        if (r.ok) {
+          failed.current = null;
+          if (r.value) takeServer(r.value);
+          setServer({ state: 'saved' });
+        } else {
+          failed.current = what;
+          // A refused submission goes back to how it was, so the driver can fix it and send again.
+          if (what === 'submit' && before) persist((prev) => ({ ...prev, application: { ...before, status: draftStatus(before) } }));
+          setServer({ state: 'error', message: r.error });
+        }
+      });
+    },
+    [persist, takeServer],
+  );
+
+  // Staff decisions arrive from the server: read on start and every 30 seconds while the app is open.
+  useEffect(() => {
+    if (!serverApplication || !ready || !phone) return;
+    const sync = serverApplication;
+    let alive = true;
+    const pull = async () => {
+      const r = await sync.pull();
+      if (alive && r.ok && failed.current === null && r.value.version > 0) takeServer(r.value);
+    };
+    void pull();
+    const id = setInterval(pull, 30_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, [ready, phone, takeServer]);
+
   // Without the relay, a simulated reviewer runs the checks (one waits on the FRSC), then approves.
   useEffect(() => {
-    if (relay || application.status !== 'pending_review') return;
+    if (relay || serverApplication || application.status !== 'pending_review') return;
     const tick = () => {
       const a = storedRef.current.application;
       if (a.status !== 'pending_review') return;
@@ -696,27 +759,33 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         next = { ...next, status: draftStatus(next) };
         persist((prev) => ({ ...prev, application: next }));
         pushApplication(next);
+        if (step) enqueue(step);
         return next;
       },
       submitApplication: () => {
         const now = Date.now();
         const r = submitApplication(storedRef.current.application, now);
         if (!r.ok) return r;
+        const before = storedRef.current.application;
         const next = { ...r.value, checks: queuedChecks(now) };
         persist((prev) => ({ ...prev, application: next }));
         pushApplication(next);
+        enqueue('submit', before);
         logRelayEvent(relay, { actor: 'driver', type: 'application.submitted', summary: `${nameRef.current} submitted their driver application`, person_id: phone });
         return { ok: true, value: true };
       },
       resubmitApplication: () => {
-        const r = resubmitApplication(storedRef.current.application, Date.now());
+        const before = storedRef.current.application;
+        const r = resubmitApplication(before, Date.now());
         if (!r.ok) return r;
         persist((prev) => ({ ...prev, application: r.value }));
         pushApplication(r.value);
+        enqueue('submit', before);
         logRelayEvent(relay, { actor: 'driver', type: 'application.resubmitted', summary: `${nameRef.current} fixed the flagged items and resubmitted`, person_id: phone });
         return { ok: true, value: true };
       },
       relayConnected: !!relay,
+      server: serverApplication ? { ...server, retry: () => failed.current && enqueue(failed.current) } : null,
       timeline,
       subscription,
       hasAccess,
@@ -756,7 +825,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         persist(() => INITIAL);
       },
     }),
-    [ready, application, verification, persist, stored, timeline, subscription, hasAccess, buyPackage, location, issues, canReceive, position, requestLocation, goOnline, goOffline, request, counter, acceptRequest, sendCounter, declineRequest, activeTrip, activeRide, tripNotice, arrive, confirmPin, complete, cancel, confirmPayment, finishTrip, pushApplication, relay, phone],
+    [ready, application, verification, persist, stored, timeline, subscription, hasAccess, buyPackage, location, issues, canReceive, position, requestLocation, goOnline, goOffline, request, counter, acceptRequest, sendCounter, declineRequest, activeTrip, activeRide, tripNotice, arrive, confirmPin, complete, cancel, confirmPayment, finishTrip, pushApplication, relay, phone, server, enqueue],
   );
 
   return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;

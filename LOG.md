@@ -1203,3 +1203,14 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - The 5 pooler tests are CI only. Core 302, typecheck and lint clean.
 - **Owner step:** Actions → Staging database → `up` (applies 0007 and 0008).
 - **Next:** WP4, connecting the Driver App's registration screens and the admin's review queue to these endpoints (behind their switches). Then file uploads to R2 with a scanner (WP3b).
+
+## 2026-11-26 — Backend Phase 2, WP4 part 1: the Driver App on the applications API (D-080)
+
+- **Core:**
+  - `driver/serverApplication.ts`: the API client, the uploader, step bodies, the merging of staff review, and the sync;
+  - `files/sha256.ts`.
+- **Driver App:**
+  - `state/serverApplication.ts`, and `state/driver.tsx` sends steps and submissions and reads the review when the switches are on;
+  - `ServerNotice` on the status screen and the dashboard.
+- **Tests:** core 309 (7 new), driver 14, rider 37, API 109 (1 new end-to-end sync test, 5 pooler tests skipped), typecheck and lint clean. Android and iOS exports of the driver app pass with the switches on and off. **Nothing was run on a phone.**
+- **Next:** WP4 part 2, the admin. Real staff sign-in, and the review queue on the API.

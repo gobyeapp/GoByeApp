@@ -833,3 +833,19 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - notifications to the driver (in-app status only until push and SMS providers are chosen);
   - the second-person approval;
   - document expiry other than the licence (insurance and roadworthiness dates aren't collected yet).
+
+## D-080 — The Driver App sends its application to the API (Backend Phase 2, WP4, part 1) (2026-11-26)
+
+- **When:** real sign-in and the accounts API are both on (`EXPO_PUBLIC_AUTH=supabase`, `EXPO_PUBLIC_ACCOUNTS_API=true`). Otherwise nothing changes: the application stays on the device, with the demo relay or the simulated reviewer.
+- **How:** the screens are unchanged. The app still keeps the application on the device (photos as local files) and mirrors it to the server:
+  - each saved step is sent with the server's version, photos uploaded first;
+  - submissions go to the server, and a refused one is undone on the device with the reason;
+  - staff review (status, checks, flagged items, notes) is read on start and every 30 seconds.
+  - A "Saved to GoBye" or error line with **Try again** shows under the verification card.
+- **Core** (`driver/serverApplication.ts`): the API client, the uploader (presign, upload, server-side completion), step bodies, and the sync with one retry after a version conflict.
+  - A plain-TypeScript SHA-256 (`files/sha256.ts`) gives the upload checksum without a native module.
+  - Each photo is uploaded once; its file id is remembered on the device.
+- **Checked:** core tests (including the FIPS checksum vectors), plus an API test that runs the app's sync code against the real API (steps, a conflict from another device, submit).
+- **Not yet checked:**
+  - reading a picked photo into bytes and uploading it as a Blob from React Native has not been run on a phone;
+  - the upload endpoints need the upload signer connected to the database and R2 (WP3b), so photo uploads fail until then.

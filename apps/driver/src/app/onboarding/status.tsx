@@ -4,7 +4,7 @@ import { Button, CompletionMark, Screen, ScreenHeader, Text, spacing, useToast }
 import { STEP_ROUTES } from '@/features/onboarding/parts';
 import { SimNote } from '@/features/common/SimNote';
 import { resetTo } from '@/features/navigation/reset';
-import { VerificationCard } from '@/features/verification/VerificationCard';
+import { ServerNotice, VerificationCard } from '@/features/verification/VerificationCard';
 import { useDriver } from '@/state/driver';
 
 /**
@@ -44,7 +44,7 @@ export default function VerificationStatus() {
           onSubmit={() => run(d.submitApplication())}
           onResubmit={() => run(d.resubmitApplication())}
         />
-        {d.relayConnected ? null : <SimNote>Preview: checks run on their own, and the licence check waits on the FRSC for a few seconds.</SimNote>}
+        {d.server ? <ServerNotice server={d.server} /> : d.relayConnected ? null : <SimNote>Preview: checks run on their own, and the licence check waits on the FRSC for a few seconds.</SimNote>}
       </View>
     </Screen>
   );

@@ -8,7 +8,7 @@ import { Button, ConnectionPill, Icon, IconButton, SimulatedBadge, Text, layout,
 import { MapCanvas, type MapCanvasHandle } from '@gobye/ui/src/map/MapCanvas';
 import { formatRemaining, passName } from '@/features/common/format';
 import { STEP_ROUTES } from '@/features/onboarding/parts';
-import { VerificationAction, VerificationCard } from '@/features/verification/VerificationCard';
+import { ServerNotice, VerificationAction, VerificationCard } from '@/features/verification/VerificationCard';
 import { useDriver } from '@/state/driver';
 import { openLocationSettings } from '@/state/location';
 import { useRelayStatus } from '@/state/relay';
@@ -137,6 +137,7 @@ export default function Drive() {
             <ScrollView style={{ maxHeight: Math.round(height * (height < 700 ? 0.5 : 0.55)) }} contentContainerStyle={styles.cardScroll} showsVerticalScrollIndicator={false} bounces={false}>
               <ConnectionPill state={relay.state} host={relay.host} testID="relay-pill" />
               <VerificationCard showAction={false} application={d.application} onOpenStep={(step) => router.push(STEP_ROUTES[step])} onSubmit={submit} onResubmit={resubmit} />
+              {d.server?.state === 'error' ? <ServerNotice server={d.server} /> : null}
               <Pressable onPress={() => router.push('/onboarding')} accessibilityRole="link" hitSlop={6} style={styles.allSteps}>
                 <Text variant="footnote" weight="semibold" color="textSecondary">
                   See all registration steps

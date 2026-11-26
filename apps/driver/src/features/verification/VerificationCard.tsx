@@ -201,3 +201,35 @@ const styles = StyleSheet.create({
   check: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 22 },
   spin: { width: 20 },
 });
+
+/** Whether the latest change reached GoBye (D-080). An error says what went wrong and offers a retry. */
+export function ServerNotice({ server }: { server: { state: 'saved' | 'saving' | 'error'; message?: string; retry(): void } }) {
+  const { colors } = useTheme();
+  if (server.state === 'error') {
+    return (
+      <View style={notice.box} accessibilityRole="alert" testID="server-error">
+        <View style={notice.row}>
+          <Icon name="warning" size={18} color={colors.danger} />
+          <Text variant="subhead" style={notice.text}>
+            {server.message ?? 'Your last change didn’t reach GoBye.'}
+          </Text>
+        </View>
+        <Button title="Try again" variant="secondary" onPress={server.retry} testID="server-retry" />
+      </View>
+    );
+  }
+  return (
+    <View style={notice.row} testID="server-state">
+      {server.state === 'saving' ? <ActivityIndicator size="small" /> : <Icon name="check" size={16} color={colors.textSecondary} />}
+      <Text variant="footnote" color="textSecondary">
+        {server.state === 'saving' ? 'Saving to GoBye…' : 'Saved to GoBye'}
+      </Text>
+    </View>
+  );
+}
+
+const notice = StyleSheet.create({
+  box: { gap: spacing.sm },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  text: { flex: 1 },
+});

@@ -5,3 +5,4 @@ export * from './validate';
 export * from './lifecycle';
 export * from './service';
 export * from './video';
+export * from './sha256';
