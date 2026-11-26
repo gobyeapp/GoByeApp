@@ -1,4 +1,4 @@
-import { ISSUES, emptyApplication, requestChanges, resolveIssuesForStep, resubmitApplication, simulatedReview, submitApplication, verificationSummary, type DriverApplication } from '../index';
+import { ISSUES, applicationFiles, decideApplication, emptyApplication, requestChanges, resolveIssuesForStep, resubmitApplication, simulatedReview, submitApplication, verificationSummary, type DriverApplication } from '../index';
 
 const now = Date.UTC(2026, 9, 22, 12);
 const complete: DriverApplication = {
@@ -60,5 +60,28 @@ describe('driver verification', () => {
   it('only an application in review can be sent back, with at least one item', () => {
     expect(requestChanges(complete, [{ code: 'plate_mismatch' }], now).ok).toBe(false);
     expect(requestChanges({ ...complete, status: 'pending_review' }, [], now)).toEqual({ ok: false, error: 'Choose at least one thing to fix.' });
+  });
+
+  it('staff decisions: approve only a complete, unflagged application with a valid licence; reject with a reason', () => {
+    const inReview = submitApplication(complete, now);
+    if (!inReview.ok) throw new Error(inReview.error);
+    const approved = decideApplication(inReview.value, { kind: 'approve' }, now);
+    expect(approved.ok && approved.value.status).toBe('approved');
+    expect(approved.ok && approved.value.checks!.every((c) => c.state === 'passed')).toBe(true);
+    expect(decideApplication(complete, { kind: 'approve' }, now)).toEqual({ ok: false, error: 'Only an application in review can be decided.' });
+    expect(decideApplication(inReview.value, { kind: 'approve' }, Date.UTC(2029, 0, 2)).ok).toBe(false);
+    expect(decideApplication(inReview.value, { kind: 'reject', reason: 'no' }, now).ok).toBe(false);
+    const rejected = decideApplication(inReview.value, { kind: 'reject', reason: 'The licence belongs to someone else.' }, now);
+    expect(rejected.ok && rejected.value).toMatchObject({ status: 'rejected', rejectionReason: 'The licence belongs to someone else.' });
+  });
+
+  it('lists the files an application points at', () => {
+    expect(applicationFiles(complete)).toEqual([
+      { slot: 'licence', ref: 'p' },
+      { slot: 'selfie', ref: 's' },
+      { slot: 'registration', ref: 'r' },
+      { slot: 'insurance', ref: 'i' },
+      { slot: 'roadworthiness', ref: 'w' },
+    ]);
   });
 });

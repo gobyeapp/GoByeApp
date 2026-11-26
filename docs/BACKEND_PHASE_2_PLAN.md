@@ -117,6 +117,8 @@ Built as planned, with these differences: the migration is `0007_accounts.sql` (
 
 ### WP3: API, driver application
 
+> **Built 2026-11-26 (D-079).** Differences from the plan below: migration `0008`, not `0007`; steps and issues are stored in one `data` column in the core shape, with no separate step, issue or document tables; the file download endpoint, notifications and second-person approval are not built yet.
+
 **Migration `0007_driver_applications.sql`:**
 - `app.driver_applications (driver_id pk, status draft|submitted|in_review|changes_requested|approved|rejected, version, submitted_at, decided_at, decided_by)`;
 - `app.driver_application_steps (driver_id, step personal|licence|identity|vehicle|documents, data jsonb, saved_at)`, validated with the core rules;

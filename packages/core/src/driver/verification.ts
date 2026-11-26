@@ -1,5 +1,5 @@
 import type { Result } from '../types';
-import { ONBOARDING_STEPS, isStepComplete, nextOnboardingStep, onboardingProgress, type DriverApplication, type OnboardingStepId } from './onboarding';
+import { ONBOARDING_STEPS, VEHICLE_DOCUMENTS, isStepComplete, nextOnboardingStep, onboardingProgress, validateExpiry, type DriverApplication, type OnboardingStepId, type VehicleDocumentId } from './onboarding';
 
 /**
  * Driver verification after registration (D-049). Staff (or, without the demo relay, a simulated
@@ -228,4 +228,40 @@ export function verificationSummary(app: DriverApplication): VerificationSummary
     progress,
     action: next ? { label: progress.done === 0 ? `Start: ${STEP_TITLE[next]}` : `Next: ${STEP_TITLE[next]}`, target: next } : { label: 'Submit for review', target: 'submit' },
   };
+}
+
+/** Files an application points at, with the kind of file each must be (Backend Phase 2, WP3). */
+export type ApplicationFileSlot = 'licence' | 'selfie' | VehicleDocumentId;
+export function applicationFiles(app: DriverApplication): { slot: ApplicationFileSlot; ref: string }[] {
+  const out: { slot: ApplicationFileSlot; ref: string }[] = [];
+  if (app.licence?.photoUri) out.push({ slot: 'licence', ref: app.licence.photoUri });
+  if (app.identity?.selfieUri) out.push({ slot: 'selfie', ref: app.identity.selfieUri });
+  for (const d of VEHICLE_DOCUMENTS) {
+    const ref = app.documents[d.id];
+    if (ref) out.push({ slot: d.id, ref });
+  }
+  return out;
+}
+
+/**
+ * Staff decision on an application in review (BR-071). Approval needs a complete application with no open
+ * issues and a licence that is still valid today; every check is marked passed. Rejection needs a reason
+ * the driver will read.
+ */
+export function decideApplication(
+  app: DriverApplication,
+  decision: { kind: 'approve' } | { kind: 'reject'; reason: string },
+  now: number,
+): Result<DriverApplication> {
+  if (app.status !== 'pending_review') return { ok: false, error: 'Only an application in review can be decided.' };
+  if (decision.kind === 'reject') {
+    const reason = decision.reason.trim();
+    if (reason.length < 10) return { ok: false, error: 'Give the driver a reason (at least 10 characters).' };
+    return { ok: true, value: { ...app, status: 'rejected', rejectionReason: reason } };
+  }
+  if (nextOnboardingStep(app)) return { ok: false, error: 'The application is missing a step.' };
+  if (openIssues(app).length) return { ok: false, error: 'Resolve the flagged items first.' };
+  if (!app.licence || !validateExpiry(app.licence.expiry, now).ok) return { ok: false, error: 'The driver’s licence has expired. Ask for a renewed licence.' };
+  const checks = CHECKS.map((c) => ({ id: c.id, state: 'passed' as const, updatedAt: now }));
+  return { ok: true, value: { ...app, status: 'approved', checks, rejectionReason: undefined } };
 }

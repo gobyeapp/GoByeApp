@@ -814,3 +814,22 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - an SMS provider in Supabase Auth (A-4);
   - phone sign-in switched on;
   - the email templates for reset and confirmation showing `{{ .Token }}`.
+
+## D-079 — Driver applications on the API (Backend Phase 2, WP3) (2026-11-26)
+
+- **Migration** `0008_driver_applications.sql`:
+  - `app.driver_applications`: one row per driver, with `status`, `version` and `data` (the core `DriverApplication`: steps, checks, flagged issues). File fields hold `ops.files` ids.
+  - `app.application_events`: append-only.
+- **Change from the plan:** steps and issues are stored in `data` rather than in separate step, issue and document tables. That way the API stores exactly what the `@gobye/core` rules return (`submitApplication`, `requestChanges`, `resolveIssuesForStep`, `resubmitApplication`, and the new `decideApplication`), and nothing is re-implemented in SQL.
+- **Endpoints:** the driver's `GET`, `PUT …/steps/{step}` and `submit`; staff's queue, detail, `request-changes` and `decision` (`API_CONTRACTS.md` §10).
+  - Versions guard every change: two staff deciding at once means one wins and the other gets `VERSION_CONFLICT`.
+  - Staff stay inside their cities and can't review their own application. Phone and email show only with `drivers.contact_details`.
+- **Files:**
+  - a step only accepts the driver's own upload of the right kind;
+  - submitting and approving need every file **scanned clean**. Until the upload signer writes `ops.files` and a scanner is connected, real submissions stay blocked (fail closed).
+- **Approval** (BR-071) needs a complete application with no open issues and a licence valid that day. It sets the driver to approved and makes the vehicle active; a plate already active for another driver stops it.
+- **Not built yet:**
+  - the file download link for staff (`GET /v1/files/{id}/download`) and the upload endpoints' database link (WP3b, with R2);
+  - notifications to the driver (in-app status only until push and SMS providers are chosen);
+  - the second-person approval;
+  - document expiry other than the licence (insurance and roadworthiness dates aren't collected yet).

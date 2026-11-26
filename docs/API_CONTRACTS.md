@@ -417,6 +417,18 @@ These endpoints exist and are covered by automated tests (`apps/api/test`). They
 | DELETE | `/v1/me` | signed-up self | — | `202 { status: "scheduled", scheduledFor }` (14 days; job `account.delete` then anonymises and removes the sign-in account) | 403, 409 already deleted |
 | POST | `/v1/me/deletion/cancel` | signed-up self | `{}` | `200 { status: "cancelled" }` | 404 nothing to cancel |
 
+**Driver application (Backend Phase 2, WP3, D-079).** Every write needs `Idempotency-Key`, writes an `application_events` row and an audit row in the same transaction. Driver writes need `If-Match: "<version>"` (from `GET`, also sent as `ETag`); staff send `version` in the body. A stale version is `409 VERSION_CONFLICT`. The body below, **Application**, is `{ driverId, status, version, application (core DriverApplication + city; file fields hold ops.files ids), summary (core verificationSummary), files: [{ slot: licence \| selfie \| registration \| insurance \| roadworthiness, fileId, state: checking \| ready \| problem \| missing }] }`.
+
+| Method | Path | Auth | Request | Response `data` | Errors |
+|---|---|---|---|---|---|
+| GET | `/v1/drivers/me/application` | the driver | — | Application (version 0 before the first save) | 403 not a driver |
+| PUT | `/v1/drivers/me/application/steps/{step}` | the driver, while not_started, in_progress or changes_requested | `personal { firstName, lastName, email? }` · `licence { number, expiry YYYY-MM-DD, photoFileId }` · `identity { type: nin \| voters_card \| passport, number, selfieFileId }` · `vehicle { category, make, model, year, colour, plate }` · `documents { registration?, insurance?, roadworthiness? }` (file ids). Validated with core; saving resolves that step's flagged issues | `200` Application | 422 (core rule per field; a file that isn't the driver's, the wrong kind, or refused), 409 `VERSION_CONFLICT` / not editable |
+| POST | `/v1/drivers/me/application/submit` | the driver | `{}` | `200` Application, `pending_review`, checks queued | 409 incomplete, open issues, `DOCUMENTS_NOT_READY` (a file not yet scanned clean), `VERSION_CONFLICT` |
+| GET | `/v1/staff/driver-applications?status&city&limit` | staff `drivers.view` + MFA; only their cities | status default `pending_review` | `{ items: [{ driverId, name, city, status, version, submittedAt, updatedAt, openIssues }] }` oldest first | 403 city outside scope |
+| GET | `/v1/staff/driver-applications/{driverId}` | staff `drivers.view` + MFA, city scope, not their own | — | Application + `driver { name, email?, phone? }` (contact only with `drivers.contact_details`) + `events` (last 50) | 404, 403 |
+| POST | `/v1/staff/driver-applications/{driverId}/request-changes` | staff `drivers.verify` + MFA | `{ version, issues: [{ code (core IssueCode), note? }], note? }` | `200` Application, `changes_requested` | 409 not in review / version, 422 |
+| POST | `/v1/staff/driver-applications/{driverId}/decision` | staff `drivers.verify` + MFA | `{ version, decision: "approve" }` or `{ version, decision: "reject", reason (10+ chars) }` | `200` Application. Approval needs every file scanned clean and a licence valid today, sets `app.drivers.verification_status = approved` and makes the vehicle active | 409 not in review, version, `DOCUMENTS_NOT_READY`, plate on another driver's active vehicle; 422 |
+
 **WhatsApp quick booking (D-064, `WHATSAPP_BOOKING.md`); 404 unless `WHATSAPP_PROVIDER` is set:**
 
 | Method | Path | Auth | Request | Response | Errors |

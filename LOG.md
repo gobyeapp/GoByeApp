@@ -1193,3 +1193,13 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - put `{{ .Token }}` in the reset and confirmation email templates;
   - then set the three EAS variables for a test build.
 - **Next:** WP3, the driver application connected to the API.
+
+## 2026-11-26 — Backend Phase 2, WP3: driver applications API (D-079)
+
+- **API:** `apps/api/src/drivers/` holds the driver's application (`GET`, save a step, submit) and the staff review (queue, detail, request changes, decision). Migration `0008_driver_applications.sql`.
+- **Core:** `decideApplication` (approve or reject, BR-071) and `applicationFiles`, both with tests.
+- **Tests:**
+  - API 108 passed against local PostgreSQL, 4 of them new. They cover validation, versions, someone else's file, the scanner gate, city scope, contact details, MFA, permissions, changes then resubmit, two staff deciding at once, the vehicle made active, append-only events and no self-review.
+  - The 5 pooler tests are CI only. Core 302, typecheck and lint clean.
+- **Owner step:** Actions → Staging database → `up` (applies 0007 and 0008).
+- **Next:** WP4, connecting the Driver App's registration screens and the admin's review queue to these endpoints (behind their switches). Then file uploads to R2 with a scanner (WP3b).
