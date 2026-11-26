@@ -79,6 +79,11 @@ export function encodeQuery(query: RelayQuery = {}): string {
   return parts.join('&');
 }
 
+/** True for a JWT-shaped key (three base64url parts, header starting `eyJ`), e.g. Supabase's legacy anon key. */
+export function isJwt(key: string): boolean {
+  return /^eyJ[\w-]*\.[\w-]+\.[\w-]+$/.test(key);
+}
+
 export function createRelay(config: RelayConfig): Relay {
   const base = config.url.replace(/\/+$/, '');
   const f: FetchLike = config.fetch ?? ((url, init) => {
@@ -88,7 +93,9 @@ export function createRelay(config: RelayConfig): Relay {
   const headers: Record<string, string> = { 'Content-Type': 'application/json', Accept: 'application/json' };
   if (config.key) {
     headers.apikey = config.key;
-    headers.Authorization = `Bearer ${config.key}`;
+    // Supabase's legacy anon key is a JWT and may also go in Authorization. The newer publishable keys
+    // (sb_publishable_…) are not JWTs and are rejected there, so they travel in `apikey` only.
+    if (isJwt(config.key)) headers.Authorization = `Bearer ${config.key}`;
   }
 
   async function call<T>(method: string, path: string, body?: unknown, prefer?: string): Promise<T> {

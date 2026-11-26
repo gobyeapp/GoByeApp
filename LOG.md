@@ -1146,3 +1146,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - the owner runs `eas login`, `eas init` and `npm run build:apk` in each app, then commits `app.json`;
   - then installs the APK on an Android phone (DEVICE_TEST_MATRIX).
 
+## 2026-11-26 — Android map crash fix, EAS test builds, connected demo on gobye-staging (D-075)
+
+- **Context today (owner, with Claude in the browser):** staging Supabase resumed (it had been paused); migrator and API passwords reset; "Staging database" `up` applied all 6 migrations and the runtime check passes. `STAGING_DATABASE_CA_CERT` added. Cloudflare Access app "GoBye Admin" protects the preview admin. `gobye.app` is not registered according to Cloudflare, so domain work waits.
+- **Map crash:** both apps' `app.config.js` add the Android Google Maps key from `GOOGLE_MAPS_ANDROID_API_KEY`; `MapCanvas` shows a placeholder on Android when the build has no key.
+- **EAS:** merged with D-074. The `preview` profile now reads the EAS **preview** environment (Google key, demo relay) and keeps simulated services; the separate `demo` profile is removed; `appVersionSource` is `remote`. Both apps are linked (`eas init` done) and the first rider APK was built.
+- **Connected demo:** relay key handling for publishable keys; `deploy-sites.yml` passes the relay to preview admin builds; the admin's Connected demo page shows with a relay address alone.
+- **Checked here (cloud workspace, not on a device):** typecheck clean; lint clean; tests core 295 (1 new), rider 37, driver 14, admin 416; `expo export --platform android` for rider and driver; `expo config` shows the key and `extra.googleMapsAndroid` only when the variable is set; admin build drops the Connected demo page when the relay address is unset. **No EAS build was run and nothing was tested on a phone.**
+- **Next:** owner steps in `docs/TEST_BUILDS.md` (demo SQL, Google key, `eas init`, EAS variables, SHA-1, first `preview` build), then the end-to-end walk in `DEMO_CONNECTED.md` on two phones and the admin.

@@ -1,5 +1,5 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
-import { DEMO_TOOLS } from '@/data/mode';
+import { DEMO_RELAY, DEMO_TOOLS } from '@/data/mode';
 import { PERMISSIONS, payPerUseServices, type CityId, type Permission, type PlatformDataset, type StaffRole } from '@gobye/core';
 import type { IconName } from '@/ui/Icon';
 import { REVIEW_STATES } from '@/workspaces/people/logic';
@@ -48,8 +48,9 @@ export const NAV: NavGroup[] = [
     items: [
       { path: '/live', label: 'Live operations', icon: 'radar', anyOf: ['live.view'], page: L(() => import('@/workspaces/operations/Live')), badge: (d, _n, s) => d.trips.filter((t) => s(t.city) && ((t.status === 'en_route' && (t.pickupDelaySeconds ?? 0) > 300) || t.status === 'searching')).length, keywords: 'dispatch map active rides' },
       { path: '/trips', label: 'Trips', icon: 'route', anyOf: ['trips.view'], page: L(() => import('@/workspaces/operations/Trips')), keywords: 'rides bookings negotiate quick match fares' },
-      // Connected demo (D-049): rider app, driver app and admin on the shared demo relay.
-      ...(DEMO_TOOLS ? [{ path: '/demo', label: 'Connected demo', icon: 'link', anyOf: ['overview.view', 'drivers.view', 'trips.view', 'live.view'], page: L(() => import('@/workspaces/demo/Demo')), keywords: 'relay rider app driver app test' } as NavItem] : []),
+      // Connected demo (D-049): rider app, driver app and admin on the shared demo relay. Shown with the demo
+      // tools, or on its own when the build has a relay address (D-075; preview builds only).
+      ...(DEMO_TOOLS || DEMO_RELAY ? [{ path: '/demo', label: 'Connected demo', icon: 'link', anyOf: ['overview.view', 'drivers.view', 'trips.view', 'live.view'], page: L(() => import('@/workspaces/demo/Demo')), keywords: 'relay rider app driver app test' } as NavItem] : []),
     ],
   },
   {

@@ -16,8 +16,7 @@ or used. The apps' public configuration is not wired to screens yet, so the API 
 
 | Profile | Android | iOS | Needs |
 |---|---|---|---|
-| `preview` | Installable **APK**, shared by link or QR code | **Simulator** build (runs in Xcode's iOS Simulator on a Mac only) | A free Expo account |
-| `demo` | Same as `preview`, plus variables stored in the EAS **preview** environment (connected demo) | Same | Demo relay variables on EAS (below) |
+| `preview` | Installable **APK**, shared by link or QR code | **Simulator** build (runs in Xcode's iOS Simulator on a Mac only) | A free Expo account. Reads the EAS **preview** environment: Google Maps key and demo relay, when set (D-075) |
 | `ios-device` | (same APK) | Ad hoc build for registered iPhones | **Apple Developer Program, $99/yr**: owner approval first |
 
 Version numbers come from `app.json` (`appVersionSource: local`). Native folders are generated on the build
@@ -54,16 +53,7 @@ Root shortcuts: `npm run rider:apk` and `npm run driver:apk`, after `eas init` h
 - **iPhone, free:** use Expo Go with `npx expo start --tunnel`, if Expo Go in the App Store supports SDK 57. If it doesn't, use the web preview.
 - **Real iPhones, TestFlight or ad hoc:** these need the Apple Developer Program ($99/yr, D-U-N-S first for a company account). Ask the owner before enrolling. After that, use `eas build -p ios --profile ios-device`, or a store profile for TestFlight.
 
-## Connected demo in a build (optional)
+## Map key and connected demo (D-075)
 
-The `demo` profile reads `EXPO_PUBLIC_DEMO_RELAY_URL` and `EXPO_PUBLIC_DEMO_RELAY_KEY` from the EAS **preview** environment ([DEMO_CONNECTED.md](DEMO_CONNECTED.md)):
-
-```
-eas env:create --environment preview --name EXPO_PUBLIC_DEMO_RELAY_URL --value https://<project>.supabase.co --visibility plaintext
-eas env:create --environment preview --name EXPO_PUBLIC_DEMO_RELAY_KEY --value <anon key> --visibility sensitive
-eas build -p android --profile demo
-```
-
-- **Values:** only the project URL and the public anon/publishable key, never a service role key or database URL.
-- **Tables:** the demo tables let that key read and write. Run `supabase/migrations/20261022_demo_relay.sql` only on a project used for demos, and drop the tables afterwards.
-- **Rebuilds:** a local Wi-Fi relay address does not work in a shared APK, so changing the relay means a new build.
+- **Map:** without `GOOGLE_MAPS_ANDROID_API_KEY` in the EAS **preview** environment, Android builds show "Map not available in this test build" instead of crashing.
+- **Shared test data:** the Google key, the demo relay values and the SHA-1 step are in [TEST_BUILDS.md](TEST_BUILDS.md).

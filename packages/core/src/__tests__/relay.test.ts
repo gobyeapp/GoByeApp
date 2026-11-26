@@ -7,6 +7,7 @@ import {
   createRelayTrips,
   downsample,
   encodeQuery,
+  isJwt,
   mergeReview,
   openRidesForDriver,
   responseRow,
@@ -60,6 +61,19 @@ describe('relay client', () => {
     expect(calls[0].init.headers.Prefer).toBe('return=representation');
     const down = createRelay({ url: 'http://down.test', fetch: async () => Promise.reject(new Error('ECONNREFUSED')) });
     await expect(down.select('demo_rides')).rejects.toThrow('Can’t reach the demo relay at http://down.test.');
+  });
+
+  it('sends a JWT anon key as a bearer token too, but a publishable key only as apikey', async () => {
+    const seen: Record<string, string>[] = [];
+    const fetch = async (_url: string, init: { headers: Record<string, string> }) => (seen.push(init.headers), { ok: true, status: 200, text: async () => '[]' });
+    const jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYW5vbiJ9.c2ln';
+    await createRelay({ url: 'http://relay.test', key: jwt, fetch }).select('demo_rides');
+    await createRelay({ url: 'http://relay.test', key: 'sb_publishable_abc123', fetch }).select('demo_rides');
+    expect(seen[0].Authorization).toBe(`Bearer ${jwt}`);
+    expect(seen[1].apikey).toBe('sb_publishable_abc123');
+    expect(seen[1].Authorization).toBeUndefined();
+    expect(isJwt(jwt)).toBe(true);
+    expect(isJwt('sb_publishable_abc123')).toBe(false);
   });
 
   it('downsamples long routes', () => {

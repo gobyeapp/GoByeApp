@@ -6,3 +6,11 @@
  * builds leave it unset, so those tools never ship.
  */
 export const DEMO_TOOLS = import.meta.env.VITE_DEMO_TOOLS === 'true';
+
+/**
+ * Connected demo page only (D-075). On when the build is given a demo relay address
+ * (VITE_DEMO_RELAY_URL), without turning on the other demo tools. The deploy workflow passes the
+ * address to preview builds only, so production never shows it.
+ */
+// Written as a plain comparison so Vite can fold it to `false` and drop the page when the address is unset.
+export const DEMO_RELAY = import.meta.env.VITE_DEMO_RELAY_URL !== undefined && import.meta.env.VITE_DEMO_RELAY_URL !== '';

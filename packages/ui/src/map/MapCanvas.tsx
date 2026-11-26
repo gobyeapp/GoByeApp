@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import Constants from 'expo-constants';
 import MapView, { Marker, Polyline, type Region } from 'react-native-maps';
 import { useReducedMotion } from 'react-native-reanimated';
 import type { LatLng } from './types';
@@ -9,6 +10,16 @@ import { Text } from '../components/Text';
 import { brand } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { DARK_MAP_STYLE } from './darkMapStyle';
+
+/**
+ * Android maps are Google Maps, and react-native-maps crashes the app on Android when the build has no
+ * Google Maps key. app.config.js (tools/expo/with-android-maps-key.js) records whether the build has one
+ * in `extra.googleMapsAndroid`. iOS uses Apple Maps and needs no key.
+ */
+export function mapsAvailable(os: string = Platform.OS, extra: Record<string, unknown> | undefined = Constants.expoConfig?.extra): boolean {
+  if (os !== 'android') return true;
+  return extra?.googleMapsAndroid === true;
+}
 
 export interface MapCanvasHandle {
   recenter(coordinate: LatLng): void;
@@ -78,6 +89,18 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 
   const initialRegion: Region = { ...center, latitudeDelta: 0.04, longitudeDelta: 0.04 };
 
+  if (!mapsAvailable()) {
+    // No Google Maps key in this Android build: a calm placeholder instead of a native crash.
+    return (
+      <View testID={testID} style={[StyleSheet.absoluteFill, styles.unavailable, { backgroundColor: colors.surfaceMuted }]} accessibilityLabel="Map not available in this build">
+        <Icon name="map" size="lg" color="textSecondary" />
+        <Text variant="footnote" color="textSecondary" align="center" style={styles.unavailableText}>
+          Map not available in this test build
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <MapView
       ref={map}
@@ -132,6 +155,8 @@ export const MapCanvas = forwardRef<MapCanvasHandle, MapCanvasProps>(function Ma
 });
 
 const styles = StyleSheet.create({
+  unavailable: { alignItems: 'center', justifyContent: 'center', padding: 24 },
+  unavailableText: { marginTop: 8, maxWidth: 240 },
   pin: { alignItems: 'center' },
   pinHead: { width: 38, height: 38, borderRadius: 19, borderWidth: 3, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   pinLabel: { marginTop: 2, paddingHorizontal: 6, paddingVertical: 1, borderRadius: 6 },

@@ -10,6 +10,7 @@
 # works for the database workflow:
 #   CLOUDFLARE_API_TOKEN   "Edit Cloudflare Workers" template + Zone DNS Edit (production custom domains)
 #   CLOUDFLARE_ACCOUNT_ID
+# Optional, for the connected demo (docs/TEST_BUILDS.md): variable DEMO_RELAY_URL and secret DEMO_RELAY_KEY.
 name: Deploy sites (Cloudflare)
 on:
   workflow_dispatch:
@@ -56,7 +57,15 @@ jobs:
         run: $WRANGLER deploy -c apps/web/wrangler.toml --env ${{ inputs.target }}
       - name: Build the admin (no demo tools)
         if: inputs.site != 'website'
+        env:
+          # Connected demo over Supabase gobye-staging (D-049, docs/TEST_BUILDS.md). TEST DATA ONLY.
+          # Both are public by design (the key is the anon / publishable key, never service_role); kept as
+          # a variable and a secret so they are set in one place. Preview builds only (D-075): a production
+          # admin never gets the relay or the Connected demo page. Unset = the admin builds without it.
+          VITE_DEMO_RELAY_URL: ${{ inputs.target == 'preview' && vars.DEMO_RELAY_URL || '' }}
+          VITE_DEMO_RELAY_KEY: ${{ inputs.target == 'preview' && secrets.DEMO_RELAY_KEY || '' }}
         run: |
+          node -e 'const k = process.env.VITE_DEMO_RELAY_KEY || ""; let role = ""; try { role = JSON.parse(Buffer.from(k.split(".")[1] || "", "base64url").toString()).role || ""; } catch {} if (k.startsWith("sb_secret_") || role === "service_role") { console.log("::error::DEMO_RELAY_KEY must be the anon / publishable key, never a secret key"); process.exit(1); }'
           npm ci --no-audit --no-fund
           npm run build -w apps/admin
           test -f apps/admin/dist/index.html

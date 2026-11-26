@@ -742,7 +742,7 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
 ## D-074 — Mobile test builds on EAS Build, free plan (2026-11-26, owner)
 
 - **Files:**
-  - `apps/rider/eas.json` and `apps/driver/eas.json`, each with the profiles `preview`, `demo` and `ios-device`;
+  - `apps/rider/eas.json` and `apps/driver/eas.json`, each with the profiles `preview` and `ios-device` (the `demo` profile was folded into `preview` by D-075);
   - the app scripts `build:apk` and `build:ios-sim`, and the root scripts `rider:apk` and `driver:apk`;
   - the manual workflow `.github/workflows/build-apps.yml` (`--no-wait`, needs `EXPO_TOKEN` in the staging environment).
 - **Configuration:**
@@ -755,3 +755,12 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - the Supabase demo relay values go in EAS environment variables, never in git.
 - Steps: `docs/MOBILE_BUILDS.md`.
 
+## D-075 — Android test builds with Google Maps, and the connected demo on gobye-staging (2026-11-26, owner)
+
+- **Why:** the first Android APK closed at once with a NullPointerException. The map (react-native-maps) uses Google Maps on Android, and the apps had no Google Maps key.
+- **Maps:** the owner chose Google Maps (D-025 stays the provider) and handles Google Cloud billing. The key comes only from the build variable `GOOGLE_MAPS_ANDROID_API_KEY` (`app.config.js` in both apps). It is restricted to the two Android packages and Maps SDK for Android. Without a key, `MapCanvas` shows "Map not available in this test build" on Android instead of crashing.
+- **Builds:** the D-074 `preview` profile now uses the EAS environment **preview**, where the Google key and the demo relay values are stored (the separate `demo` profile is removed).
+- **Shared test data:** the connected demo (D-049) over Supabase **gobye-staging**, not a hosted API yet. Rider and driver builds get `EXPO_PUBLIC_DEMO_RELAY_URL` / `_KEY` from EAS. The admin gets them from the staging environment (`DEMO_RELAY_URL` variable, `DEMO_RELAY_KEY` secret), **preview builds only**.
+- **Admin, narrowing D-070:** the Connected demo page now also shows when the build has a relay address (`DEMO_RELAY` in `data/mode.ts`), without the other demo tools. When the address is unset, the page is removed from the bundle, exactly as before.
+- **Relay key:** publishable keys (`sb_publishable_…`) go in `apikey` only; a legacy anon key (JWT) also as a bearer token.
+- Steps: `docs/TEST_BUILDS.md`.
