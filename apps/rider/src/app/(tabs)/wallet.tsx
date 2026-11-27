@@ -155,8 +155,12 @@ export default function Wallet() {
             ) : (
               <View style={styles.balanceRow}>
                 <Text accessibilityLabel={hidden ? 'Balance hidden' : `Available balance, ${nairaAccessibilityLabel(wallet.available)}`} testID="wallet-available" style={styles.balanceLine}>
+                  {/* The currency sign is quieter and smaller, so the figure itself leads (D-093). */}
+                  <Text variant="title2" weight="medium" style={[styles.naira, { color: on }]}>
+                    ₦{' '}
+                  </Text>
                   <Text variant="largeTitle" tabular style={[compact ? styles.balanceCompact : styles.balanceBig, { color: on }]}>
-                    {hidden ? '₦ ••••••' : whole}
+                    {hidden ? '••••••' : whole.replace('₦', '')}
                   </Text>
                   {hidden ? null : (
                     <Text variant="body" tabular style={{ color: on, opacity: 0.75 }}>
@@ -403,6 +407,7 @@ const styles = StyleSheet.create({
   heroIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   glass: { backgroundColor: 'rgba(255, 255, 255, 0.12)' },
   balanceLabel: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radii.pill, backgroundColor: 'rgba(255, 255, 255, 0.10)' },
+  naira: { opacity: 0.6 },
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   // Rises over the header; everything inside starts at the page edge (20).
   sheet: { flex: 1, marginTop: -28, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: layout.page, paddingTop: spacing.xl, gap: spacing.lg },
@@ -414,8 +419,8 @@ const styles = StyleSheet.create({
   balance: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   balanceSkeleton: { alignItems: 'center', paddingVertical: spacing.xs },
   balanceLine: { textAlign: 'center' },
-  balanceBig: { fontSize: 28, lineHeight: 34, letterSpacing: -0.5 },
-  balanceCompact: { fontSize: 25, lineHeight: 31, letterSpacing: -0.4 },
+  balanceBig: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 38, letterSpacing: -0.8 },
+  balanceCompact: { fontFamily: 'Inter_700Bold', fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   accountRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 28 },
   accountRule: { width: StyleSheet.hairlineWidth, height: 14, opacity: 0.5 },

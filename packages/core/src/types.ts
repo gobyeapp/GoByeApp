@@ -338,7 +338,12 @@ export interface WalletTransaction {
   status: WalletTransactionStatus;
   /** Linked trip, for trip payments and refunds. */
   bookingId?: string;
+  /** How a top-up was paid (D-093). Absent on older records: bank transfer. */
+  method?: DepositMethod;
 }
+
+/** Ways to add money to the wallet (D-093). Card details are only ever entered on the provider's page. */
+export type DepositMethod = 'bank_transfer' | 'card';
 
 export type NotificationKind = 'trip' | 'payment' | 'promo' | 'safety' | 'account';
 

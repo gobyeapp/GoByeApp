@@ -136,9 +136,9 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
         const list = await getLedger();
         return delay(list.slice().sort((a, b) => b.createdAt - a.createdAt));
       },
-      async requestDeposit(amount) {
+      async requestDeposit(amount, method = 'bank_transfer') {
         const list = await getLedger();
-        const tx: WalletTransaction = { id: newId('dep'), type: 'top_up', status: 'pending', amount, createdAt: scheduler.now(), description: 'Deposit by bank transfer' };
+        const tx: WalletTransaction = { id: newId('dep'), type: 'top_up', status: 'pending', amount, createdAt: scheduler.now(), description: method === 'card' ? 'Card top-up' : 'Deposit by bank transfer', method };
         saveLedger([tx, ...list]);
         return delay({
           transactionId: tx.id,
@@ -155,7 +155,8 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
         const list = await getLedger();
         const tx = list.find((t) => t.id === transactionId);
         if (!tx) return delay('failed' as const);
-        if (tx.status === 'pending' && scheduler.now() - tx.createdAt > 4000 * flags.timeScale) {
+        // A card answers in a moment; a bank transfer takes a little longer to be seen.
+        if (tx.status === 'pending' && scheduler.now() - tx.createdAt > (tx.method === 'card' ? 1200 : 4000) * flags.timeScale) {
           const status = random() < flags.depositFailureRate ? ('failed' as const) : ('successful' as const);
           saveLedger(list.map((t) => (t.id === transactionId ? { ...t, status } : t)));
           return delay(status);

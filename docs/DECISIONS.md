@@ -1006,3 +1006,15 @@ The owner asked for the Wallet's reference sizes on every page.
 - **While payments are simulated** the number is a stable test number per rider (`simulatedWalletAccount`: 10 digits starting 99), the chip beside it reads **Test**, and copying it says not to send real money to it. This keeps the rule that test data is never shown as live, in the place the reference shows "Active".
 - **Going live** needs the payment provider's dedicated virtual accounts: one real account number per rider, where any transfer tops up the wallet. That choice belongs with the payments work (kept for later by the owner). The chip then reads **Active**.
 - "Add money" still gives transfer details with an amount and reference, as before.
+
+## D-093 — Add money by card, a styled balance, and shortcuts only for saved places (2026-11-27)
+
+- **Add money has two ways to pay:** Card (first) and Bank transfer. The sheet asks for an amount, then "Pay with".
+  - **Card** is paid on the payment provider's hosted secure page. The apps never show a card-number form and never see or store card details. In the test build no card is asked for: "Pay" confirms a simulated payment and credits the wallet.
+  - This changes D-023 for the wallet only: riders still pay for a trip by wallet or bank transfer, and a card tops up the wallet.
+  - **Before it is real** it needs the payment provider (kept for later by the owner), the card fee shown separately from the amount, and the money-handling reviews in `BACKEND_ARCHITECTURE.md` §9.
+  - `WalletService.requestDeposit(amount, method)`; `WalletTransaction.method`; card top-ups are named "Card top-up" in the list.
+- **Balance:** the ₦ sign is smaller and fainter, the figure is bold 32, and the kobo are small.
+- **Home shortcuts** replace D-090's "Add home" / "Add work" tiles:
+  - a tile shows only for a place that is saved (Home, Work), plus "Saved" when anything is saved; with nothing saved there is no tray;
+  - after the rider's first trip, if nothing is saved, Home shows one card, "Save your usual places", with Add home, Add work and a close (not now) that is remembered.

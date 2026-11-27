@@ -35,7 +35,7 @@ export default function Home() {
   const { maps } = useServices();
   const session = useSession();
   const location = useCurrentLocation();
-  const { savedPlaces, recentPlaces, ready, unreadCount } = useAccount();
+  const { savedPlaces, recentPlaces, ready, unreadCount, history, settings, updateSettings } = useAccount();
   const { pickup, setPickup, setDestination, booking, rider, finish } = useBooking();
   const live = booking && booking.status !== 'quoted' ? booking : null;
   const mapRef = useRef<MapCanvasHandle>(null);
@@ -90,6 +90,14 @@ export default function Home() {
 
   const home = savedPlaces.find((p) => p.label === 'home');
   const work = savedPlaces.find((p) => p.label === 'work');
+  // Shortcuts appear only for places the rider has saved (D-093). Nothing saved: no tray at all.
+  const shortcuts: { key: string; label: string; icon: IconName; a11y: string; onPress: () => void }[] = [
+    ...(home ? [{ key: 'home', label: 'Home', icon: 'homePlace' as IconName, a11y: `Go home, ${home.title}`, onPress: () => chooseDestination(home) }] : []),
+    ...(work ? [{ key: 'work', label: 'Work', icon: 'work' as IconName, a11y: `Go to work, ${work.title}`, onPress: () => chooseDestination(work) }] : []),
+    ...(savedPlaces.length ? [{ key: 'saved', label: 'Saved', icon: 'heart' as IconName, a11y: 'Saved places', onPress: () => router.push('/account/places') }] : []),
+  ];
+  // Once they have taken a trip and saved nothing yet, ask once (they can say not now).
+  const askPlaces = history.length > 0 && !savedPlaces.length && !settings.placesPromptDismissed;
 
   return (
     <View style={styles.root}>
@@ -235,27 +243,9 @@ export default function Home() {
               ))}
             </SkeletonGroup>
           ) : (
+            shortcuts.length ? (
             <View style={[styles.tray, { backgroundColor: colors.surfaceMuted, borderColor: colors.border, borderWidth: scheme === 'dark' ? StyleSheet.hairlineWidth : 0 }]}>
-              {[
-                {
-                  key: 'home',
-                  // "Home" only once an address is saved (D-090); until then the tile says what it does.
-                  label: home ? 'Home' : 'Add home',
-                  set: !!home,
-                  icon: (home ? 'homePlace' : 'plus') as IconName,
-                  a11y: home ? `Go home, ${home.title}` : 'Add home address',
-                  onPress: () => (home ? chooseDestination(home) : router.push({ pathname: '/booking/search', params: { field: 'save-home' } })),
-                },
-                {
-                  key: 'work',
-                  label: work ? 'Work' : 'Add work',
-                  set: !!work,
-                  icon: (work ? 'work' : 'plus') as IconName,
-                  a11y: work ? `Go to work, ${work.title}` : 'Add work address',
-                  onPress: () => (work ? chooseDestination(work) : router.push({ pathname: '/booking/search', params: { field: 'save-work' } })),
-                },
-                { key: 'saved', label: 'Saved', set: true, icon: 'heart' as IconName, a11y: 'Saved places', onPress: () => router.push('/account/places') },
-              ].map((t) => (
+              {shortcuts.map((t) => (
                 <Pressable
                   key={t.key}
                   onPress={t.onPress}
@@ -268,13 +258,33 @@ export default function Home() {
                     scheme === 'light' && !pressed && styles.tileLift,
                   ]}
                 >
-                  <Icon name={t.icon} size={18} color={t.set ? 'text' : 'textSecondary'} />
-                  <Text variant="caption" weight={t.set ? 'semibold' : 'medium'} color={t.set ? 'text' : 'textSecondary'} numberOfLines={1}>
+                  <Icon name={t.icon} size={18} color="text" />
+                  <Text variant="caption" weight="semibold" numberOfLines={1}>
                     {t.label}
                   </Text>
                 </Pressable>
               ))}
             </View>
+            ) : askPlaces ? (
+              // After the first trip: offer to save home or work for next time. Not shown before it.
+              <View style={[styles.ask, { backgroundColor: colors.surfaceMuted, borderColor: colors.border }]} testID="places-prompt">
+                <View style={styles.askHead}>
+                  <View style={styles.flex}>
+                    <Text variant="headline">Save your usual places</Text>
+                    <Text variant="footnote" color="textSecondary">
+                      Book rides home or to work in one tap.
+                    </Text>
+                  </View>
+                  <Pressable onPress={() => updateSettings({ placesPromptDismissed: true })} accessibilityRole="button" accessibilityLabel="Not now" hitSlop={10} testID="places-prompt-dismiss">
+                    <Icon name="close" size="xs" color="textSecondary" />
+                  </Pressable>
+                </View>
+                <View style={styles.askRow}>
+                  <Button title="Add home" variant="secondary" size="md" leadingIcon="homePlace" style={styles.flex} onPress={() => router.push({ pathname: '/booking/search', params: { field: 'save-home' } })} testID="shortcut-add-home" />
+                  <Button title="Add work" variant="secondary" size="md" leadingIcon="work" style={styles.flex} onPress={() => router.push({ pathname: '/booking/search', params: { field: 'save-work' } })} testID="shortcut-add-work" />
+                </View>
+              </View>
+            ) : null
           )}
           </View>
           </View>
@@ -391,6 +401,9 @@ const styles = StyleSheet.create({
   pickupRow: { flexDirection: 'row', alignItems: 'center', gap: layout.iconGap, minHeight: 56, paddingHorizontal: layout.container - 2, paddingVertical: spacing.sm },
   pickupSkeleton: { paddingTop: 4 },
   dot: { width: 12, height: 12, borderRadius: 6, marginHorizontal: 4 },
+  ask: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: layout.container, gap: spacing.md },
+  askHead: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+  askRow: { flexDirection: 'row', gap: spacing.sm },
   tray: { flexDirection: 'row', gap: spacing.xs + 2, padding: spacing.xs + 2, borderRadius: 18 },
   tile: { flex: 1, minWidth: 0, minHeight: 56, borderRadius: 12, paddingVertical: spacing.sm, paddingHorizontal: spacing.xs, alignItems: 'center', justifyContent: 'center', gap: 3 },
   tileLift: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)' } as object,

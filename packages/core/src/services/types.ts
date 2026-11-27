@@ -1,6 +1,7 @@
 import type {
   Booking,
   DriverResponse,
+  DepositMethod,
   DriverSummary,
   FareQuote,
   Kobo,
@@ -154,7 +155,7 @@ export interface DepositInstructions {
 export interface WalletService {
   listTransactions(): Promise<WalletTransaction[]>;
   /** Start a deposit by bank transfer; the credit stays `pending` until the provider confirms it. */
-  requestDeposit(amount: Kobo): Promise<DepositInstructions>;
+  requestDeposit(amount: Kobo, method?: DepositMethod): Promise<DepositInstructions>;
   /** Poll a pending deposit (simulated confirmation). */
   checkDeposit(transactionId: string): Promise<WalletTransaction['status']>;
 }

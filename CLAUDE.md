@@ -44,7 +44,7 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 
 - Do not submit builds, create store records, or configure paid accounts without explicit authorisation.
 - Do not use Apple In-App Purchase for ride fares.
-- Do not hardcode pricing as confirmed policy — values live in `MOCK_PRICING_CONFIG` / `MOCK_PAYMENTS_CONFIG` and are documented as placeholders. Decided 2026-10-21: 0% per-trip commission and driver access packages (D-024; package prices provisional), launch payment methods Wallet + bank transfer with cash open and no cards (D-023). Processing fees are always shown separately from the fare.
+- Do not hardcode pricing as confirmed policy — values live in `MOCK_PRICING_CONFIG` / `MOCK_PAYMENTS_CONFIG` and are documented as placeholders. Decided 2026-10-21: 0% per-trip commission and driver access packages (D-024; package prices provisional), launch payment methods Wallet + bank transfer with cash open and no cards for paying a trip (D-023). Topping up the wallet by card is allowed (D-093), only through the payment provider's hosted page: never build a card-number form in the apps. Processing fees are always shown separately from the fare.
 - Driver location: When In Use + precise only; never request "Always" automatically (D-026).
 - Maps: Google Maps Platform is only **proposed** (D-025); keep everything behind `MapService` / `MapCanvas` (D-004).
 - Do not claim device testing that was not performed.

@@ -1343,3 +1343,16 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - Core `wallet/account.ts` (`simulatedWalletAccount`, tested); the Wallet header row with number, copy and a Test chip.
 - **Checked** in Chromium at iPhone 13 size: tapping the row puts the number on the clipboard and shows the message. Rider tests 37; typecheck, lint, Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Add money by card, styled balance, shortcuts only when saved (D-093)
+
+- **Core:** `DepositMethod`, `requestDeposit(amount, method)`, and the mock confirms a card in about a second.
+- **Rider:**
+  - `DepositSheet`: amount tiles, Card or Bank transfer, a Pay by card step and the done state;
+  - Wallet balance styling;
+  - Home tray and the after-first-trip prompt; `placesPromptDismissed` in settings.
+- **Checked** in Chromium at iPhone 13 size:
+  - a new rider sees no shortcut tray and no prompt;
+  - after a trip the prompt shows, and "not now" removes it;
+  - Add money by card runs through to "Money added", and the list shows "Card top-up".
+- Tests: core 314, rider 37, driver 14. Typecheck, lint, and the rider's Android and iOS export pass. **Not tried on a real phone.**

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { naira, walletSummary, type DepositInstructions, type Kobo, type WalletTransaction } from '@gobye/core';
+import { naira, walletSummary, type DepositInstructions, type DepositMethod, type Kobo, type WalletTransaction } from '@gobye/core';
 import { useServices } from './services';
 
 /**
@@ -15,7 +15,7 @@ interface WalletValue {
   reserved: Kobo;
   pendingIn: Kobo;
   refresh(): Promise<void>;
-  startDeposit(amount: Kobo): Promise<DepositInstructions>;
+  startDeposit(amount: Kobo, method?: DepositMethod): Promise<DepositInstructions>;
   /** Ask whether a pending deposit has been confirmed. */
   checkDeposit(transactionId: string): Promise<WalletTransaction['status']>;
 }
@@ -60,8 +60,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       reserved: s.reserved as Kobo,
       pendingIn: s.pendingIn as Kobo,
       refresh,
-      async startDeposit(amount) {
-        const instructions = await wallet.requestDeposit(amount);
+      async startDeposit(amount, method) {
+        const instructions = await wallet.requestDeposit(amount, method);
         await refresh();
         return instructions;
       },

@@ -34,7 +34,8 @@ export function txTitle(tx: WalletTransaction): string {
 }
 
 export function txIcon(tx: WalletTransaction): IconName {
-  return tx.status === 'reversed' ? 'refresh' : TX_ICON[tx.type];
+  if (tx.status === 'reversed') return 'refresh';
+  return tx.type === 'top_up' && tx.method === 'card' ? 'card' : TX_ICON[tx.type];
 }
 
 export const txDate = (ms: number) => new Date(ms).toLocaleString('en-NG', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -70,7 +71,7 @@ export function rowTime(ms: number, now = Date.now()): string {
 /** What happened, in a few words; never repeats the type and description together. */
 export function rowTitle(tx: WalletTransaction): string {
   if (tx.status === 'reversed') return 'Payment reversed';
-  if (tx.type === 'top_up') return 'Bank transfer';
+  if (tx.type === 'top_up') return tx.method === 'card' ? 'Card top-up' : 'Bank transfer';
   if (tx.type === 'ride_payment') return tx.description;
   return TX_LABEL[tx.type];
 }

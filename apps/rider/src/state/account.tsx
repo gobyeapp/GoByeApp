@@ -23,6 +23,8 @@ export interface AccountSettings {
   appearance: AppearancePreference;
   /** Preview-only palette comparison while the final palette is undecided (Q-008). */
   brandDirection: BrandDirection;
+  /** The rider said "not now" to saving home and work after their first trip (D-093). */
+  placesPromptDismissed?: boolean;
 }
 
 interface AccountData {
