@@ -3,7 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatNaira, nairaAccessibilityLabel, type Kobo, type WalletTransaction } from '@gobye/core';
+import * as Clipboard from 'expo-clipboard';
+import { formatNaira, nairaAccessibilityLabel, simulatedWalletAccount, type Kobo, type WalletTransaction } from '@gobye/core';
 import {
   Avatar,
   Bone,
@@ -11,7 +12,6 @@ import {
   ErrorState,
   Icon,
   PlumBackground,
-  SimulatedBadge,
   SkeletonGroup,
   SkeletonRow,
   Text,
@@ -19,6 +19,7 @@ import {
   radii,
   spacing,
   useTheme,
+  useToast,
   type IconName,
 } from '@gobye/ui';
 import { PromoCarousel } from '@/features/promo/PromoCarousel';
@@ -51,6 +52,7 @@ export default function Wallet() {
   const wallet = useWallet();
   const { user } = useSession();
   const { unreadCount } = useAccount();
+  const toast = useToast();
   const [mode, setMode] = useState<'recent' | 'history'>('recent');
   const [filter, setFilter] = useState<Filter>('all');
   const [depositOpen, setDepositOpen] = useState(false);
@@ -96,6 +98,12 @@ export default function Wallet() {
   const whole = formatNaira((Math.floor(wallet.available / 100) * 100) as Kobo);
   const kobo = `.${String(Math.abs(wallet.available) % 100).padStart(2, '0')}`;
 
+  const account = user ? simulatedWalletAccount(user.id, name) : null;
+  const copyAccount = async () => {
+    if (!account) return;
+    await Clipboard.setStringAsync(account.accountNumber).catch(() => undefined);
+    toast(account.isSimulated ? 'Test account number copied. Don’t send real money to it.' : 'Account number copied', 'success');
+  };
   const on = colors.onBrandBanner;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -170,8 +178,30 @@ export default function Wallet() {
                   </Text>
                 </View>
               ) : null}
-              <SimulatedBadge />
             </View>
+            {/* The rider's own account number, one tap to copy (D-092). While payments are simulated the
+                chip beside it says "Test", where a live account says "Active". */}
+            {account ? (
+              <Pressable
+                onPress={copyAccount}
+                accessibilityRole="button"
+                accessibilityLabel={`${account.isSimulated ? 'Test account' : 'Account'} number ${account.accountNumber.split('').join(' ')}, ${account.bankName}. Copy`}
+                hitSlop={8}
+                style={({ pressed }) => [styles.accountRow, pressed && { opacity: 0.7 }]}
+                testID="wallet-account"
+              >
+                <Text variant="subhead" weight="regular" tabular style={{ color: on, opacity: 0.9 }}>
+                  {account.accountNumber}
+                </Text>
+                <Icon name="copy" size="xs" color={on} />
+                <View style={[styles.accountRule, { backgroundColor: on }]} />
+                <View style={[styles.accountState, { backgroundColor: account.isSimulated ? colors.warningSurface : colors.successSurface }]}>
+                  <Text variant="caption" weight="semibold" color={account.isSimulated ? 'warning' : 'success'}>
+                    {account.isSimulated ? 'Test' : 'Active'}
+                  </Text>
+                </View>
+              </Pressable>
+            ) : null}
           </View>
 
           <View style={styles.tray}>
@@ -387,6 +417,9 @@ const styles = StyleSheet.create({
   balanceBig: { fontSize: 28, lineHeight: 34, letterSpacing: -0.5 },
   balanceCompact: { fontSize: 25, lineHeight: 31, letterSpacing: -0.4 },
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
+  accountRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 28 },
+  accountRule: { width: StyleSheet.hairlineWidth, height: 14, opacity: 0.5 },
+  accountState: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: 6 },
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radii.pill },
   tray: { flexDirection: 'row', gap: spacing.sm },
   tile: { flex: 1, height: 46, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },

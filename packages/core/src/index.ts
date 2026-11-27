@@ -31,4 +31,5 @@ export * from './automation';
 export * from './costs';
 export * from './subscriptions';
 export * from './accounts';
+export * from './wallet/account';
 export * from './whatsapp';

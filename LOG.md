@@ -1338,3 +1338,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - `packages/ui` tokens (`typography`, `inputFontSize`), `TextField`, `SearchField`, `Journey`; hero figure sizes in rider and driver screens; the Wallet's variants remapped so its sizes stay as matched in D-089.
 - **Checked:** screenshots at iPhone 13 size in Chromium of Home, Wallet, Transfer details, Activities, Ride details, Account, Welcome and Create account; no page errors. Rider tests 37, driver tests 14; typecheck and lint pass.
 - **Not checked:** the driver app's screens were not looked at (tests and builds only), and nothing was tried on a real phone.
+
+## 2026-11-27 — Wallet account number, copyable (D-092)
+
+- Core `wallet/account.ts` (`simulatedWalletAccount`, tested); the Wallet header row with number, copy and a Test chip.
+- **Checked** in Chromium at iPhone 13 size: tapping the row puts the number on the clipboard and shows the message. Rider tests 37; typecheck, lint, Android and iOS export pass. **Not tried on a real phone.**

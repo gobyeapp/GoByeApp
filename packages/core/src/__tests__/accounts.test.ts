@@ -33,3 +33,14 @@ describe('receipt times (D-084)', () => {
     expect(receiptTimes({ startedAt: 0, completedAt: 1_900_000, durationSeconds: 2040, isSimulated: true }).pickupAt).toBe(0);
   });
 });
+
+describe('wallet account number (D-092)', () => {
+  const { simulatedWalletAccount } = jest.requireActual('../wallet/account') as typeof import('../wallet/account');
+  it('is stable per rider, 10 digits starting 99, and marked simulated', () => {
+    const a = simulatedWalletAccount('user-1', 'Ada Obi');
+    expect(a).toEqual(simulatedWalletAccount('user-1', 'Ada Obi'));
+    expect(a.accountNumber).toMatch(/^99\d{8}$/);
+    expect(a.isSimulated).toBe(true);
+    expect(simulatedWalletAccount('user-2', 'Ada Obi').accountNumber).not.toBe(a.accountNumber);
+  });
+});

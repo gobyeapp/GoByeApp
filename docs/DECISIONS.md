@@ -999,3 +999,10 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Typed text stays at 16.** Smaller makes Safari on iPhone zoom the page when a field is focused.
 - **Both apps change**, because the rider and driver apps share the design system. Touch targets and button heights are unchanged.
 - Body text at 14 is below iOS's default of 17. Text still grows with the phone's text-size setting.
+
+## D-092 — The wallet shows the rider's own account number, copyable (2026-11-27)
+
+- The Wallet header shows the rider's wallet account number with a copy control, in place of the "Simulated" badge (owner request, from the bank-app reference).
+- **While payments are simulated** the number is a stable test number per rider (`simulatedWalletAccount`: 10 digits starting 99), the chip beside it reads **Test**, and copying it says not to send real money to it. This keeps the rule that test data is never shown as live, in the place the reference shows "Active".
+- **Going live** needs the payment provider's dedicated virtual accounts: one real account number per rider, where any transfer tops up the wallet. That choice belongs with the payments work (kept for later by the owner). The chip then reads **Active**.
+- "Add money" still gives transfer details with an amount and reference, as before.
