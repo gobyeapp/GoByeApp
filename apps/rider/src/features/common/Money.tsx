@@ -8,12 +8,12 @@ import { StyleSheet } from 'react-native';
  * processing status, so a pending debit still shows its Pending badge.
  * `voided` (failed or reversed: the balance never changed) is grey and struck through.
  */
-export function SignedAmount({ amount, voided, variant = 'subhead' }: { amount: Kobo; voided?: boolean; variant?: TypographyVariant }) {
+export function SignedAmount({ amount, voided, variant = 'subhead', weight = 'semibold' }: { amount: Kobo; voided?: boolean; variant?: TypographyVariant; weight?: 'semibold' | 'bold' }) {
   const credit = amount > 0;
   return (
     <Text
       variant={variant}
-      weight="semibold"
+      weight={weight}
       tabular
       numberOfLines={1}
       color={voided ? 'textSecondary' : credit ? 'success' : 'text'}

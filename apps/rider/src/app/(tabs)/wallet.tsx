@@ -119,10 +119,10 @@ export default function Wallet() {
             <Pressable onPress={() => router.push('/(tabs)/account')} accessibilityRole="button" accessibilityLabel={`Your account${name ? `, ${name}` : ''}`} style={styles.who}>
               <Avatar uri={user?.photoUri} name={name} size={40} />
               <View style={styles.flex}>
-                <Text variant="caption" style={{ color: on, opacity: 0.8 }}>
+                <Text variant="footnote" style={{ color: on, opacity: 0.8 }}>
                   {greeting}
                 </Text>
-                <Text variant="subhead" weight="bold" numberOfLines={1} style={{ color: on }}>
+                <Text variant="footnote" weight="bold" numberOfLines={1} style={{ color: on }}>
                   {user?.firstName || 'Your wallet'}
                 </Text>
               </View>
@@ -136,7 +136,7 @@ export default function Wallet() {
 
           <View style={styles.balance}>
             <View style={styles.balanceLabel}>
-              <Text variant="caption" style={{ color: on, opacity: 0.85 }}>
+              <Text variant="footnote" style={{ color: on, opacity: 0.85 }}>
                 Available balance
               </Text>
             </View>
@@ -199,7 +199,7 @@ export default function Wallet() {
 
             {/* History */}
             <View style={styles.sectionHead}>
-              <Text variant="callout" weight="bold" accessibilityRole="header" style={styles.flex}>
+              <Text variant="subhead" weight="bold" accessibilityRole="header" style={styles.flex}>
                 {mode === 'recent' ? 'Recent activity' : 'Transaction history'}
               </Text>
               {sorted.length > 0 ? (
@@ -305,7 +305,7 @@ function HeroAction({ icon, label, onPress, testID }: { icon: IconName; label: s
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} testID={testID} style={({ pressed }) => [styles.tile, styles.glass, pressed && { opacity: 0.75 }]}>
       <Icon name={icon} size="sm" color={colors.onBrandBanner} />
-      <Text variant="subhead" weight="semibold" numberOfLines={1} style={{ color: colors.onBrandBanner }}>
+      <Text variant="footnote" weight="medium" numberOfLines={1} style={{ color: colors.onBrandBanner }}>
         {label}
       </Text>
     </Pressable>
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
   balance: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   balanceSkeleton: { alignItems: 'center', paddingVertical: spacing.xs },
   balanceLine: { textAlign: 'center' },
-  balanceBig: { fontSize: 30, lineHeight: 36, letterSpacing: -0.6 },
-  balanceCompact: { fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
+  balanceBig: { fontSize: 28, lineHeight: 34, letterSpacing: -0.5 },
+  balanceCompact: { fontSize: 25, lineHeight: 31, letterSpacing: -0.4 },
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radii.pill },
   tray: { flexDirection: 'row', gap: spacing.sm },

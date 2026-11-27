@@ -104,15 +104,15 @@ export function TransactionRow({ tx, onPress }: { tx: WalletTransaction; onPress
         <Icon name={txIcon(tx)} size={16} color="text" />
       </View>
       <View style={styles.texts}>
-        <Text variant="subhead" weight="semibold" numberOfLines={2}>
+        <Text variant="footnote" weight="medium" numberOfLines={2}>
           {rowTitle(tx)}
         </Text>
-        <Text variant="caption" color="textSecondary">
+        <Text variant="caption" weight="regular" color="textSecondary" style={styles.time}>
           {rowTime(tx.createdAt)}
         </Text>
       </View>
       <View style={styles.right}>
-        <SignedAmount amount={tx.amount} voided={noEffect} />
+        <SignedAmount amount={tx.amount} voided={noEffect} variant="caption" weight="bold" />
         <TxStatusBadge kind={tx.status === 'successful' ? null : status.kind} label={status.label} />
       </View>
     </Pressable>
@@ -122,6 +122,8 @@ export function TransactionRow({ tx, onPress }: { tx: WalletTransaction; onPress
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 58, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md, borderRadius: layout.controlRadius },
   icon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  // The reference scale (D-089): 13 for the name, 11 for the time.
+  time: { fontSize: 11, lineHeight: 15 },
   texts: { flex: 1, minWidth: 0, gap: 3 },
   right: { alignItems: 'flex-end', gap: 3, flexShrink: 0, maxWidth: '48%' },
 });

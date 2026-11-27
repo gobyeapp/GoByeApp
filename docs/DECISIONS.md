@@ -972,3 +972,15 @@ The owner shared a banking app's home screen and asked to take only what GoBye's
   - Section heading 15 bold; row titles 14 semibold; chips 12 in a 32-high pill; header buttons 46 high.
   - Only the Wallet so far. The rest of the app keeps the shared type scale until the owner confirms.
 - **Bug fixed:** choosing a filter with few results (for example Refunds) made the filter chips huge. The horizontal chip row was growing to fill the spare height of the page; it now keeps its own size.
+
+## D-089 — Wallet text matched to the reference sizes (2026-11-27)
+
+The owner confirmed the Wallet should match the bank-app reference's sizes (measured from the screenshot, give or take a point):
+
+- balance 28 with 14 kobo;
+- greeting, name (bold), "Available balance" and the header buttons 13;
+- section headings 14 bold;
+- transaction names 13 medium, amounts 12 bold, times 11;
+- filter chips and "See all" 12.
+
+Nothing is below 11. Wallet only: the rest of the app keeps the shared type scale until the owner decides.
