@@ -39,7 +39,8 @@ export default function Access() {
       header={<ScreenHeader backIcon="close" title="Access pass" onBack={() => router.back()} />}
       footer={
         <Button
-          title={`Pay ${formatNaira(pkg.price)}`}
+          title="Pay"
+          trailingText={formatNaira(pkg.price)}
           accessibilityLabel={`Pay ${nairaAccessibilityLabel(pkg.price)} for ${pkg.name}`}
           loading={busy}
           loadingLabel="Paying"

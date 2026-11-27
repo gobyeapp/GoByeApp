@@ -143,9 +143,12 @@ export function Button({
             {title}
           </Text>
           {trailingText ? (
-            <Text variant="headline" tabular style={{ color: fg }}>
-              {trailingText}
-            </Text>
+            // The amount sits in its own box, so the eye separates "what happens" from "how much" (D-102).
+            <View style={[styles.amount, { backgroundColor: brandOn ? '#FFFFFF' : disabledPrimary ? colors.border : colors.surfaceMuted }]}>
+              <Text variant="headline" tabular style={{ color: brandOn ? BRAND_CTA.ink : fg }}>
+                {trailingText}
+              </Text>
+            </View>
           ) : null}
         </View>
       )}
@@ -198,5 +201,6 @@ const styles = StyleSheet.create({
   chipShadow: { shadowColor: '#7A2E00', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   title: { textAlign: 'center', letterSpacing: -0.1 },
+  amount: { paddingHorizontal: spacing.md, paddingVertical: 5, borderRadius: 999 },
   chip: { position: 'absolute', top: '50%', alignItems: 'center', justifyContent: 'center' },
 });

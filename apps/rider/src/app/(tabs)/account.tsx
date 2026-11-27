@@ -35,11 +35,7 @@ export default function Account() {
   const loading = status === 'loading' || !ready;
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
-      <Text variant="title2" accessibilityRole="header" style={styles.title}>
-        Account
-      </Text>
-
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
       {loading ? (
         <SkeletonGroup label="Loading your account" style={styles.identity}>
           <View style={styles.identityInner}>

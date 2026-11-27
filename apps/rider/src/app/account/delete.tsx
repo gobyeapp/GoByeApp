@@ -77,7 +77,7 @@ export default function DeleteAccount() {
   const processing = step === 'processing';
   return (
     <Screen
-      header={<PageHeader title="Delete account" onBack={processing ? undefined : () => router.back()} />}
+      header={<PageHeader title="" onBack={processing ? undefined : () => router.back()} />}
       footer={
         <View style={styles.actions}>
           <Button

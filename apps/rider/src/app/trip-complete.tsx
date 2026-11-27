@@ -114,7 +114,8 @@ export default function TripComplete() {
     <Button title="Add money" leadingIcon="plus" onPress={() => setSheet('deposit')} testID="top-up" />
   ) : isTransfer ? (
     <Button
-      title={`Pay ${formatNaira(charge.total)}`}
+      title="Pay"
+      trailingText={formatNaira(charge.total)}
       accessibilityLabel={`Pay ${nairaAccessibilityLabel(charge.total)} by bank transfer. Shows the account details.`}
       onPress={() => setSheet('transfer')}
       testID="open-transfer"

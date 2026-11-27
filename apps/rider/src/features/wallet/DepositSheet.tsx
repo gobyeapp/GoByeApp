@@ -138,7 +138,7 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
               </View>
             </View>
           ) : (
-            <Button title={amount ? `Continue with ${formatNaira(amount)}` : 'Continue'} onPress={start} loading={busy} disabled={!amount} testID="deposit-continue" />
+            <Button title="Continue" trailingText={amount ? formatNaira(amount) : undefined} onPress={start} loading={busy} disabled={!amount} testID="deposit-continue" />
           )
         }
       >

@@ -77,11 +77,7 @@ export default function Activity() {
   };
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
-      <Text variant="title2" accessibilityRole="header" style={styles.title}>
-        Activities
-      </Text>
-
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
       {live ? (
         <Pressable
           onPress={() => router.push(liveRoute(live.status))}

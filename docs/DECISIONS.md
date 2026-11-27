@@ -1111,4 +1111,5 @@ The owner asked for the Wallet's reference sizes on every page.
 - Every route is now checked by tests for sign-in, staff access, error leaks and idempotency; the gateway checks itself against the API's route list.
 - Fixed: gateway did not route `/v1/staff/*` and the new areas; a per-person limit on price requests; a 24 hour hold on withdrawals after a bank account change; account deletion refused while money or a ride is outstanding; the admin's router updated for published advisories.
 - Staff ride and finance routes live under `/v1/ops/*` (the gateway refuses `/v1/admin/*` on purpose).
+- **Follow-ups the same day (owner):** an amount on a button sits in its own white box beside the action word ("Continue" + "₦5,000", "Pay" + the fare), so the eye separates what happens from how much; use `trailingText` on `Button` for this. Tab pages (Activities, Account) no longer repeat the tab's name as a page title, and Delete account shows its question once.
 
