@@ -1307,3 +1307,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Tokens: `surfaceMuted`, `navSurface`, `border`, and the new `borderStrong`. Used in `TextField`, `Journey`, `MapSheet`, `Sheet`; `booking/searching.tsx` cards.
 - **Checked:** screenshots at iPhone 13 size in Chromium (Wallet, Transfer details, Activities, Ride details, sign-up steps 1 and 2). Rider tests 37 and driver tests 14 pass; lint and Android and iOS exports pass.
 - **Not checked:** the Finding-a-driver screen itself wasn't opened (it needs a live booking), and nothing was tried on a real phone.
+
+## 2026-11-27 — Wallet: brand header with greeting, hide balance, Add money and History (D-087)
+
+- `apps/rider/src/app/(tabs)/wallet.tsx` only.
+- **Checked:** screenshots at iPhone 13 size in Chromium (shown and hidden balance, history with filters, offers below); rider tests 37; typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**

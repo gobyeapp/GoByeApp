@@ -948,3 +948,18 @@ The owner asked for a cleaner, crisper look: backgrounds close to white and outl
 - **New token `borderStrong`** (#E4E4E4 light, #3A3A3A dark) for things people must be able to find: text field outlines, the sign-up choice tiles and fields, sheet grabbers and the password strength track. Everything else uses the faint `border`.
 - **Finding-a-driver cards** are white with the faint edge and the soft card shadow, instead of grey boxes.
 - Dark mode's other colours are unchanged.
+
+## D-087 — Wallet with a brand header, from the owner's bank-app reference (2026-11-27)
+
+The owner shared a banking app's home screen and asked to take only what GoBye's wallet needs from it.
+
+- **Taken:**
+  - an aubergine header holding a greeting with the first name, the balance (kobo smaller) and a show / hide balance control;
+  - two translucent actions in the header, Add money and History;
+  - the page rising over the header with rounded corners, starting with recent activity; offers below it.
+- **Left out** (GoBye doesn't have them): account number and "Active" badge, send money, airtime, betting and other quick-access tiles, the assistant button.
+- **Details:**
+  - Help moved to a small icon beside notifications;
+  - the status bar is light only while the Wallet tab is showing;
+  - a hidden balance goes back to shown when the app restarts.
+- This replaces the pale-panel wallet from the earlier approved reference and D-084's filled "Add money" tile. Aubergine as a header background follows the existing brand banner use (sign-up, receipt).

@@ -1,5 +1,6 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatNaira, nairaAccessibilityLabel, type Kobo, type WalletTransaction } from '@gobye/core';
@@ -9,14 +10,12 @@ import {
   EmptyState,
   ErrorState,
   Icon,
-  IconButton,
   SimulatedBadge,
   SkeletonGroup,
   SkeletonRow,
   Text,
   layout,
   radii,
-  shadows,
   spacing,
   useTheme,
   type IconName,
@@ -64,6 +63,16 @@ export default function Wallet() {
   }, [add]);
   const [detail, setDetail] = useState<WalletTransaction | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Hide the balance in public; back to shown when the app restarts.
+  const [hidden, setHidden] = useState(false);
+  // The header is dark, so the status bar is light, only while this tab is the one showing.
+  const [focused, setFocused] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setFocused(true);
+      return () => setFocused(false);
+    }, []),
+  );
   const compact = width < 360;
 
   const sorted = useMemo(() => [...wallet.transactions].sort((a, b) => b.createdAt - a.createdAt), [wallet.transactions]);
@@ -86,78 +95,102 @@ export default function Wallet() {
   const whole = formatNaira((Math.floor(wallet.available / 100) * 100) as Kobo);
   const kobo = `.${String(Math.abs(wallet.available) % 100).padStart(2, '0')}`;
 
-  return (
-    <View style={[styles.root, { paddingTop: insets.top, backgroundColor: colors.background }]}>
-      {/* Profile header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.push('/(tabs)/account')} accessibilityRole="button" accessibilityLabel={`Your account${name ? `, ${name}` : ''}`} style={styles.who}>
-          <Avatar uri={user?.photoUri} name={name} size={44} />
-          <View style={styles.flex}>
-            <Text variant="subhead" weight="semibold" numberOfLines={1}>
-              {name || 'Your wallet'}
-            </Text>
-            <Text variant="caption" color="textSecondary">
-              GoBye wallet
-            </Text>
-          </View>
-        </Pressable>
-        <View>
-          <IconButton icon="notification" variant="filled" accessibilityLabel={unreadCount ? `Notifications, ${unreadCount} new` : 'Notifications'} onPress={() => router.push('/notifications')} />
-          {unreadCount ? <View style={[styles.dot, { backgroundColor: colors.navActive, borderColor: colors.background }]} /> : null}
-        </View>
-      </View>
+  const on = colors.onBrandBanner;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const failed = wallet.state === 'error' && wallet.transactions.length === 0;
 
-      {wallet.state === 'error' && wallet.transactions.length === 0 ? (
-        <View style={[styles.panel, styles.flexPanel, { backgroundColor: colors.surfaceMuted }]}>
-          <ErrorState title="Couldn’t load your wallet" body="Check your connection and try again." onRetry={() => void wallet.refresh()} />
-        </View>
-      ) : (
-        <ScrollView
-          style={styles.flex}
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text} />}
-        >
-          <View style={[styles.panel, { backgroundColor: colors.surfaceMuted, borderColor: colors.border, borderWidth: scheme === 'dark' ? StyleSheet.hairlineWidth : 0 }]}>
-            {/* Balance */}
-            <View style={styles.balance}>
-              <Text variant="subhead" color="textSecondary">
+  return (
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      {focused ? <StatusBar style="light" /> : null}
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={on} />}
+      >
+        {/* Brand header (D-087): greeting, the balance and the two things people do here. */}
+        <View style={[styles.hero, { backgroundColor: colors.brandBanner, paddingTop: insets.top + spacing.md }]}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.push('/(tabs)/account')} accessibilityRole="button" accessibilityLabel={`Your account${name ? `, ${name}` : ''}`} style={styles.who}>
+              <Avatar uri={user?.photoUri} name={name} size={44} />
+              <View style={styles.flex}>
+                <Text variant="caption" style={{ color: on, opacity: 0.8 }}>
+                  {greeting}
+                </Text>
+                <Text variant="callout" weight="semibold" numberOfLines={1} style={{ color: on }}>
+                  {user?.firstName || 'Your wallet'}
+                </Text>
+              </View>
+            </Pressable>
+            <View>
+              <HeroIcon icon="notification" label={unreadCount ? `Notifications, ${unreadCount} new` : 'Notifications'} onPress={() => router.push('/notifications')} />
+              {unreadCount ? <View style={[styles.dot, { backgroundColor: colors.accent, borderColor: colors.brandBanner }]} /> : null}
+            </View>
+            <HeroIcon icon="support" label="Help" onPress={() => router.push('/account/support')} testID="wallet-help" />
+          </View>
+
+          <View style={styles.balance}>
+            <View style={styles.balanceLabel}>
+              <Text variant="footnote" style={{ color: on, opacity: 0.85 }}>
                 Available balance
               </Text>
-              {loading ? (
-                <SkeletonGroup label="Loading your balance" style={styles.balanceSkeleton}>
-                  <Bone width={200} height={40} radius={10} />
-                </SkeletonGroup>
-              ) : (
-                <Text accessibilityLabel={`Available balance, ${nairaAccessibilityLabel(wallet.available)}`} testID="wallet-available" style={styles.balanceLine}>
-                  <Text variant="largeTitle" tabular style={compact ? styles.balanceCompact : styles.balanceBig}>
-                    {whole}
+            </View>
+            {loading ? (
+              <SkeletonGroup label="Loading your balance" style={styles.balanceSkeleton}>
+                <Bone width={200} height={40} radius={10} />
+              </SkeletonGroup>
+            ) : (
+              <View style={styles.balanceRow}>
+                <Text accessibilityLabel={hidden ? 'Balance hidden' : `Available balance, ${nairaAccessibilityLabel(wallet.available)}`} testID="wallet-available" style={styles.balanceLine}>
+                  <Text variant="largeTitle" tabular style={[compact ? styles.balanceCompact : styles.balanceBig, { color: on }]}>
+                    {hidden ? '₦ ••••••' : whole}
                   </Text>
-                  <Text variant="largeTitle" tabular color="textSecondary" style={compact ? styles.balanceCompact : styles.balanceBig}>
-                    {kobo}
-                  </Text>
-                </Text>
-              )}
-              <View style={styles.balanceMeta}>
-                {wallet.reserved > 0 ? (
-                  <View style={[styles.metaChip, { backgroundColor: colors.card }]} accessible accessibilityLabel={`Reserved for a trip in progress, ${nairaAccessibilityLabel(wallet.reserved)}`}>
-                    <Icon name="lock" size="xs" color="textSecondary" />
-                    <Text variant="caption" color="textSecondary">
-                      {formatNaira(wallet.reserved)} reserved
+                  {hidden ? null : (
+                    <Text variant="title3" tabular style={{ color: on, opacity: 0.75 }}>
+                      {kobo}
                     </Text>
-                  </View>
-                ) : null}
-                <SimulatedBadge />
+                  )}
+                </Text>
+                <Pressable onPress={() => setHidden((h) => !h)} accessibilityRole="button" accessibilityLabel={hidden ? 'Show balance' : 'Hide balance'} hitSlop={12} testID="wallet-hide">
+                  <Icon name={hidden ? 'eyeClose' : 'eye'} size="sm" color={on} />
+                </Pressable>
               </View>
+            )}
+            <View style={styles.balanceMeta}>
+              {wallet.reserved > 0 && !hidden ? (
+                <View style={[styles.metaChip, styles.glass]} accessible accessibilityLabel={`Reserved for a trip in progress, ${nairaAccessibilityLabel(wallet.reserved)}`}>
+                  <Icon name="lock" size="xs" color={on} />
+                  <Text variant="caption" style={{ color: on }}>
+                    {formatNaira(wallet.reserved)} reserved
+                  </Text>
+                </View>
+              ) : null}
+              <SimulatedBadge />
             </View>
+          </View>
 
-            {/* Action tray */}
-            <View style={styles.tray}>
-              {/* One main action (D-084). History is the list below, with its own "See all". */}
-              <ActionTile primary icon="plus" label="Add money" onPress={() => setDepositOpen(true)} testID="wallet-add" />
-              <ActionTile icon="support" label="Help" onPress={() => router.push('/account/support')} testID="wallet-help" />
-            </View>
+          <View style={styles.tray}>
+            <HeroAction icon="plus" label="Add money" onPress={() => setDepositOpen(true)} testID="wallet-add" />
+            <HeroAction
+              icon="receipt"
+              label={mode === 'history' ? 'Recent' : 'History'}
+              onPress={() => {
+                setMode(mode === 'history' ? 'recent' : 'history');
+                setFilter('all');
+              }}
+              testID="wallet-history"
+            />
+          </View>
+        </View>
 
+        {/* The page rises over the header with rounded corners. */}
+        <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+          {failed ? (
+            <ErrorState title="Couldn’t load your wallet" body="Check your connection and try again." onRetry={() => void wallet.refresh()} />
+          ) : (
+            <>
             {/* A deposit in progress matters now, so it stays above the list. Offers come after it. */}
             {!loading && pendingDeposit ? <DepositCard tx={pendingDeposit} onPress={() => setDetail(pendingDeposit)} /> : null}
 
@@ -175,7 +208,6 @@ export default function Wallet() {
                   accessibilityRole="button"
                   hitSlop={8}
                   style={styles.link}
-                  testID="wallet-history"
                 >
                   <Text variant="footnote" weight="semibold">
                     {mode === 'history' ? 'Show less' : 'See all'}
@@ -244,35 +276,33 @@ export default function Wallet() {
                 </Text>
               </Pressable>
             ) : null}
-          </View>
-        </ScrollView>
-      )}
+            </>
+          )}
+        </View>
+      </ScrollView>
       <DepositSheet visible={depositOpen} onClose={() => setDepositOpen(false)} />
       <TransactionDetailSheet tx={detail} onClose={() => setDetail(null)} onNewDeposit={() => setDepositOpen(true)} />
     </View>
   );
 }
 
-/** Action tile on the pale panel. The primary one is filled and wider; the other stays quiet. */
-function ActionTile({ icon, label, onPress, primary, testID }: { icon: IconName; label: string; onPress: () => void; primary?: boolean; testID?: string }) {
-  const { colors, scheme } = useTheme();
+/** Round translucent icon button on the brand header. */
+function HeroIcon({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID?: string }) {
+  const { colors } = useTheme();
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      testID={testID}
-      style={({ pressed }) => [
-        styles.tile,
-        primary && styles.tilePrimary,
-        primary
-          ? { backgroundColor: colors.primary, borderColor: colors.primary, opacity: pressed ? 0.85 : 1 }
-          : { backgroundColor: pressed ? colors.secondaryPressed : colors.card, borderColor: colors.border },
-        scheme === 'light' && !pressed && !primary && shadows.card,
-      ]}
-    >
-      <Icon name={icon} color={primary ? 'onPrimary' : 'text'} />
-      <Text variant="subhead" weight="semibold" color={primary ? 'onPrimary' : 'text'} numberOfLines={1}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={6} testID={testID} style={({ pressed }) => [styles.heroIcon, styles.glass, pressed && { opacity: 0.7 }]}>
+      <Icon name={icon} size="sm" color={colors.onBrandBanner} />
+    </Pressable>
+  );
+}
+
+/** One of the two header actions: a translucent button, icon beside a short label. */
+function HeroAction({ icon, label, onPress, testID }: { icon: IconName; label: string; onPress: () => void; testID?: string }) {
+  const { colors } = useTheme();
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} testID={testID} style={({ pressed }) => [styles.tile, styles.glass, pressed && { opacity: 0.75 }]}>
+      <Icon name={icon} size="sm" color={colors.onBrandBanner} />
+      <Text variant="subhead" weight="semibold" numberOfLines={1} style={{ color: colors.onBrandBanner }}>
         {label}
       </Text>
     </Pressable>
@@ -336,15 +366,19 @@ function DepositCard({ tx, onPress }: { tx: WalletTransaction; onPress: () => vo
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  hero: { paddingHorizontal: layout.page, paddingBottom: spacing.xl + 28 },
+  heroIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  glass: { backgroundColor: 'rgba(255, 255, 255, 0.12)' },
+  balanceLabel: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radii.pill, backgroundColor: 'rgba(255, 255, 255, 0.10)' },
+  balanceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  // Rises over the header; everything inside starts at the page edge (20).
+  sheet: { flex: 1, marginTop: -28, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: layout.page, paddingTop: spacing.xl, gap: spacing.lg },
   flex: { flex: 1, minWidth: 0 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: layout.page, paddingVertical: spacing.md },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 48 },
   dot: { position: 'absolute', top: 8, right: 8, width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
-  // One left edge (D-084): the panel sits 8 in and pads 12, so its content starts at 20 like the header.
-  scroll: { paddingHorizontal: spacing.sm, paddingBottom: spacing.xl },
-  panel: { borderRadius: 32, padding: spacing.md, gap: spacing.lg },
-  flexPanel: { flex: 1, marginHorizontal: spacing.md, justifyContent: 'center' },
-  balance: { alignItems: 'center', gap: spacing.xs, paddingTop: spacing.xl, paddingBottom: spacing.sm },
+  scroll: { paddingBottom: spacing.xl, flexGrow: 1 },
+  balance: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xl, paddingBottom: spacing.lg },
   balanceSkeleton: { alignItems: 'center', paddingVertical: spacing.xs },
   balanceLine: { textAlign: 'center' },
   balanceBig: { fontSize: 40, lineHeight: 48, letterSpacing: -1 },
@@ -352,8 +386,7 @@ const styles = StyleSheet.create({
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radii.pill },
   tray: { flexDirection: 'row', gap: spacing.sm },
-  tile: { flex: 1, minHeight: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },
-  tilePrimary: { flex: 2 },
+  tile: { flex: 1, minHeight: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: -spacing.sm },
   link: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 32 },
   filters: { gap: spacing.sm },
