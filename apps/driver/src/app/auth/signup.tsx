@@ -124,7 +124,7 @@ export default function SignUp() {
         step={step}
         onClose={close}
         onBack={back}
-        cta={{ title: step === STEPS.length - 1 ? 'Create account' : 'Continue', onPress: submit, loading: busy, loadingLabel: 'Creating account', testID: 'signup-submit' }}
+        cta={{ title: step === STEPS.length - 1 ? 'Create account' : 'Continue', onPress: submit, disabled: step === 1 && !city, loading: busy, loadingLabel: 'Creating account', testID: 'signup-submit' }}
         footnote={<PreviewNote />}
         steps={[
                 <>

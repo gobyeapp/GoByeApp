@@ -34,7 +34,7 @@ const FILTERS: { id: Filter; label: string; match: (t: WalletTransaction) => boo
   { id: 'all', label: 'All', match: () => true },
   { id: 'deposits', label: 'Deposits', match: (t) => t.type === 'top_up' },
   { id: 'trips', label: 'Trip payments', match: (t) => t.type === 'ride_payment' },
-  { id: 'other', label: 'Refunds and reversals', match: (t) => t.status === 'reversed' || (t.type !== 'top_up' && t.type !== 'ride_payment') },
+  { id: 'other', label: 'Refunds', match: (t) => t.status === 'reversed' || (t.type !== 'top_up' && t.type !== 'ride_payment') },
 ];
 const RECENT = 5;
 
@@ -153,40 +153,34 @@ export default function Wallet() {
 
             {/* Action tray */}
             <View style={styles.tray}>
-              <ActionTile icon="plus" label="Add money" onPress={() => setDepositOpen(true)} testID="wallet-add" />
-              <ActionTile
-                icon="receipt"
-                label="History"
-                selected={mode === 'history'}
-                onPress={() => {
-                  setMode(mode === 'history' ? 'recent' : 'history');
-                  setFilter('all');
-                }}
-                testID="wallet-history"
-              />
+              {/* One main action (D-084). History is the list below, with its own "See all". */}
+              <ActionTile primary icon="plus" label="Add money" onPress={() => setDepositOpen(true)} testID="wallet-add" />
               <ActionTile icon="support" label="Help" onPress={() => router.push('/account/support')} testID="wallet-help" />
             </View>
 
-            {/* Contextual banner */}
-            {!loading ? (
-              pendingDeposit ? (
-                <DepositCard tx={pendingDeposit} onPress={() => setDetail(pendingDeposit)} />
-              ) : (
-                <PromoCarousel placement="wallet" testID="wallet-promo" />
-              )
-            ) : null}
+            {/* A deposit in progress matters now, so it stays above the list. Offers come after it. */}
+            {!loading && pendingDeposit ? <DepositCard tx={pendingDeposit} onPress={() => setDetail(pendingDeposit)} /> : null}
 
             {/* History */}
             <View style={styles.sectionHead}>
               <Text variant="headline" accessibilityRole="header" style={styles.flex}>
                 {mode === 'recent' ? 'Recent activity' : 'Transaction history'}
               </Text>
-              {mode === 'recent' && sorted.length > RECENT ? (
-                <Pressable onPress={() => setMode('history')} accessibilityRole="button" hitSlop={8} style={styles.link}>
+              {sorted.length > 0 ? (
+                <Pressable
+                  onPress={() => {
+                    setMode(mode === 'history' ? 'recent' : 'history');
+                    setFilter('all');
+                  }}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  style={styles.link}
+                  testID="wallet-history"
+                >
                   <Text variant="footnote" weight="semibold">
-                    See all
+                    {mode === 'history' ? 'Show less' : 'See all'}
                   </Text>
-                  <Icon name="chevronRight" size="xs" color="text" />
+                  <Icon name={mode === 'history' ? 'chevronUp' : 'chevronRight'} size="xs" color="text" />
                 </Pressable>
               ) : null}
             </View>
@@ -237,6 +231,8 @@ export default function Wallet() {
               )}
             </View>
 
+            {!loading && !pendingDeposit ? <PromoCarousel placement="wallet" testID="wallet-promo" /> : null}
+
             {wallet.state === 'error' ? (
               <Pressable onPress={() => void wallet.refresh()} accessibilityRole="button" style={[styles.notice, { backgroundColor: colors.dangerSurface }]}>
                 <Icon name="warning" size="sm" color="danger" />
@@ -257,24 +253,26 @@ export default function Wallet() {
   );
 }
 
-/** Equal action tile: white tile on the pale panel, icon over a short label. */
-function ActionTile({ icon, label, onPress, selected, testID }: { icon: IconName; label: string; onPress: () => void; selected?: boolean; testID?: string }) {
+/** Action tile on the pale panel. The primary one is filled and wider; the other stays quiet. */
+function ActionTile({ icon, label, onPress, primary, testID }: { icon: IconName; label: string; onPress: () => void; primary?: boolean; testID?: string }) {
   const { colors, scheme } = useTheme();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={selected !== undefined ? { selected } : undefined}
       testID={testID}
       style={({ pressed }) => [
         styles.tile,
-        { backgroundColor: pressed ? colors.secondaryPressed : colors.card, borderColor: selected ? colors.text : colors.border },
-        scheme === 'light' && !pressed && shadows.card,
+        primary && styles.tilePrimary,
+        primary
+          ? { backgroundColor: colors.primary, borderColor: colors.primary, opacity: pressed ? 0.85 : 1 }
+          : { backgroundColor: pressed ? colors.secondaryPressed : colors.card, borderColor: colors.border },
+        scheme === 'light' && !pressed && !primary && shadows.card,
       ]}
     >
-      <Icon name={icon} variant={selected ? 'filled' : 'regular'} color="text" />
-      <Text variant="caption" weight={selected ? 'bold' : 'semibold'} align="center" numberOfLines={1}>
+      <Icon name={icon} color={primary ? 'onPrimary' : 'text'} />
+      <Text variant="subhead" weight="semibold" color={primary ? 'onPrimary' : 'text'} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -342,7 +340,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: layout.page, paddingVertical: spacing.md },
   who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 48 },
   dot: { position: 'absolute', top: 8, right: 8, width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
-  scroll: { paddingHorizontal: spacing.md, paddingBottom: spacing.xl },
+  // One left edge (D-084): the panel sits 8 in and pads 12, so its content starts at 20 like the header.
+  scroll: { paddingHorizontal: spacing.sm, paddingBottom: spacing.xl },
   panel: { borderRadius: 32, padding: spacing.md, gap: spacing.lg },
   flexPanel: { flex: 1, marginHorizontal: spacing.md, justifyContent: 'center' },
   balance: { alignItems: 'center', gap: spacing.xs, paddingTop: spacing.xl, paddingBottom: spacing.sm },
@@ -353,12 +352,13 @@ const styles = StyleSheet.create({
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radii.pill },
   tray: { flexDirection: 'row', gap: spacing.sm },
-  tile: { flex: 1, minHeight: 72, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', gap: spacing.xs + 2, paddingHorizontal: spacing.xs },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xs, marginBottom: -spacing.sm },
+  tile: { flex: 1, minHeight: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },
+  tilePrimary: { flex: 2 },
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: -spacing.sm },
   link: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 32 },
-  filters: { gap: spacing.sm, paddingHorizontal: spacing.xs },
+  filters: { gap: spacing.sm },
   chip: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radii.pill, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
-  history: { borderRadius: 24, paddingHorizontal: spacing.xs, paddingVertical: spacing.xs, overflow: 'hidden' },
+  history: { borderRadius: 24, paddingVertical: spacing.xs, overflow: 'hidden' },
   historyLift: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04)' } as object,
   deposit: { borderRadius: 22, borderWidth: 1, padding: layout.container + 2, gap: spacing.xs },
   depositLift: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04), 0px 6px 16px rgba(0, 0, 0, 0.05)' } as object,
@@ -367,6 +367,6 @@ const styles = StyleSheet.create({
   depositAmount: { marginTop: spacing.xs },
   pending: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radii.pill },
   depositAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.sm, alignSelf: 'flex-start', minHeight: 28 },
-  sep: { height: StyleSheet.hairlineWidth, marginLeft: spacing.xs + spacing.md + 32 + spacing.md, marginRight: spacing.md },
+  sep: { height: StyleSheet.hairlineWidth, marginLeft: spacing.md + 32 + spacing.md, marginRight: spacing.md },
   notice: { flexDirection: 'row', alignItems: 'center', gap: layout.iconGap, padding: layout.container, borderRadius: layout.cardRadius },
 });

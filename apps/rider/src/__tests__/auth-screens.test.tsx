@@ -47,11 +47,8 @@ describe('Create account and Sign in', () => {
     await act(async () => {
       await fireEvent.press(screen.getByTestId('signup-submit'));
     });
-    // City: Continue without a choice asks for one; a tile moves on by itself.
-    await act(async () => {
-      await fireEvent.press(screen.getByTestId('signup-submit'));
-    });
-    expect(screen.getByText('Choose where you’ll ride.')).toBeTruthy();
+    // City: Continue is off until a city is chosen (D-084); a tile moves on by itself.
+    expect(screen.getByTestId('signup-submit').props.accessibilityState?.disabled).toBe(true);
     await act(async () => {
       await fireEvent.press(screen.getByTestId('city-lagos'));
       await new Promise((r) => setTimeout(r, 10));

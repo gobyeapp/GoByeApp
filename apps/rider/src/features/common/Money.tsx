@@ -3,8 +3,9 @@ import { StatusBadge, Text, type StatusKind, type TypographyVariant } from '@gob
 import { StyleSheet } from 'react-native';
 
 /**
- * Signed amount with direction colour (2026-10-21): money in = green with "+", money out = red with "−".
- * Direction is independent of processing status, so a pending debit stays red and shows a Pending badge.
+ * Signed amount (D-084): money in = green with "+"; money out = the normal text colour with "−". Red is
+ * kept for things that need attention, and paying for a trip isn't one. Direction is independent of
+ * processing status, so a pending debit still shows its Pending badge.
  * `voided` (failed or reversed: the balance never changed) is grey and struck through.
  */
 export function SignedAmount({ amount, voided, variant = 'subhead' }: { amount: Kobo; voided?: boolean; variant?: TypographyVariant }) {
@@ -15,7 +16,7 @@ export function SignedAmount({ amount, voided, variant = 'subhead' }: { amount: 
       weight="semibold"
       tabular
       numberOfLines={1}
-      color={voided ? 'textSecondary' : credit ? 'success' : 'danger'}
+      color={voided ? 'textSecondary' : credit ? 'success' : 'text'}
       style={voided ? styles.struck : undefined}
       accessibilityLabel={`${credit ? 'Money in' : 'Money out'}, ${nairaAccessibilityLabel(Math.abs(amount) as Kobo)}${voided ? ', no effect on balance' : ''}`}
     >

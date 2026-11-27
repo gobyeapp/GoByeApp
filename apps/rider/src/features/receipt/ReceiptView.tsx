@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
-import { PAYMENT_METHOD_LABELS, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, receiptReference, type TripReceipt } from '@gobye/core';
+import { PAYMENT_METHOD_LABELS, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, receiptReference, receiptTimes, type TripReceipt } from '@gobye/core';
 import {
   BRAND_NAME,
   Avatar,
@@ -92,6 +92,7 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
   const driverName = r.driver ? [r.driver.firstName, r.driver.lastName].filter(Boolean).join(' ') : '';
   const v = r.driver?.vehicle;
   const method = PAYMENT_METHOD_LABELS[r.paymentMethod.type] ?? r.paymentMethod.label;
+  const times = receiptTimes(r);
 
   const share = async () => {
     setSharing(true);
@@ -107,8 +108,8 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
         destination: r.destination,
         driver: r.driver,
         categoryName: service,
-        startedAt: r.startedAt,
-        completedAt: r.completedAt,
+        startedAt: times.pickupAt,
+        completedAt: times.dropoffAt,
         distanceMeters: r.distanceMeters,
         durationSeconds: r.durationSeconds,
       });
@@ -129,15 +130,11 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
     <Screen
       header={<ScreenHeader title={title} onBack={back} />}
       footer={
-        <>
-          <Button title="Share receipt" leadingIcon="share" loading={sharing} loadingLabel="Preparing PDF" onPress={share} testID="receipt-share" />
-          <View style={styles.row}>
-            {!rating ? (
-              <Button title="Rate trip" variant="secondary" size="md" style={styles.flex} leadingIcon="star" onPress={() => router.push({ pathname: '/rate/[id]', params: { id, from: 'receipt' } })} />
-            ) : null}
-            <Button title="Get help" variant="secondary" size="md" style={styles.flex} leadingIcon="support" onPress={() => router.push({ pathname: '/account/support', params: { trip: id } })} />
-          </View>
-        </>
+        // One compact row (D-084), so the receipt itself keeps the screen. Rating lives inside the ticket.
+        <View style={styles.row}>
+          <Button title="Get help" variant="secondary" size="md" style={styles.flex} leadingIcon="support" onPress={() => router.push({ pathname: '/account/support', params: { trip: id } })} />
+          <Button title="Share receipt" size="md" style={styles.flex} leadingIcon="share" loading={sharing} loadingLabel="Preparing" onPress={share} testID="receipt-share" />
+        </View>
       }
     >
       <Animated.View
@@ -184,11 +181,10 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
 
         <TearLine />
 
-        {/* Journey timeline. */}
-        <View style={styles.section}>
-          <Stop dot={colors.text} time={time(r.startedAt)} title={r.pickup.title} subtitle={r.pickup.subtitle} label="Pickup" />
-          <View style={[styles.rail, { backgroundColor: colors.border }]} />
-          <Stop dot={brand.tangerine} time={time(r.completedAt)} title={r.destination.title} subtitle={r.destination.subtitle} label="Drop-off" last />
+        {/* Journey timeline: one unbroken line from the pickup dot to the drop-off square. */}
+        <View style={styles.journey}>
+          <Stop dot={colors.text} time={time(times.pickupAt)} title={r.pickup.title} subtitle={r.pickup.subtitle} label="Pickup" />
+          <Stop dot={brand.tangerine} time={time(times.dropoffAt)} title={r.destination.title} subtitle={r.destination.subtitle} label="Drop-off" last />
         </View>
 
         <View style={[styles.facts, { borderColor: colors.border }]}>
@@ -215,8 +211,8 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
               </View>
             </View>
             {v ? (
-              <View style={[styles.plate, { borderColor: colors.text }]}>
-                <Text variant="caption" weight="bold" tabular>
+              <View style={[styles.plate, { borderColor: colors.border, backgroundColor: colors.surfaceMuted }]}>
+                <Text variant="caption" weight="semibold" color="textSecondary" tabular>
                   {v.plate}
                 </Text>
               </View>
@@ -226,10 +222,17 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
 
         {/* Fare breakdown. */}
         <View style={styles.section}>
-          <Line label="Agreed trip fare" value={formatNaira(r.fare)} spoken={nairaAccessibilityLabel(r.fare)} />
-          {r.processingFee > 0 ? <Line label={`${method} fee`} hint="Separate from the fare" value={formatNaira(r.processingFee)} spoken={nairaAccessibilityLabel(r.processingFee)} /> : null}
-          <View style={[styles.totalRule, { backgroundColor: colors.border }]} />
-          <Line label="Total" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
+          {/* With no fee the fare is the total, so it is shown once. */}
+          {r.processingFee > 0 ? (
+            <>
+              <Line label="Agreed trip fare" value={formatNaira(r.fare)} spoken={nairaAccessibilityLabel(r.fare)} />
+              <Line label={`${method} fee`} hint="Separate from the fare" value={formatNaira(r.processingFee)} spoken={nairaAccessibilityLabel(r.processingFee)} />
+              <View style={[styles.totalRule, { backgroundColor: colors.border }]} />
+              <Line label="Total" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
+            </>
+          ) : (
+            <Line label="Agreed trip fare" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
+          )}
           <View style={[styles.commission, { backgroundColor: colors.surfaceMuted }]}>
             <Icon name="heart" variant="filled" size={14} color={brand.tangerine} />
             <Text variant="caption" weight="regular" color="textSecondary" style={styles.flex}>
@@ -254,6 +257,23 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
             <Icon name="copy" size={16} color="text" />
           </View>
         </Pressable>
+        {!rating ? (
+          <Pressable
+            onPress={() => router.push({ pathname: '/rate/[id]', params: { id, from: 'receipt' } })}
+            accessibilityRole="button"
+            style={({ pressed }) => [styles.rated, { borderColor: colors.border }, pressed && { opacity: 0.6 }]}
+            testID="receipt-rate"
+          >
+            <Text variant="callout" weight="semibold">
+              Rate this trip
+            </Text>
+            <View style={styles.inline}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Icon key={n} name="star" size={16} color="textSecondary" />
+              ))}
+            </View>
+          </Pressable>
+        ) : null}
         {rating ? (
           <View style={[styles.rated, { borderColor: colors.border }]}>
             <Text variant="caption" color="textSecondary">
@@ -291,10 +311,15 @@ function TearLine() {
 }
 
 function Stop({ dot, time: t, title, subtitle, label, last }: { dot: string; time: string; title: string; subtitle: string; label: string; last?: boolean }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.stop} accessible accessibilityLabel={`${label} at ${t}: ${title}, ${subtitle}`}>
-      <View style={[styles.dot, last ? styles.dotSquare : null, { backgroundColor: dot }]} />
-      <View style={styles.flex}>
+      <View style={styles.railCol}>
+        {last ? <View style={[styles.railTop, { backgroundColor: colors.border }]} /> : <View style={styles.railGap} />}
+        <View style={[styles.dot, last ? styles.dotSquare : null, { backgroundColor: dot }]} />
+        {last ? null : <View style={[styles.railRest, { backgroundColor: colors.border }]} />}
+      </View>
+      <View style={[styles.flex, last ? null : styles.stopBody]}>
         <Text variant="callout" weight="semibold" numberOfLines={2}>
           {title}
         </Text>
@@ -364,15 +389,20 @@ const styles = StyleSheet.create({
   notchLeft: { left: -NOTCH / 2 },
   notchRight: { right: -NOTCH / 2 },
   section: { paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, gap: spacing.sm },
-  stop: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  dot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
+  journey: { paddingHorizontal: spacing.xl, paddingVertical: spacing.lg },
+  stop: { flexDirection: 'row', alignItems: 'stretch', gap: spacing.md },
+  stopBody: { paddingBottom: spacing.lg },
+  railCol: { width: 10, alignItems: 'center' },
+  railGap: { height: 6 },
+  railTop: { width: 2, height: 6 },
+  railRest: { width: 2, flex: 1 },
+  dot: { width: 10, height: 10, borderRadius: 5 },
   dotSquare: { borderRadius: 2 },
-  rail: { width: 2, height: 18, marginLeft: 4, marginVertical: -2, borderRadius: 1 },
   facts: { flexDirection: 'row', marginHorizontal: spacing.xl, paddingVertical: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderBottomWidth: StyleSheet.hairlineWidth },
   fact: { flex: 1, gap: 2 },
   factSep: { width: StyleSheet.hairlineWidth, marginHorizontal: spacing.md },
   driver: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.xl, paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth },
-  plate: { borderWidth: 1.5, borderRadius: 6, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+  plate: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, paddingHorizontal: spacing.sm, paddingVertical: 2 },
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   totalRule: { height: StyleSheet.hairlineWidth, marginVertical: spacing.xs },
   commission: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: layout.controlRadius, marginTop: spacing.sm },

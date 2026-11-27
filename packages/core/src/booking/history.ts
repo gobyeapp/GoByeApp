@@ -98,3 +98,14 @@ export function receiptReference(bookingId: string): string {
   const tail = bookingId.replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase();
   return `GB-${tail.padStart(8, '0')}`;
 }
+
+/**
+ * Pickup and drop-off times that agree with the trip's duration (D-084). A simulated trip is played back
+ * in seconds, so its recorded start and end are almost the same moment while the receipt says, say,
+ * 34 minutes. For those, the pickup time is worked back from the drop-off. Real trips use what was recorded.
+ */
+export function receiptTimes(r: Pick<TripReceipt, 'startedAt' | 'completedAt' | 'durationSeconds' | 'isSimulated'>): { pickupAt: number; dropoffAt: number } {
+  const recorded = r.completedAt - r.startedAt;
+  const compressed = r.isSimulated && r.durationSeconds >= 60 && recorded < (r.durationSeconds * 1000) / 2;
+  return { pickupAt: compressed ? r.completedAt - r.durationSeconds * 1000 : r.startedAt, dropoffAt: r.completedAt };
+}

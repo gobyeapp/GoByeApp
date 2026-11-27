@@ -898,3 +898,33 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - kept as a private artifact for 14 days. Restore steps are in `BACKUP_DISASTER_RECOVERY.md`, rehearsed locally.
 - **Personal data download:** `GET /v1/me/export` returns everything GoBye's tables hold about the caller as a JSON attachment, for the NDPA right of access. Internal storage details and other people's ids are left out, and each download is audited. Not yet in the apps' Account screens.
 - **Threat model:** T16 to T23 cover phone-code abuse, password-only sign-in, session theft, staff document access, unscanned uploads, approval races, deletion and data rights, and backup exposure.
+
+## D-084 — Rider screens tidy-up after the owner's review on iPhone (2026-11-27)
+
+The owner reviewed the web preview on an iPhone and asked for the alignment and hierarchy problems to be fixed. Some of these replace earlier choices.
+
+- **Money out is no longer red.** A trip payment shows "−" in the normal text colour; money in stays green. Red is kept for things that need attention. This replaces the 2026-10-21 rule (red for money out).
+- **Selected segment** (Week / Month / All time) is a raised white pill, not a black outline.
+- **Wallet:**
+  - "Add money" is the one filled, wider action; the History tile is gone, and the list has "See all" / "Show less";
+  - offers sit below the transactions (a deposit in progress still sits above);
+  - rows show the exact time ("Today, 11:17"); the last filter is "Refunds", so all four fit;
+  - the header, tiles, headings and cards share one left edge (20).
+- **Transfer details:**
+  - every row has the same shape (label over value), with the things to copy first and a quiet Copy pill;
+  - once the money is in, the sheet becomes "Money added" with no instructions or Copy buttons;
+  - the title is left-aligned with the content.
+- **Ride details:**
+  - one compact row of actions (Get help, Share receipt); "Rate this trip" moved into the ticket;
+  - the route line is unbroken;
+  - with no fee, the fare is shown once;
+  - the plate is quieter;
+  - simulated trips show a pickup time that agrees with the duration (`receiptTimes`).
+  - The dashed lines stay: they are the ticket's tear lines.
+- **Activities:** no average for a single trip, no day subtotal for a single trip, empty filters are hidden, and each row shows the time and how it was paid (the rest is on the receipt).
+- **Create account and the other journeys (both apps):**
+  - Back moved to the top-left of the header, like every other screen, so Continue is full width. This replaces the round back button beside it (2026-10-22);
+  - the flow's name is a quiet bar and the step's question is the headline;
+  - inactive step labels are brighter; the tiles are one height;
+  - Continue is off on the City step until a city is chosen.
+- **Kept:** the Simulated badges (required while services are simulated), and the X on sheets beside Done.

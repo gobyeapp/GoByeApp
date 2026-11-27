@@ -48,8 +48,8 @@ describe('Driver account', () => {
     await press('signup-submit');
     expect(screen.getByText('Where will you drive, Tunde?')).toBeTruthy();
     expect(screen.queryByTestId('city-other')).toBeNull();
-    await press('signup-submit');
-    expect(screen.getByText('Choose where you’ll drive.')).toBeTruthy();
+    // Continue is off until a city is chosen (D-084).
+    expect(screen.getByTestId('signup-submit').props.accessibilityState?.disabled).toBe(true);
     await press('city-abuja');
     await fireEvent.changeText(screen.getByTestId('signup-email'), 'tunde@example.com');
     await fireEvent.changeText(screen.getByTestId('signup-phone'), '0803 123 4567');

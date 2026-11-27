@@ -1,13 +1,18 @@
 import * as Clipboard from 'expo-clipboard';
-import { StyleSheet, View } from 'react-native';
-import { Button, Text, spacing, useToast } from '@gobye/ui';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { Icon, Text, radii, spacing, useTheme, useToast } from '@gobye/ui';
 import { useHaptics } from '@/state/haptics';
 
-/** Label + value with a copy control (bank details, referral code/link). */
-export function CopyRow({ label, value, copyValue, spoken, testID }: { label: string; value: string; copyValue?: string; spoken?: string; testID?: string }) {
+/**
+ * One line of bank details: a small label over the value (D-084). The value is the thing people need,
+ * so it is the largest text in the row; "Copy" is a quiet pill beside it. Without `copy`, the same layout
+ * with no button (bank, account name), so every row in a group lines up.
+ */
+export function CopyRow({ label, value, copyValue, spoken, testID, copy = true }: { label: string; value: string; copyValue?: string; spoken?: string; testID?: string; copy?: boolean }) {
   const toast = useToast();
   const haptic = useHaptics();
-  const copy = async () => {
+  const { colors } = useTheme();
+  const doCopy = async () => {
     await Clipboard.setStringAsync(copyValue ?? value);
     haptic('selection');
     toast(`${label} copied`, 'success');
@@ -15,19 +20,34 @@ export function CopyRow({ label, value, copyValue, spoken, testID }: { label: st
   return (
     <View style={styles.row}>
       <View style={styles.flex} accessible accessibilityLabel={`${label}, ${spoken ?? value}`}>
-        <Text variant="footnote" color="textSecondary">
+        <Text variant="caption" color="textSecondary">
           {label}
         </Text>
-        <Text variant="headline" tabular selectable>
+        <Text variant={copy ? 'headline' : 'callout'} weight={copy ? 'bold' : 'medium'} tabular selectable>
           {value}
         </Text>
       </View>
-      <Button title="Copy" size="md" variant="secondary" leadingIcon="copy" onPress={copy} accessibilityLabel={`Copy ${label}`} testID={testID} />
+      {copy ? (
+        <Pressable
+          onPress={doCopy}
+          accessibilityRole="button"
+          accessibilityLabel={`Copy ${label}`}
+          hitSlop={8}
+          style={({ pressed }) => [styles.copy, { backgroundColor: pressed ? colors.secondaryPressed : colors.card, borderColor: colors.border }]}
+          testID={testID}
+        >
+          <Icon name="copy" size={14} color="text" />
+          <Text variant="footnote" weight="semibold">
+            Copy
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56 },
-  flex: { flex: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 48 },
+  flex: { flex: 1, minWidth: 0, gap: 2 },
+  copy: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radii.pill, borderWidth: StyleSheet.hairlineWidth },
 });

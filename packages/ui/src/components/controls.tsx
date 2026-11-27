@@ -125,7 +125,7 @@ export function SegmentedControl<T extends string>({ segments, value, onChange, 
             accessibilityLabel={s.label}
             accessibilityState={{ selected }}
             testID={`segment-${s.value}`}
-            style={[styles.segment, selected && { backgroundColor: colors.surface, borderColor: colors.primary }]}
+            style={[styles.segment, selected && { backgroundColor: colors.surface }, selected && styles.segmentOn]}
           >
             {s.icon ? <Icon name={s.icon} size="sm" variant={selected ? 'filled' : 'regular'} color={selected ? 'primary' : 'textSecondary'} /> : null}
             <Text variant="subhead" weight="semibold" color={selected ? 'text' : 'textSecondary'}>
@@ -193,6 +193,8 @@ const styles = StyleSheet.create({
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: minTouch },
   box: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   segments: { flexDirection: 'row', padding: spacing.xs, borderRadius: radii.lg, gap: spacing.xs },
+  // Selected reads as a raised pill (D-084), not an outline that could be mistaken for a tap highlight.
+  segmentOn: { boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.12)' } as object,
   segment: {
     flex: 1,
     minHeight: minTouch,

@@ -1281,3 +1281,17 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Safari's built-in video buttons are hidden for this clip;
   - it starts on the first touch.
 - Checked in Chromium at iPhone 13 size with autoplay blocked: the still picture shows with no button, and the first touch starts the clip. Normal autoplay is unchanged. **Not tried on a real iPhone.**
+
+## 2026-11-27 — Rider screens tidy-up from the owner's iPhone review (D-084)
+
+- **Changed:**
+  - `features/common/Money.tsx`, `CopyRow.tsx`;
+  - the Wallet and Activities tabs;
+  - `DepositSheet`, `TransferSheet`, `ReceiptView`, `TransactionRow`;
+  - `@gobye/ui` `Journey.tsx` (header bar with Back) and the segmented control;
+  - both sign-up screens (Continue off until a city is chosen);
+  - core `receiptTimes`.
+- **Checked:**
+  - Each screen was opened in Chromium at iPhone 13 size on a local build and looked at (Wallet, Transfer details before and after confirmation, Activities, Ride details, Create account), with no page errors.
+  - Tests: core 312, rider 37, driver 14. Typecheck, lint, and Android and iOS exports for both apps pass.
+  - **Not tried on a real phone.**

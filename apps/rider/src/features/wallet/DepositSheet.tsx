@@ -171,48 +171,54 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
   }
 
   const st = TX_STATUS[status];
+  // Done (D-084): the money is in, so the sheet says so. No transfer instructions, no Copy buttons.
+  if (status === 'successful' && instructions) {
+    return (
+      <Sheet visible={visible} onClose={onClose} title="Money added" subtitle={`${formatNaira(instructions.amount)} is in your wallet.`} hero={<HeroTile icon="check" />} footer={<Button title="Done" onPress={onClose} testID="deposit-done" />}>
+        <View style={[styles.group, { backgroundColor: colors.surfaceMuted }]} accessibilityLiveRegion="polite">
+          <View style={styles.groupBody}>
+            <CopyRow copy={false} label="Amount" value={formatNaira(instructions.amount)} />
+            <CopyRow copy={false} label="From" value="Bank transfer" />
+            <CopyRow copy={false} label="Reference" value={instructions.reference} />
+          </View>
+        </View>
+        {instructions.isSimulated ? (
+          <View style={styles.statusRow}>
+            <SimulatedBadge />
+          </View>
+        ) : null}
+      </Sheet>
+    );
+  }
   return (
     <Sheet
       visible={visible}
       onClose={onClose}
       title="Transfer details"
       subtitle="Send the exact amount from your banking app."
-      hero={<HeroTile icon="bank" />}
+      headerAlign="leading"
       footer={
-        status === 'successful' ? (
-          <Button title="Done" onPress={onClose} />
-        ) : (
-          <>
-            <Button title={status === 'failed' ? 'Check again' : 'I’ve sent it'} onPress={check} loading={checking} disabled={checking} testID="deposit-check" />
-            <Button title="Later" variant="tertiary" onPress={onClose} />
-          </>
-        )
+        <>
+          <Button title={status === 'failed' ? 'Check again' : 'I’ve sent it'} onPress={check} loading={checking} disabled={checking} testID="deposit-check" />
+          <Button title="Later" variant="tertiary" onPress={onClose} />
+        </>
       }
     >
       {instructions ? (
         <>
           <View style={styles.statusRow} accessibilityLiveRegion="polite">
-            <StatusBadge kind={st.kind} label={status === 'pending' ? 'Awaiting confirmation' : status === 'successful' ? 'Added to your wallet' : st.label} />
+            <StatusBadge kind={st.kind} label={status === 'pending' ? 'Awaiting confirmation' : st.label} />
             {instructions.isSimulated ? <SimulatedBadge /> : null}
           </View>
           <View style={[styles.group, { backgroundColor: colors.surfaceMuted }]}>
-            <Text variant="footnote" weight="semibold" color="textSecondary" style={styles.groupTitle}>
-              Send to
-            </Text>
-            <View style={[styles.groupDivider, { backgroundColor: colors.border }]} />
+            {/* What to copy comes first; every row has the same shape (label over value). */}
             <View style={styles.groupBody}>
-              <View style={styles.kv}>
-                <Text variant="callout" color="textSecondary">Bank</Text>
-                <Text variant="callout" weight="semibold" style={styles.kvValue}>{instructions.bankName}</Text>
-              </View>
-              <View style={styles.kv}>
-                <Text variant="callout" color="textSecondary">Account name</Text>
-                <Text variant="callout" weight="semibold" style={styles.kvValue}>{instructions.accountName}</Text>
-              </View>
-              <Divider />
               <CopyRow label="Account number" value={instructions.accountNumber} testID="copy-account" />
               <CopyRow label="Exact amount" value={formatNaira(instructions.amount)} copyValue={String(Math.round(instructions.amount / 100))} />
               <CopyRow label="Reference" value={instructions.reference} />
+              <Divider />
+              <CopyRow copy={false} label="Bank" value={instructions.bankName} />
+              <CopyRow copy={false} label="Account name" value={instructions.accountName} />
             </View>
           </View>
           <Text variant="footnote" color="textSecondary">
@@ -234,7 +240,7 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
   );
 }
 
-function HeroTile({ icon }: { icon: 'wallet' | 'bank' }) {
+function HeroTile({ icon }: { icon: 'wallet' | 'bank' | 'check' }) {
   const { colors } = useTheme();
   return (
     <View style={[styles.hero, { backgroundColor: colors.brandBanner }]}>
@@ -264,10 +270,7 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center', flexWrap: 'wrap' },
   hero: { width: 64, height: 64, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   group: { borderRadius: layout.cardRadius, overflow: 'hidden' },
-  groupTitle: { paddingHorizontal: layout.container, paddingVertical: spacing.md },
   howToggle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 48, paddingHorizontal: layout.container },
   groupDivider: { height: StyleSheet.hairlineWidth },
   groupBody: { paddingHorizontal: layout.container, paddingVertical: spacing.sm, gap: spacing.sm },
-  kv: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md, minHeight: 32 },
-  kvValue: { flexShrink: 1, textAlign: 'right' },
 });

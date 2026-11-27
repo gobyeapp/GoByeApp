@@ -22,3 +22,14 @@ describe('account rules (Backend Phase 2)', () => {
     expect(deletionDueAt(0)).toBe(14 * 86_400_000);
   });
 });
+
+describe('receipt times (D-084)', () => {
+  const { receiptTimes } = jest.requireActual('../booking/history') as typeof import('../booking/history');
+  it('works the pickup time back from the drop-off for a simulated trip played in seconds', () => {
+    expect(receiptTimes({ startedAt: 1_000_000, completedAt: 1_020_000, durationSeconds: 2040, isSimulated: true })).toEqual({ pickupAt: 1_020_000 - 2_040_000, dropoffAt: 1_020_000 });
+  });
+  it('keeps recorded times for real trips and for simulated trips that took their time', () => {
+    expect(receiptTimes({ startedAt: 0, completedAt: 20_000, durationSeconds: 2040, isSimulated: false }).pickupAt).toBe(0);
+    expect(receiptTimes({ startedAt: 0, completedAt: 1_900_000, durationSeconds: 2040, isSimulated: true }).pickupAt).toBe(0);
+  });
+});

@@ -58,12 +58,12 @@ export function TransferSheet({
     >
       {payout ? (
         <View style={[styles.group, { backgroundColor: colors.surfaceMuted }]}>
-          <Row label="Bank" value={payout.bankName} />
-          <Row label="Account name" value={payout.accountName} />
-          <View style={[styles.rule, { backgroundColor: colors.border }]} />
           <CopyRow label="Account number" value={payout.accountNumber} testID="copy-account" />
           <CopyRow label="Amount" value={formatNaira(amount)} copyValue={amount % 100 === 0 ? String(amount / 100) : (amount / 100).toFixed(2)} spoken={nairaAccessibilityLabel(amount)} testID="copy-amount" />
           <CopyRow label="Reference" value={reference} testID="copy-reference" />
+          <View style={[styles.rule, { backgroundColor: colors.border }]} />
+          <CopyRow copy={false} label="Bank" value={payout.bankName} />
+          <CopyRow copy={false} label="Account name" value={payout.accountName} />
         </View>
       ) : (
         <View style={[styles.notice, { backgroundColor: colors.dangerSurface }]} accessible accessibilityLiveRegion="polite">
@@ -77,24 +77,9 @@ export function TransferSheet({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}, ${value}`}>
-      <Text variant="subhead" color="textSecondary">
-        {label}
-      </Text>
-      <Text variant="subhead" weight="semibold" style={styles.rowValue}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   group: { borderRadius: layout.cardRadius, paddingHorizontal: layout.container, paddingVertical: spacing.sm, gap: spacing.xxs },
   rule: { height: StyleSheet.hairlineWidth, marginVertical: spacing.xs },
-  row: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md, minHeight: 36, alignItems: 'center' },
-  rowValue: { flexShrink: 1, textAlign: 'right' },
   notice: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: layout.container, borderRadius: layout.cardRadius },
 });

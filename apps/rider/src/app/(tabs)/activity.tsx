@@ -143,8 +143,13 @@ export default function Activity() {
               <Stat label="Trips" value={String(summary.trips)} />
               <View style={[styles.statSep, { backgroundColor: colors.border }]} />
               <Stat label="Distance" value={summary.distanceMeters ? formatDistance(summary.distanceMeters) : '0 km'} />
-              <View style={[styles.statSep, { backgroundColor: colors.border }]} />
-              <Stat label="Avg fare" value={summary.average ? formatNaira(summary.average) : '—'} />
+              {/* An average of one trip is just that trip's fare again. */}
+              {summary.trips > 1 ? (
+                <>
+                  <View style={[styles.statSep, { backgroundColor: colors.border }]} />
+                  <Stat label="Avg fare" value={summary.average ? formatNaira(summary.average) : '—'} />
+                </>
+              ) : null}
             </View>
             {summary.attention ? (
               <Pressable
@@ -164,7 +169,8 @@ export default function Activity() {
 
           {/* Filters. */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll} accessibilityRole="radiogroup" accessibilityLabel="Filter trips">
-            {FILTERS.map((f) => (
+            {/* A filter with nothing in it is hidden (the one in use always stays). */}
+            {FILTERS.filter((f) => f.id === 'all' || counts[f.id] > 0 || filter === f.id).map((f) => (
               <Chip key={f.id} label={f.label} icon={f.icon} count={f.id === 'all' ? undefined : counts[f.id]} selected={filter === f.id} onPress={() => pick(f.id)} testID={`filter-${f.id}`} />
             ))}
           </ScrollView>
@@ -187,7 +193,7 @@ export default function Activity() {
                   <Text variant="footnote" weight="semibold" color="textSecondary" accessibilityRole="header" style={styles.flex}>
                     {s.title}
                   </Text>
-                  {summariseHistory(s.data).spent ? (
+                  {s.data.length > 1 && summariseHistory(s.data).spent ? (
                     <Text variant="footnote" color="textSecondary" tabular>
                       {formatNaira(summariseHistory(s.data).spent)}
                     </Text>
@@ -263,6 +269,8 @@ function TripRow({ item, first }: { item: TripReceipt; first: boolean }) {
   const amount = chargedAmount(item);
   const driver = item.driver?.firstName;
   const meta = [time(item.completedAt), formatDistance(item.distanceMeters), formatDuration(item.durationSeconds), driver].filter(Boolean).join(' · ');
+  // On screen: when and how it was paid. Distance, duration and driver are on the receipt.
+  const line = `${time(item.completedAt)} · ${item.paymentMethod.type === 'wallet' ? 'Wallet' : 'Bank transfer'}`;
   const attention = needsAttention(item);
   return (
     <Pressable
@@ -274,9 +282,6 @@ function TripRow({ item, first }: { item: TripReceipt; first: boolean }) {
     >
       <View style={[styles.icon, { backgroundColor: attention ? colors.warningSurface : colors.surfaceMuted }]}>
         <Icon name="car" variant="filled" size="sm" color="text" />
-        <View style={[styles.subIcon, { backgroundColor: colors.card }]}>
-          <Icon name={item.paymentMethod.type === 'wallet' ? 'wallet' : 'bank'} size={11} color="textSecondary" />
-        </View>
       </View>
       <View style={styles.flex}>
         <Text variant="callout" weight="medium" numberOfLines={1}>
@@ -285,12 +290,12 @@ function TripRow({ item, first }: { item: TripReceipt; first: boolean }) {
         <Text variant="footnote" color="textSecondary" numberOfLines={1}>
           From {item.pickup.title}
         </Text>
-        <Text variant="caption" weight="regular" color="textSecondary" numberOfLines={2} style={styles.meta}>
-          {meta}
+        <Text variant="caption" weight="regular" color="textSecondary" numberOfLines={1} style={styles.meta}>
+          {line}
         </Text>
       </View>
       <View style={styles.right}>
-        {/* A trip payment is money out: red with "−". Status only when it isn't a normal paid trip. */}
+        {/* A trip payment is money out: "−" in the normal text colour (D-084). Status only when it isn't a normal paid trip. */}
         <SignedAmount amount={-amount as Kobo} voided={item.paymentStatus === 'failed' || item.paymentStatus === 'reversed'} variant="callout" />
         <TxStatusBadge kind={pay.kind} label={pay.label} />
       </View>
@@ -314,11 +319,10 @@ const styles = StyleSheet.create({
   chips: { gap: spacing.sm, paddingHorizontal: layout.page },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 40, paddingHorizontal: spacing.md + 2, borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
   section: { gap: spacing.sm },
-  sectionHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xs },
+  sectionHead: { flexDirection: 'row', alignItems: 'center' },
   card: { borderRadius: layout.cardRadius, paddingHorizontal: layout.container },
   row: { flexDirection: 'row', alignItems: 'center', gap: layout.iconGap, minHeight: 76, paddingVertical: spacing.md },
   icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  subIcon: { position: 'absolute', right: -3, bottom: -3, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   meta: { marginTop: 2 },
   right: { alignItems: 'flex-end', gap: 4, flexShrink: 0, maxWidth: '40%' },
 });

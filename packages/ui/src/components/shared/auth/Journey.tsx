@@ -61,7 +61,7 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
       </Animated.View>
       <View style={styles.labels}>
         {labels.map((l, i) => (
-          <Text key={l} variant="caption" style={[styles.label, { textAlign: i === 0 ? 'left' : i === labels.length - 1 ? 'right' : 'center', color: i === step ? '#FFFFFF' : 'rgba(255,255,255,0.62)' }]}>
+          <Text key={l} variant="caption" style={[styles.label, { textAlign: i === 0 ? 'left' : i === labels.length - 1 ? 'right' : 'center', color: i === step ? '#FFFFFF' : 'rgba(255,255,255,0.82)' }]}>
             {l}
           </Text>
         ))}
@@ -71,7 +71,7 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
 }
 
 /** The plum header: close, eyebrow, title and the route. */
-export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, arrived, compact, collapsed }: { eyebrow?: string; title: string; step: number; labels: string[]; onClose: () => void; topInset: number; arrived?: boolean; compact?: boolean; collapsed?: boolean }) {
+export function JourneyHero({ eyebrow, title, step, labels, onClose, onBack, topInset, arrived, compact, collapsed }: { eyebrow?: string; title: string; step: number; labels: string[]; onClose: () => void; onBack?: () => void; topInset: number; arrived?: boolean; compact?: boolean; collapsed?: boolean }) {
   if (collapsed) {
     // While typing: a slim bar (title, step count, thin progress) so the field and keyboard get the room.
     const p = labels.length > 1 ? step / (labels.length - 1) : 0;
@@ -79,6 +79,11 @@ export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, a
       <View style={[styles.heroSlim, { paddingTop: topInset + spacing.sm }]}>
         <PlumBackground />
         <View style={styles.slimRow}>
+          {onBack ? (
+            <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={10} style={({ pressed }) => [styles.xSlim, { opacity: pressed ? 0.7 : 1 }]}>
+              <Icon name="back" size={15} color="#FFFFFF" />
+            </Pressable>
+          ) : null}
           <Text style={styles.slimTitle} accessibilityRole="header" numberOfLines={1}>
             {title}
           </Text>
@@ -98,17 +103,28 @@ export function JourneyHero({ eyebrow, title, step, labels, onClose, topInset, a
   return (
     <View style={[styles.hero, { paddingTop: topInset + (compact ? spacing.sm : spacing.lg) }, compact && styles.heroCompact]}>
       <PlumBackground />
-      <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8} style={({ pressed }) => [styles.x, { top: topInset + spacing.md, opacity: pressed ? 0.7 : 1 }]} testID="journey-close">
-        <Icon name="close" size={17} color="#FFFFFF" />
-      </Pressable>
-      {eyebrow ? (
-        <Text variant="caption" style={styles.eyebrow}>
-          {eyebrow}
-        </Text>
-      ) : null}
-      <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]} accessibilityRole="header">
-        {title}
-      </Text>
+      {/* One quiet bar (D-084): Back where every other screen has it, the flow's name, then Close. The
+          step's question below is the page's headline. */}
+      <View style={styles.heroBar}>
+        {onBack ? (
+          <Pressable onPress={onBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={8} style={({ pressed }) => [styles.x, { opacity: pressed ? 0.7 : 1 }]} testID="journey-back">
+            <Icon name="back" size={17} color="#FFFFFF" />
+          </Pressable>
+        ) : null}
+        <View style={styles.flex}>
+          {eyebrow ? (
+            <Text variant="caption" style={styles.eyebrow}>
+              {eyebrow}
+            </Text>
+          ) : null}
+          <Text style={[styles.heroTitle, compact && styles.heroTitleCompact]} accessibilityRole="header" numberOfLines={1}>
+            {title}
+          </Text>
+        </View>
+        <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8} style={({ pressed }) => [styles.x, { opacity: pressed ? 0.7 : 1 }]} testID="journey-close">
+          <Icon name="close" size={17} color="#FFFFFF" />
+        </Pressable>
+      </View>
       <RouteProgress step={step} labels={labels} arrived={arrived} />
     </View>
   );
@@ -191,7 +207,7 @@ export function JourneyFlow({
   return (
     <KeyboardOpenContext.Provider value={typing}>
     <KeyboardAvoidingView style={[styles.flowRoot, { backgroundColor: colors.background }]} behavior="padding">
-      <JourneyHero eyebrow={eyebrow} title={title} step={step} labels={labels} onClose={onClose} topInset={insets.top} compact={compact} collapsed={typing} />
+      <JourneyHero eyebrow={eyebrow} title={title} step={step} labels={labels} onClose={onClose} onBack={step > 0 ? onBack : undefined} topInset={insets.top} compact={compact} collapsed={typing} />
       <View ref={viewportRef} style={styles.viewport} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
         <Animated.View style={[styles.flowTrack, { width: w * steps.length || undefined }, track]}>
           {steps.map((node, i) => (
@@ -212,7 +228,6 @@ export function JourneyFlow({
       </View>
       <View style={[styles.flowActions, { paddingBottom: typing ? spacing.sm : Math.max(insets.bottom, spacing.md) + (compact ? 0 : 4) }]}>
         <View style={styles.flowRow}>
-          {step > 0 ? <RoundBack onPress={onBack} disabled={cta.loading} /> : null}
           <Button variant="brand" title={cta.title} loading={cta.loading} loadingLabel={cta.loadingLabel} disabled={cta.disabled} onPress={cta.onPress} style={styles.flex} testID={cta.testID} />
         </View>
         {footnote && !typing ? <View style={styles.flowFoot}>{footnote}</View> : null}
@@ -521,9 +536,10 @@ const styles = StyleSheet.create({
   flowFoot: { alignItems: 'center' },
   stepHead: { gap: 6, marginBottom: 4 },
   preview: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  q: { fontFamily: 'Inter_700Bold', fontSize: 23, lineHeight: 27, letterSpacing: -0.8 },
-  hero: { paddingHorizontal: 24, paddingBottom: 18, overflow: 'hidden' },
-  x: { position: 'absolute', right: 18, width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', zIndex: 2 },
+  q: { fontFamily: 'Inter_700Bold', fontSize: 26, lineHeight: 31, letterSpacing: -0.8 },
+  hero: { paddingHorizontal: 20, paddingBottom: 18, overflow: 'hidden' },
+  heroBar: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 38 },
+  x: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)' },
   eyebrow: { color: PLUM.eyebrow, fontFamily: 'Inter_700Bold', letterSpacing: 3, fontSize: 11 },
   heroCompact: { paddingBottom: 10 },
   heroSlim: { paddingHorizontal: 20, paddingBottom: 10, overflow: 'hidden', gap: 8 },
@@ -533,8 +549,8 @@ const styles = StyleSheet.create({
   xSlim: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.12)' },
   slimTrack: { height: 3, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.16)', overflow: 'hidden' },
   slimFill: { height: 3, borderRadius: 2, backgroundColor: brand.tangerine },
-  heroTitleCompact: { fontSize: 24, lineHeight: 28, marginTop: 4 },
-  heroTitle: { color: '#FFFFFF', fontFamily: 'Inter_700Bold', fontSize: 30, lineHeight: 32, letterSpacing: -1.3, marginTop: 8 },
+  heroTitleCompact: { fontSize: 17, lineHeight: 22 },
+  heroTitle: { color: '#FFFFFF', fontFamily: 'Inter_600SemiBold', fontSize: 18, lineHeight: 24, letterSpacing: -0.3 },
   route: { height: 54, marginTop: 18 },
   track: { position: 'absolute', left: 10, right: 10, top: 15, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.16)', overflow: 'hidden' },
   fill: { height: 4, borderRadius: 2, overflow: 'hidden' },
@@ -560,7 +576,7 @@ const styles = StyleSheet.create({
   field: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 60, borderRadius: 18, paddingHorizontal: 16 },
   input: { flex: 1, minWidth: 0, height: '100%', fontSize: 18 },
   err: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  tile: { flexBasis: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 68, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1 },
+  tile: { flexBasis: '47%', flexGrow: 1, flexDirection: 'row', alignItems: 'center', gap: 12, height: 68, paddingHorizontal: 16, borderRadius: 18, borderWidth: 1 },
   tileWide: { flexBasis: '100%' },
   tick: { width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   back: { width: 56, height: 56, borderRadius: 28, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },

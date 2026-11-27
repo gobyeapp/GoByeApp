@@ -53,6 +53,20 @@ export function relativeTime(ms: number, now = Date.now()): string {
   return new Date(ms).toLocaleDateString('en-NG', { day: 'numeric', month: 'short' });
 }
 
+/** When it happened, exactly: money rows show a clock time ("Today, 10:55", "Yesterday, 18:02", "3 Oct, 09:14"). */
+export function rowTime(ms: number, now = Date.now()): string {
+  const d = new Date(ms);
+  const clock = d.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const day = (t: number) => {
+    const x = new Date(t);
+    return new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+  };
+  const days = Math.round((day(now) - day(ms)) / 86_400_000);
+  if (days === 0) return `Today, ${clock}`;
+  if (days === 1) return `Yesterday, ${clock}`;
+  return `${d.toLocaleDateString('en-NG', { day: 'numeric', month: 'short' })}, ${clock}`;
+}
+
 /** What happened, in a few words; never repeats the type and description together. */
 export function rowTitle(tx: WalletTransaction): string {
   if (tx.status === 'reversed') return 'Payment reversed';
@@ -94,7 +108,7 @@ export function TransactionRow({ tx, onPress }: { tx: WalletTransaction; onPress
           {rowTitle(tx)}
         </Text>
         <Text variant="caption" color="textSecondary">
-          {relativeTime(tx.createdAt)}
+          {rowTime(tx.createdAt)}
         </Text>
       </View>
       <View style={styles.right}>
