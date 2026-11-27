@@ -107,6 +107,14 @@ const schema = z.object({
   WHATSAPP_BOOKING_ENABLED: bool(true),
 
   /* Durable jobs (Postgres queue, §10). */
+  /* Rides (D-100). */
+  /** Riders may pay the driver in cash. Off until the owner decides (D-023: cash is open). */
+  RIDE_CASH_ENABLED: bool(false),
+  /** A driver needs an active pass to go online (D-024). Off until passes can be bought (payments). */
+  DRIVER_PASS_REQUIRED: bool(false),
+  /** Wallet balances and paying from the wallet (D-101). Off until the money reviews are done. */
+  WALLET_ENABLED: bool(false),
+
   WORKER_ENABLED: bool(false),
   WORKER_POLL_MS: int(2000, 100, 60_000),
   WORKER_CONCURRENCY: int(2, 1, 32),

@@ -17,6 +17,9 @@ import { CostsController } from './costs/costs.controller';
 import { WhatsAppWebhookController } from './whatsapp/whatsapp.controller';
 import { DriverApplicationController } from './drivers/application.controller';
 import { DriverReviewController } from './drivers/review.controller';
+import { RidesController } from './rides/rides.controller';
+import { DriverRidesController } from './rides/driver-rides.controller';
+import { StaffRidesController } from './rides/staff-rides.controller';
 import { CLOCK, CONFIG, DATABASE, MIGRATIONS, PRINCIPALS, PROVIDERS, TOKEN_VERIFIER } from './tokens';
 
 export interface AppDeps {
@@ -34,7 +37,7 @@ export class AppModule {
   static forRoot(d: AppDeps): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, AccountsController, SubscriptionsController, CostsController, WhatsAppWebhookController, DriverApplicationController, DriverReviewController],
+      controllers: [HealthController, MeController, AccountsController, SubscriptionsController, CostsController, WhatsAppWebhookController, DriverRidesController, DriverApplicationController, DriverReviewController, RidesController, StaffRidesController],
       providers: [
         { provide: CONFIG, useValue: d.config },
         { provide: DATABASE, useValue: d.db },
