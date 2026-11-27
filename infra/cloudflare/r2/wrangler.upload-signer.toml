@@ -20,8 +20,8 @@ crons = ["17 3 * * *"]
 name = "gobye-upload-signer-staging"
 # Hyperdrive (free plan) to gobye-staging's pooler, as the gobye_api role. Create it with
 #   npx wrangler@4.161.0 hyperdrive create gobye-staging-db --connection-string="<pooler URL>"
-# and paste the id here. The connection string is stored by Cloudflare, never in this file.
-hyperdrive = [{ binding = "HYPERDRIVE", id = "<hyperdrive-id>" }]
+# Created 2026-11-27 (gobye-staging-db). The connection string is stored by Cloudflare, never in this file.
+hyperdrive = [{ binding = "HYPERDRIVE", id = "56d33fb31d9a49e58b3e815522cdb148" }]
 vars = { DEPLOY_ENV = "staging", PUBLIC_MEDIA_BASE_URL = "https://media-staging.gobye.app", SUPABASE_URL = "https://ubdfzekvoikrfxrthfiq.supabase.co" }
 r2_buckets = [
   { binding = "UPLOADS", bucket_name = "gobye-staging-private-uploads" },
