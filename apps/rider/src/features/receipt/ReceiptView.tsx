@@ -28,6 +28,7 @@ import {
   useToast,
   type StatusKind,
 } from '@gobye/ui';
+import { useBookAgain } from '@/features/booking/useBookAgain';
 import { resetTo } from '@/features/navigation/reset';
 import { receiptStatusLabel, shareReceiptPdf } from '@/features/trip/receiptPdf';
 import { useAccount } from '@/state/account';
@@ -60,6 +61,7 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
   const haptic = useHaptics();
   const { history, ratings, ready } = useAccount();
   const [sharing, setSharing] = useState(false);
+  const bookAgain = useBookAgain();
   const r: TripReceipt | undefined = history.find((h) => h.bookingId === id);
   const rating = ratings.find((x) => x.bookingId === id);
   const back = () => (router.canGoBack() ? router.back() : resetTo('/(tabs)'));
@@ -130,10 +132,11 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
     <Screen
       header={<ScreenHeader title={title} onBack={back} />}
       footer={
-        // One compact row (D-084), so the receipt itself keeps the screen. Rating lives inside the ticket.
+        // One compact row (D-084): help, and the main thing people come back for, the same ride again (D-096).
+        // Sharing and the return trip are inside the ticket.
         <View style={styles.row}>
           <Button title="Get help" variant="secondary" size="md" style={styles.flex} leadingIcon="support" onPress={() => router.push({ pathname: '/account/support', params: { trip: id } })} />
-          <Button title="Share receipt" size="md" style={styles.flex} leadingIcon="share" loading={sharing} loadingLabel="Preparing" onPress={share} testID="receipt-share" />
+          <Button title="Book again" size="md" style={styles.flex} leadingIcon="refresh" onPress={() => bookAgain(r)} testID="receipt-book-again" />
         </View>
       }
     >
@@ -257,6 +260,21 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
             <Icon name="copy" size={16} color="text" />
           </View>
         </Pressable>
+        {/* Quiet actions: the way back, and the receipt as a PDF. */}
+        <View style={[styles.more, { borderColor: colors.border }]}>
+          <Pressable onPress={() => bookAgain(r, { reverse: true })} accessibilityRole="button" accessibilityLabel={`Book the return trip, from ${r.destination.title} to ${r.pickup.title}`} style={({ pressed }) => [styles.moreBtn, { backgroundColor: pressed ? colors.secondaryPressed : colors.secondary }]} testID="receipt-return">
+            <Icon name="refresh" size={14} color="text" />
+            <Text variant="footnote" weight="semibold">
+              Return trip
+            </Text>
+          </Pressable>
+          <Pressable onPress={share} disabled={sharing} accessibilityRole="button" accessibilityLabel="Share receipt" style={({ pressed }) => [styles.moreBtn, { backgroundColor: pressed ? colors.secondaryPressed : colors.secondary, opacity: sharing ? 0.6 : 1 }]} testID="receipt-share">
+            <Icon name="share" size={14} color="text" />
+            <Text variant="footnote" weight="semibold">
+              {sharing ? 'Preparing…' : 'Share receipt'}
+            </Text>
+          </Pressable>
+        </View>
         {!rating ? (
           <Pressable
             onPress={() => router.push({ pathname: '/rate/[id]', params: { id, from: 'receipt' } })}
@@ -406,6 +424,8 @@ const styles = StyleSheet.create({
   line: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   totalRule: { height: StyleSheet.hairlineWidth, marginVertical: spacing.xs },
   commission: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: layout.controlRadius, marginTop: spacing.sm },
+  more: { flexDirection: 'row', gap: spacing.sm, marginHorizontal: spacing.xl, paddingVertical: spacing.md, borderTopWidth: StyleSheet.hairlineWidth },
+  moreBtn: { flex: 1, height: 40, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   refRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.xl, paddingVertical: spacing.lg },
   ref: { letterSpacing: 1 },
   copy: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },

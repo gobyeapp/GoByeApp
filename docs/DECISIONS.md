@@ -1029,3 +1029,11 @@ The owner asked for the Wallet's reference sizes on every page.
 - Same approach as the rider web build (D-076): `expo export --platform web`, served from a free Cloudflare Worker (`apps/driver/wrangler.toml`, `gobye-driver-web-preview`), preview only, not indexed. Deploy with Actions → Deploy sites → site `driver`, target `preview`.
 - The driver app got the rider's web fixes: small web fonts that don't block the page, per-screen loading, and a welcome road clip that plays inline in Safari with no play button.
 - Simulated services, like the rider preview. The phone apps remain the real product.
+
+## D-096 — Book a past trip again (2026-11-27)
+
+- **Activities:** each trip has a "Book again" pill.
+- **Ride details:** the main button is "Book again"; inside the receipt are "Return trip" (the same two places, swapped) and "Share receipt".
+- Both fill in the pickup and destination and open the ride options, so the **fare is a fresh quote**, never the old price, and the rider can still change either place, the ride type or the payment.
+- One trip at a time: with a ride in progress it says so, and an unpaid trip is settled first (`useBookAgain`).
+- Places visited before were already on Home as "Recent" (tap to set the destination); that stays.

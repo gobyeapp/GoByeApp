@@ -22,6 +22,7 @@ import {
 import { SignedAmount, TxStatusBadge } from '@/features/common/Money';
 import { EmptyState, Icon, SegmentedControl, SkeletonGroup, SkeletonRow, Text, layout, shadows, spacing, useTheme, type IconName, type StatusKind } from '@gobye/ui';
 import { liveBannerCopy, liveRoute } from '@/features/navigation/reset';
+import { useBookAgain } from '@/features/booking/useBookAgain';
 import { useAccount } from '@/state/account';
 import { useBooking } from '@/state/booking';
 import { useHaptics } from '@/state/haptics';
@@ -272,6 +273,7 @@ function TripRow({ item, first }: { item: TripReceipt; first: boolean }) {
   // On screen: when and how it was paid. Distance, duration and driver are on the receipt.
   const line = `${time(item.completedAt)} · ${item.paymentMethod.type === 'wallet' ? 'Wallet' : 'Bank transfer'}`;
   const attention = needsAttention(item);
+  const bookAgain = useBookAgain();
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/ride/[id]', params: { id: item.bookingId } })}
@@ -298,6 +300,20 @@ function TripRow({ item, first }: { item: TripReceipt; first: boolean }) {
         {/* A trip payment is money out: "−" in the normal text colour (D-084). Status only when it isn't a normal paid trip. */}
         <SignedAmount amount={-amount as Kobo} voided={item.paymentStatus === 'failed' || item.paymentStatus === 'reversed'} variant="callout" />
         <TxStatusBadge kind={pay.kind} label={pay.label} />
+        {/* The same ride again, straight from the list (D-096). */}
+        <Pressable
+          onPress={() => bookAgain(item)}
+          accessibilityRole="button"
+          accessibilityLabel={`Book again, ${item.pickup.title} to ${item.destination.title}`}
+          hitSlop={8}
+          style={({ pressed }) => [styles.again, { backgroundColor: pressed ? colors.secondaryPressed : colors.secondary }]}
+          testID={`book-again-${item.bookingId}`}
+        >
+          <Icon name="refresh" size={12} color="text" />
+          <Text variant="caption" weight="semibold">
+            Book again
+          </Text>
+        </Pressable>
       </View>
     </Pressable>
   );
@@ -324,5 +340,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: layout.iconGap, minHeight: 76, paddingVertical: spacing.md },
   icon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   meta: { marginTop: 2 },
+  again: { flexDirection: 'row', alignItems: 'center', gap: 4, height: 28, paddingHorizontal: spacing.sm + 2, borderRadius: 14, marginTop: 2 },
   right: { alignItems: 'flex-end', gap: 4, flexShrink: 0, maxWidth: '40%' },
 });

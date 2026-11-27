@@ -1365,3 +1365,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - **Added:** `apps/driver/wrangler.toml`, `public/fonts`, `src/theme/fonts(.web).ts`, `src/features/welcome/RoadVideo(.web).tsx`; web-only per-screen loading in `app.config.js`; `deploy-sites.yml` takes site `driver`.
 - **Checked** in Chromium at iPhone 13 size on a local build: Welcome (the clip plays), Become a driver (step 2), Drive, Earnings, Trips and Account, with no page errors. Driver tests 14; typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Book again and Return trip (D-096)
+
+- `features/booking/useBookAgain.ts`; the Activities row; `ReceiptView` (footer and the two quiet actions).
+- **Checked** in Chromium at iPhone 13 size: Book again from the list and from the receipt open the ride options with the same places; Return trip opens them swapped; a new fare is quoted. Rider tests 37 (none added for this); typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**
