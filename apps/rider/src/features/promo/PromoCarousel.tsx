@@ -1,22 +1,20 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, StyleSheet, View, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { FlatList, View, type LayoutChangeEvent, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { spacing, useTheme } from '@gobye/ui';
 import type { PromotionPlacement } from '@gobye/core';
 import { useServiceConfig } from '@/state/config';
 import { PromoCard } from './PromoCard';
 import { usePromotions } from './usePromotions';
 
 /**
- * Swipeable promotions with pagination dots. Auto advances at the admin-configured interval; pauses
+ * Swipeable promotions (no pagination dots: owner request, D-094). Auto advances at the admin-configured interval; pauses
  * while the user touches it, after they open an offer (until the screen is focused again) and under
- * Reduce Motion. One promotion = a single static card with no dots. All slides share one size.
+ * Reduce Motion. One promotion = a single static card. All slides share one size.
  */
 export function PromoCarousel({ placement, testID }: { placement: PromotionPlacement; testID?: string }) {
   const promos = usePromotions(placement);
   const { promotions } = useServiceConfig();
-  const { colors } = useTheme();
   const reduce = useReducedMotion();
   const list = useRef<FlatList>(null);
   const [width, setWidth] = useState(0);
@@ -80,21 +78,12 @@ export function PromoCarousel({ placement, testID }: { placement: PromotionPlace
           onTouchEnd={() => setTouching(false)}
           renderItem={({ item }) => (
             <View style={{ width }}>
-              <PromoCard title={item.title} body={item.body} art={item.art} accessibilityLabel={`${item.title}. ${item.body} Opens offer`} onPress={() => open(item.id)} testID={`promo-${item.id}`} />
+              <PromoCard flat title={item.title} body={item.body} art={item.art} accessibilityLabel={`${item.title}. ${item.body} Opens offer`} onPress={() => open(item.id)} testID={`promo-${item.id}`} />
             </View>
           )}
         />
       ) : null}
-      <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {promos.map((p, i) => (
-          <View key={p.id} style={[styles.dot, { width: i === page ? 16 : 6, backgroundColor: i === page ? colors.text : colors.border }]} />
-        ))}
-      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: spacing.sm },
-  dot: { height: 6, borderRadius: 3 },
-});

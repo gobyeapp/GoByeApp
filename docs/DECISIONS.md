@@ -1018,3 +1018,8 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Home shortcuts** replace D-090's "Add home" / "Add work" tiles:
   - a tile shows only for a place that is saved (Home, Work), plus "Saved" when anything is saved; with nothing saved there is no tray;
   - after the rider's first trip, if nothing is saved, Home shows one card, "Save your usual places", with Add home, Add work and a close (not now) that is remembered.
+
+## D-094 — No dots under the offers banner (2026-11-27)
+
+- The pagination dots under the swipeable offers banner are removed (owner request). The banner still changes by itself and can be swiped.
+- Cards inside the swipeable row have no shadow: the row cut the shadow off at its edge, which showed as a pale strip under the banner.

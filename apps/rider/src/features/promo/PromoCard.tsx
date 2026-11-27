@@ -19,7 +19,7 @@ export interface Promo {
  * campaign's 3D render floating gently on the right. The whole card is the action (no separate button).
  * Light: soft layered shadow. Dark: hairline highlight, since shadows don't read on black.
  */
-export function PromoCard({ title, body, art, accessibilityLabel, onPress, testID }: Promo) {
+export function PromoCard({ title, body, art, accessibilityLabel, onPress, testID, flat }: Promo & { /** No shadow: inside the swipeable row a shadow is cut off at the row's edge and shows as a pale strip. */ flat?: boolean }) {
   const { colors, scheme } = useTheme();
   return (
     <Pressable
@@ -30,7 +30,7 @@ export function PromoCard({ title, body, art, accessibilityLabel, onPress, testI
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.brandBanner, borderColor: scheme === 'dark' ? 'rgba(255,255,255,0.10)' : 'transparent', opacity: pressed ? 0.92 : 1 },
-        scheme === 'light' ? styles.depthLight : styles.depthDark,
+        flat ? null : scheme === 'light' ? styles.depthLight : styles.depthDark,
       ]}
     >
       <View style={styles.text}>

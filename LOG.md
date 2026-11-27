@@ -1356,3 +1356,7 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - after a trip the prompt shows, and "not now" removes it;
   - Add money by card runs through to "Money added", and the list shows "Card top-up".
 - Tests: core 314, rider 37, driver 14. Typecheck, lint, and the rider's Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Offers banner: dots removed, pale strip fixed (D-094)
+
+- `features/promo/PromoCarousel.tsx`, `PromoCard.tsx` (`flat`). Checked in Chromium at iPhone 13 size on Home; rider tests 37, lint, and Android and iOS export pass. **Not tried on a real phone.**
