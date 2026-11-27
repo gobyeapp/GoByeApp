@@ -1384,3 +1384,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Driver app:** `features/onboarding/faceCheck(.web).ts`; `PhotoCapture` runs it for photos of a person and shows what to fix. New dependency `@react-native-ml-kit/face-detection` 2.0.1.
 - **Not tried:** the detector itself. It is native code, so it runs only in an installed Android or iOS build, and none has been made with it yet. The browser preview accepts photos unchanged.
 
+## 2026-11-27 — Compact photo fields in driver registration (D-099)
+
+- `PhotoCapture` rewritten in `apps/driver/src/features/onboarding/parts.tsx` (row, capture sheet, review, view, permission refused); `cameraOnly` on the ID selfie; names side by side on About you.
+- **Checked** in Chromium at iPhone 13 size on a local build: all four steps with photos fit without scrolling; choosing a photo shows the review, Use photo marks the row Added and turns Continue on; the ID selfie offers the camera only. No page errors. **Not tried:** the real camera, the face check, or a real phone.
+

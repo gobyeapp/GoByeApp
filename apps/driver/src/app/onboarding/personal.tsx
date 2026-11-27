@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { validateEmail, validateName, type DriverPersonalDetails } from '@gobye/core';
-import { Button, TextField } from '@gobye/ui';
+import { Button, TextField, spacing } from '@gobye/ui';
 import { ChoiceRow, PhotoCapture, StepShell, goNext } from '@/features/onboarding/parts';
 import { useDriver } from '@/state/driver';
 import { useSession } from '@/state/session';
@@ -30,11 +31,23 @@ export default function Personal() {
   return (
     <StepShell step="personal" title="About you" subtitle="Use the name on your driver’s licence. Riders see your first name only." footer={<Button title="Continue" onPress={save} disabled={!first.trim() || !last.trim() || !photo} testID="personal-continue" />}>
       {/* The photo riders see when this driver is matched (D-097). */}
-      <PhotoCapture selfie label="Your photo" hint="Riders see this when you’re matched. Face the camera, no hat or sunglasses, in good light." uri={photo} onChange={setPhoto} testID="personal-photo" />
-      <TextField label="First name" value={first} onChangeText={setFirst} autoComplete="given-name" textContentType="givenName" error={errors.first} testID="first-name" />
-      <TextField label="Last name" value={last} onChangeText={setLast} autoComplete="family-name" textContentType="familyName" error={errors.last} testID="last-name" />
+      <PhotoCapture selfie label="Your photo" hint="Riders see this when you’re matched." uri={photo} onChange={setPhoto} testID="personal-photo" />
+      {/* Side by side, so the whole step fits on one screen. */}
+      <View style={styles.names}>
+        <View style={styles.flex}>
+          <TextField label="First name" value={first} onChangeText={setFirst} autoComplete="given-name" textContentType="givenName" error={errors.first} testID="first-name" />
+        </View>
+        <View style={styles.flex}>
+          <TextField label="Last name" value={last} onChangeText={setLast} autoComplete="family-name" textContentType="familyName" error={errors.last} testID="last-name" />
+        </View>
+      </View>
       <TextField label="Email (optional)" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" helper="For trip statements and receipts." error={errors.email} />
       <ChoiceRow label="Where will you drive?" value={city} onChange={setCity} options={[{ id: 'Lagos', label: 'Lagos' }, { id: 'Abuja', label: 'Abuja' }]} />
     </StepShell>
   );
 }
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  names: { flexDirection: 'row', gap: spacing.md },
+});

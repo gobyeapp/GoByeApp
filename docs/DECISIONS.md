@@ -1056,3 +1056,11 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Limits:** it is a quality check, not an identity check. It does not prove the person is real or matches the ID: that stays with staff review and the identity provider's face match (owner decision, still open). If the detector is missing or fails, the photo is accepted as before. The browser test build has no detector.
 - **Not yet proven:** the native module has not been built or run. The first Android build (EAS) will show whether it works with this React Native version; if it does not, the check is skipped by design and the dependency should be replaced or removed.
 
+## D-099 — Photo fields are compact rows; the large view is for checking the photo (2026-11-27)
+
+- **Decision:** every photo field in driver registration (Your photo, licence, ID selfie, the three vehicle papers) is one row: a small thumbnail, the name, a one-line hint or "Added", and Add or Retake. Tapping opens a sheet: Take a photo or Choose from library, then the photo shown large once ("Is it clear?") with Use photo or Retake. Tapping a row that already has a photo shows it large with Retake.
+- **Why:** the large dashed box pushed the form fields off screen and did no job there. A large image helps only when checking the photo, so that is where it now appears.
+- **ID selfie is camera only** (no library), so it is taken at that moment. Enforced in the installed apps; a browser cannot force a live camera. The profile photo and documents keep both options.
+- First and last name sit side by side on About you so the step fits on one screen.
+- The rider's profile photo already worked this way (a sheet with a preview); unchanged.
+

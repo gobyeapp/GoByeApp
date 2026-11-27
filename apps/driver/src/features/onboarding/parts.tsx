@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import { ONBOARDING_STEPS, isStepComplete, nextOnboardingStep, type DriverApplication, type OnboardingStepId } from '@gobye/core';
-import { AuthStepHeader, Button, Icon, Screen, ScreenHeader, Text, layout, spacing, useTheme, type IconName } from '@gobye/ui';
+import { AuthStepHeader, Button, Icon, ListGroup, ListItem, Screen, ScreenHeader, Sheet, Text, layout, spacing, useTheme, type IconName } from '@gobye/ui';
 
 export const STEP_ROUTES: Record<OnboardingStepId, `/onboarding/${OnboardingStepId}`> = {
   personal: '/onboarding/personal',
@@ -51,9 +51,14 @@ export function StepShell({ step, title, subtitle, children, footer }: { step: O
   );
 }
 
+type CaptureStep = 'choose' | 'review' | 'view' | 'denied';
+
 /**
- * Document or selfie capture. Camera first (front camera for selfies), library as the alternative.
- * Permission is asked only when the driver taps; a refusal explains how to allow it in Settings.
+ * One photo field, as a compact row (D-099): a small thumbnail, what the photo is, and Add or Retake.
+ * Tapping opens a sheet to take or choose the photo; the photo is then shown large once, so the driver
+ * can check it is clear before using it. Size sits where it helps (checking the photo), not on the form.
+ * `selfie` = a photo of the driver (front camera, face check, round thumbnail). `cameraOnly` = no
+ * choosing an old photo (the ID selfie). Permission is asked only when the driver picks a source.
  */
 export function PhotoCapture({
   label,
@@ -61,6 +66,7 @@ export function PhotoCapture({
   uri,
   onChange,
   selfie,
+  cameraOnly,
   testID,
 }: {
   label: string;
@@ -68,93 +74,161 @@ export function PhotoCapture({
   uri?: string;
   onChange: (uri: string) => void;
   selfie?: boolean;
+  cameraOnly?: boolean;
   testID?: string;
 }) {
   const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<CaptureStep>('choose');
+  const [candidate, setCandidate] = useState<string | null>(null);
+  const [source, setSource] = useState<'camera' | 'library'>('camera');
   const [error, setError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const start = () => {
+    setError(null);
+    setCandidate(null);
+    setStep(uri ? 'view' : 'choose');
+    setOpen(true);
+  };
 
   const pick = async (from: 'camera' | 'library') => {
+    if (busy) return;
     setError(null);
+    setSource(from);
+    setBusy(true);
     try {
       const perm = from === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        setError(from === 'camera' ? 'Camera access is off. Allow it in Settings, or choose a photo instead.' : 'Photo access is off. Allow it in Settings to choose a photo.');
-        return;
-      }
+      if (!perm.granted) return setStep('denied');
       const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.6, allowsEditing: !selfie, cameraType: selfie ? ImagePicker.CameraType.front : ImagePicker.CameraType.back };
       const res = from === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
       const asset = !res.canceled ? res.assets[0] : undefined;
       if (!asset) return;
-      // A photo of a person is checked for one clear face before it is accepted (D-098).
+      // A photo of a person is checked for one clear face before it is offered (D-098).
       if (selfie) {
-        setChecking(true);
         const face = await checkFacePhoto({ uri: asset.uri, width: asset.width, height: asset.height });
-        setChecking(false);
-        if (!face.ok) return setError(face.error);
+        if (!face.ok) {
+          setStep('choose');
+          return setError(face.error);
+        }
       }
-      onChange(asset.uri);
+      setCandidate(asset.uri);
+      setStep('review');
     } catch {
-      setChecking(false);
-      setError('We couldn’t open the camera. Try choosing a photo instead.');
+      setStep('choose');
+      setError(cameraOnly ? 'We couldn’t open the camera. Try again.' : 'We couldn’t open that. Try the other option.');
+    } finally {
+      setBusy(false);
     }
   };
 
+  const shown = step === 'review' ? candidate : uri;
+  const title = step === 'review' ? 'Is it clear?' : step === 'denied' ? `Allow ${source === 'camera' ? 'camera' : 'photo'} access` : label;
+  const footer =
+    step === 'review' ? (
+      <>
+        <Button
+          title="Use photo"
+          onPress={() => {
+            if (candidate) onChange(candidate);
+            setOpen(false);
+          }}
+          testID="capture-use"
+        />
+        <Button title="Retake" variant="tertiary" onPress={() => setStep('choose')} />
+      </>
+    ) : step === 'view' ? (
+      <>
+        <Button title="Done" onPress={() => setOpen(false)} />
+        <Button title="Retake" variant="tertiary" onPress={() => setStep('choose')} testID="capture-retake" />
+      </>
+    ) : step === 'denied' ? (
+      <>
+        <Button title="Open Settings" onPress={() => void Linking.openSettings()} />
+        <Button title="Not now" variant="tertiary" onPress={() => setStep('choose')} />
+      </>
+    ) : undefined;
+
   return (
-    <View style={styles.capture} testID={testID}>
-      <View style={styles.captureHead}>
-        <Text variant="subhead" weight="semibold">
-          {label}
-        </Text>
-        {uri ? (
-          <View style={styles.done}>
-            <Icon name="checkCircle" variant="filled" size="xs" color="success" />
-            <Text variant="footnote" color="success">
-              Added
-            </Text>
-          </View>
-        ) : null}
-      </View>
+    <>
       <Pressable
-        onPress={() => pick('camera')}
+        onPress={start}
+        testID={testID}
         accessibilityRole="button"
-        accessibilityLabel={uri ? `Retake ${label}` : `Take a photo of ${label}`}
-        style={({ pressed }) => [
-          styles.frame,
-          selfie && styles.frameSelfie,
-          { borderColor: uri ? colors.border : colors.textSecondary, backgroundColor: colors.surfaceMuted, opacity: pressed ? 0.85 : 1 },
-        ]}
+        accessibilityLabel={uri ? `${label}: added. View or retake` : `Add ${label}`}
+        style={({ pressed }) => [styles.capture, { borderColor: colors.border, backgroundColor: colors.surface, opacity: pressed ? 0.85 : 1 }]}
       >
-        {uri ? (
-          <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityIgnoresInvertColors />
-        ) : (
-          <View style={styles.empty}>
-            <View style={[styles.camIcon, { backgroundColor: colors.card }]}>
-              <Icon name="camera" color="text" />
+        <View style={[styles.thumb, selfie && styles.thumbRound, { backgroundColor: colors.surfaceMuted, borderColor: colors.border }]}>
+          {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityIgnoresInvertColors /> : <Icon name={selfie ? 'account' : 'camera'} color="textSecondary" />}
+        </View>
+        <View style={styles.flex}>
+          <Text variant="subhead" weight="semibold" numberOfLines={1}>
+            {label}
+          </Text>
+          {uri ? (
+            <View style={styles.done}>
+              <Icon name="checkCircle" variant="filled" size="xs" color="success" />
+              <Text variant="footnote" color="success">
+                Added
+              </Text>
             </View>
-            <Text variant="footnote" color="textSecondary" align="center">
+          ) : (
+            <Text variant="footnote" color="textSecondary" numberOfLines={2}>
               {hint}
             </Text>
-          </View>
-        )}
-      </Pressable>
-      <View style={styles.captureActions}>
-        <Button title={uri ? 'Retake' : 'Take photo'} size="md" variant="secondary" leadingIcon="camera" onPress={() => pick('camera')} style={styles.flex} />
-        <Button title="Choose photo" size="md" variant="tertiary" onPress={() => pick('library')} style={styles.flex} />
-      </View>
-      {checking ? (
-        <Text variant="footnote" color="textSecondary" accessibilityLiveRegion="polite">
-          Checking your photo…
-        </Text>
-      ) : null}
-      {error ? (
-        <Pressable onPress={() => void Linking.openSettings()} accessibilityRole="link">
-          <Text variant="footnote" color="danger">
-            {error}
+          )}
+        </View>
+        <View style={[styles.action, { backgroundColor: uri ? colors.secondary : colors.primary }]}>
+          <Text variant="footnote" weight="semibold" style={{ color: uri ? colors.text : colors.onPrimary }}>
+            {uri ? 'Retake' : 'Add'}
           </Text>
-        </Pressable>
-      ) : null}
-    </View>
+        </View>
+      </Pressable>
+
+      <Sheet visible={open} onClose={() => setOpen(false)} title={title} subtitle={step === 'choose' ? hint : undefined} footer={footer} testID="capture-sheet">
+        {step === 'choose' ? (
+          <>
+            {error ? (
+              <View style={styles.notice} accessibilityLiveRegion="polite">
+                <Icon name="warning" color="danger" size="sm" />
+                <Text variant="callout" color="danger" style={styles.flex} testID="capture-error">
+                  {error}
+                </Text>
+              </View>
+            ) : null}
+            {busy ? (
+              <Text variant="footnote" color="textSecondary" accessibilityLiveRegion="polite">
+                Checking your photo…
+              </Text>
+            ) : null}
+            <ListGroup>
+              <ListItem title="Take a photo" leadingIcon="camera" leadingBadge onPress={() => void pick('camera')} testID="capture-camera" />
+              {cameraOnly ? null : <ListItem title="Choose from library" leadingIcon="upload" leadingBadge onPress={() => void pick('library')} testID="capture-library" />}
+            </ListGroup>
+            {cameraOnly ? (
+              <Text variant="footnote" color="textSecondary">
+                This one has to be taken now, so we know it’s you today.
+              </Text>
+            ) : null}
+          </>
+        ) : step === 'denied' ? (
+          <Text variant="callout">
+            {source === 'camera' ? 'Camera' : 'Photo'} access is off. Allow it in Settings{cameraOnly ? '.' : ', or use the other option.'}
+          </Text>
+        ) : shown ? (
+          <View style={styles.reviewWrap}>
+            <View style={[selfie ? styles.reviewSelfie : styles.reviewDoc, { borderColor: colors.border, backgroundColor: colors.surfaceMuted }]}>
+              <Image source={{ uri: shown }} style={StyleSheet.absoluteFill} contentFit={selfie ? 'cover' : 'contain'} accessibilityLabel={`${label}, large`} accessibilityIgnoresInvertColors />
+            </View>
+            {step === 'review' ? (
+              <Text variant="footnote" color="textSecondary" align="center">
+                {selfie ? 'Your whole face, in focus, nothing covering it.' : 'All four corners showing, and every word easy to read.'}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+      </Sheet>
+    </>
   );
 }
 
@@ -196,14 +270,15 @@ export function ChoiceRow<T extends string>({ options, value, onChange, label }:
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   fields: { gap: spacing.lg, marginTop: spacing.md },
-  capture: { gap: spacing.sm },
-  captureHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  capture: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 72, padding: spacing.md, borderRadius: layout.cardRadius, borderWidth: 1 },
+  thumb: { width: 48, height: 48, borderRadius: 10, borderWidth: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  thumbRound: { borderRadius: 24 },
   done: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  frame: { height: 168, borderRadius: layout.cardRadius, borderWidth: 1.5, borderStyle: 'dashed', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  frameSelfie: { height: 220 },
-  empty: { alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.xl },
-  camIcon: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  captureActions: { flexDirection: 'row', gap: spacing.sm },
+  action: { minHeight: 32, paddingHorizontal: spacing.md, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  notice: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  reviewWrap: { alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm },
+  reviewSelfie: { width: 200, height: 200, borderRadius: 100, borderWidth: 1, overflow: 'hidden' },
+  reviewDoc: { alignSelf: 'stretch', aspectRatio: 1.5, borderRadius: layout.cardRadius, borderWidth: 1, overflow: 'hidden' },
   choiceWrap: { gap: spacing.sm },
   choices: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   choice: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 44, paddingHorizontal: spacing.lg, borderRadius: 999, borderWidth: 1 },

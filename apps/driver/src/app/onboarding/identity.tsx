@@ -36,7 +36,7 @@ export default function Identity() {
     >
       <ChoiceRow label="Document" value={type} onChange={(t) => { setType(t); setError(undefined); }} options={TYPES} />
       <TextField label={meta.field} value={number} onChangeText={setNumber} placeholder={meta.placeholder} keyboardType={type === 'nin' ? 'number-pad' : 'default'} autoCapitalize="characters" error={error} testID="identity-number" />
-      <PhotoCapture selfie label="A selfie" hint="Face the camera, no hat or sunglasses, in good light." uri={selfie} onChange={setSelfie} testID="identity-selfie" />
+      <PhotoCapture selfie cameraOnly label="A selfie" hint="Face the camera, no hat or sunglasses, in good light." uri={selfie} onChange={setSelfie} testID="identity-selfie" />
     </StepShell>
   );
 }
