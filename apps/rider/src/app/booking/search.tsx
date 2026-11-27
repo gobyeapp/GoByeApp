@@ -165,7 +165,7 @@ export default function SearchScreen() {
         )}
         ListEmptyComponent={
           failed ? (
-            <ErrorState title="Search isn’t working" body="Check your connection, then retry." onRetry={() => setAttempt((a) => a + 1)} />
+            <ErrorState title="We couldn’t search just now" body="Check your connection and try again." onRetry={() => setAttempt((a) => a + 1)} />
           ) : !loading && query.trim() ? (
             <EmptyState icon="search" title="No places found" body="Try a landmark, street or area." />
           ) : null

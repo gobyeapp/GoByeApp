@@ -29,7 +29,7 @@ export default function Personal() {
   };
 
   return (
-    <StepShell step="personal" title="About you" subtitle="Use the name on your driver’s licence. Riders see your first name only." footer={<Button title="Continue" onPress={save} disabled={!first.trim() || !last.trim() || !photo} testID="personal-continue" />}>
+    <StepShell step="personal" title="About you" subtitle="Use the name on your driver’s licence. Riders only see your first name." footer={<Button title="Continue" onPress={save} disabled={!first.trim() || !last.trim() || !photo} testID="personal-continue" />}>
       {/* The photo riders see when this driver is matched (D-097). */}
       <PhotoCapture selfie label="Your photo" hint="Riders see this when you’re matched." uri={photo} onChange={setPhoto} testID="personal-photo" />
       {/* Side by side, so the whole step fits on one screen. */}

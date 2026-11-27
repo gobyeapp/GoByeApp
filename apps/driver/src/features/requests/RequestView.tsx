@@ -124,7 +124,7 @@ export function RequestView({ id }: { id: string }) {
         <View style={[styles.stops, { backgroundColor: colors.surfaceMuted }]}>
           <Stop icon="pickup" label="Pickup" title={shown.pickup.title} meta={`${formatDuration(shown.pickupEtaSeconds)} · ${formatDistance(shown.pickupDistanceMeters)} from you`} />
           <View style={[styles.stopLine, { backgroundColor: colors.border }]} />
-          <Stop icon="flag" label="Drop off" title={shown.destination.title} meta={`${formatDuration(shown.route.durationSeconds)} · ${formatDistance(shown.route.distanceMeters)} trip`} />
+          <Stop icon="flag" label="Drop-off" title={shown.destination.title} meta={`${formatDuration(shown.route.durationSeconds)} · ${formatDistance(shown.route.distanceMeters)} trip`} />
         </View>
 
         <View style={styles.rider}>

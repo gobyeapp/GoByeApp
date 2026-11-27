@@ -293,7 +293,7 @@ export function RatingPanel({ bookingId, existing, onSubmit }: { bookingId: stri
             })}
           </View>
           <TextField label="Comment (optional)" value={comment} onChangeText={setComment} multiline maxLength={320} helper={`${comment.length}/300`} error={error} />
-          <Button title="Submit" size="md" onPress={submit} testID="submit-rating" />
+          <Button title="Rate driver" size="md" onPress={submit} testID="submit-rating" />
         </>
       ) : null}
     </View>

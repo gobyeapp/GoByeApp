@@ -84,10 +84,10 @@ export default function Account() {
             </SettingsGroup>
 
             <SettingsGroup title="Preferences">
-              <SettingsRow icon="notification" title="Notification preferences" onPress={() => router.push('/account/notifications')} testID="row-notification-prefs" />
+              <SettingsRow icon="notification" title="Notifications" onPress={() => router.push('/account/notifications')} testID="row-notification-prefs" />
               <SettingsRow icon="settings" title="Appearance" value={APPEARANCE_LABEL[settings.appearance]} onPress={() => router.push('/account/appearance')} testID="row-appearance" />
               <SettingsRow icon="locate" title="Location access" onPress={() => router.push('/account/location')} />
-              <SettingsRow icon="phone" title="Haptic feedback" trailing="switch" switchValue={settings.haptics} onSwitch={(v) => updateSettings({ haptics: v })} testID="row-haptics" />
+              <SettingsRow icon="phone" title="Vibration" trailing="switch" switchValue={settings.haptics} onSwitch={(v) => updateSettings({ haptics: v })} testID="row-haptics" />
             </SettingsGroup>
 
             <SettingsGroup title="Security">
@@ -106,11 +106,11 @@ export default function Account() {
               <SettingsRow icon="document" title="Legal and licences" onPress={() => router.push('/account/settings')} />
               <SettingsRow
                 icon="signOut"
-                title="Log out"
+                title="Sign out"
                 onPress={() =>
-                  Alert.alert('Log out?', 'You’ll sign in again with your phone number.', [
+                  Alert.alert('Sign out?', 'You’ll sign in again with your phone number.', [
                     { text: 'Cancel', style: 'cancel' },
-                    { text: 'Log out', style: 'destructive', onPress: () => void signOut().then(() => router.replace('/onboarding')) },
+                    { text: 'Sign out', style: 'destructive', onPress: () => void signOut().then(() => router.replace('/onboarding')) },
                   ])
                 }
                 testID="sign-out"

@@ -46,7 +46,7 @@ export function PassengerSheet({ visible, onClose }: { visible: boolean; onClose
       visible={visible}
       onClose={requestClose}
       title="Who’s riding?"
-      subtitle="Drivers see the first name only."
+      subtitle="Drivers only see their first name."
       footer={
         confirming ? (
           <>

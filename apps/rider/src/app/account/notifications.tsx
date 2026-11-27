@@ -10,7 +10,7 @@ import { PageHeader, SettingsGroup, SettingsGroupSkeleton, SettingsRow } from '@
 export default function NotificationPreferences() {
   const { prefs, update, ready } = useNotificationPrefs();
   return (
-    <Screen header={<PageHeader title="Notification preferences" onBack={() => router.back()} />}>
+    <Screen header={<PageHeader title="Notifications" onBack={() => router.back()} />}>
       {!ready ? (
         <>
           <SettingsGroupSkeleton rows={4} />

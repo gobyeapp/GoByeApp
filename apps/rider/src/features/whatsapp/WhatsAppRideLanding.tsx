@@ -23,7 +23,7 @@ export function WhatsAppRideLanding({ rideId }: { rideId: string }) {
     <Screen header={<ScreenHeader title="Ride booked on WhatsApp" onBack={() => resetTo('/(tabs)')} />}>
       <EmptyState
         icon="chat"
-        title="We can't show this ride here yet"
+        title="This ride isn’t ready to view yet"
         body={`Your ride (${rideId.slice(0, 8)}) was booked on WhatsApp. This version of the app uses simulated rides, so WhatsApp bookings appear here once GoBye's ride service is connected. To cancel before a driver is assigned, reply CANCEL in the WhatsApp chat.`}
         actionLabel="Back to Home"
         onAction={() => resetTo('/(tabs)')}

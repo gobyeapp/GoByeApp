@@ -75,7 +75,7 @@ export default function TripSummary() {
         durationSeconds: duration,
       });
     } catch {
-      toast('Couldn’t create the receipt. Try again.', 'error');
+      toast('We couldn’t create your receipt. Try again.', 'error');
     } finally {
       setSharing(null);
     }

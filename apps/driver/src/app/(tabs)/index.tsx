@@ -148,7 +148,7 @@ export default function Drive() {
             <View style={styles.locked}>
               <Icon name="lock" size="xs" color="textSecondary" />
               <Text variant="caption" weight="regular" color="textSecondary" testID="online-locked">
-                Go online opens once you’re approved.
+                You can go online once you’re approved.
               </Text>
             </View>
           </>

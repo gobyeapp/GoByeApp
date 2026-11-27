@@ -8,8 +8,8 @@ const STATE: Record<PermissionState, { kind: StatusKind; label: string; body: st
   granted: { kind: 'successful', label: 'Allowed while using the app', body: 'Used to set your pickup while the app is open. Never in the background.' },
   undetermined: { kind: 'neutral', label: 'Not asked yet', body: 'We’ll ask when you set a pickup. You can type an address instead.' },
   unknown: { kind: 'neutral', label: 'Checking', body: 'Checking your phone’s setting.' },
-  denied: { kind: 'failed', label: 'Not allowed', body: 'Type your pickup, or allow location in Settings.' },
-  restricted: { kind: 'failed', label: 'Turned off in Settings', body: 'Type your pickup, or turn location on in Settings.' },
+  denied: { kind: 'failed', label: 'Not allowed', body: 'Type your pickup, or turn on location in Settings.' },
+  restricted: { kind: 'failed', label: 'Turned off in Settings', body: 'Type your pickup, or turn on location in Settings.' },
 };
 
 const SHORT: Record<PermissionState, string> = { granted: 'While using', undetermined: 'Not asked', unknown: 'Checking', denied: 'Not allowed', restricted: 'Off' };

@@ -156,7 +156,7 @@ export default function RideOptions() {
 
       <MapSheet snapPoints={sheetSnaps} header={null}>
         {error ? (
-          <ErrorState title="Couldn’t load ride options" body="Check your connection, then retry." onRetry={load} />
+          <ErrorState title="We couldn’t load ride options" body="Check your connection and try again." onRetry={load} />
         ) : (
           <>
             <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>

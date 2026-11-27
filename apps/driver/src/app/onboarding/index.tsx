@@ -46,7 +46,7 @@ export default function OnboardingOverview() {
         <View />
         <Pressable onPress={() => void signOut().then(() => resetTo('/welcome'))} accessibilityRole="button" hitSlop={8}>
           <Text variant="subhead" color="textSecondary">
-            Log out
+            Sign out
           </Text>
         </Pressable>
       </View>

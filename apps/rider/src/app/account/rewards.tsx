@@ -207,7 +207,7 @@ export default function Referrals() {
           Recent activity
         </Text>
         {state === 'error' ? (
-          <ErrorState title="Couldn’t load your referrals" body="Check your connection and try again." onRetry={() => void load()} />
+          <ErrorState title="We couldn’t load your invites" body="Check your connection and try again." onRetry={() => void load()} />
         ) : state === 'loading' ? (
           <SkeletonGroup label="Loading referral activity">
             {[0, 1, 2].map((i) => (

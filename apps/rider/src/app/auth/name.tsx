@@ -36,8 +36,8 @@ export default function NameScreen() {
   };
 
   return (
-    <Screen footer={<Button title="Finish" onPress={submit} loading={saving} disabled={!agreed} testID="profile-continue" />}>
-      <AuthStepHeader step={3} title="What should drivers call you?" subtitle="Drivers see your first name." />
+    <Screen footer={<Button title="Create account" onPress={submit} loading={saving} disabled={!agreed} testID="profile-continue" />}>
+      <AuthStepHeader step={3} title="What should drivers call you?" subtitle="Drivers only see your first name." />
       <View style={styles.row}>
         <View style={styles.flex}>
           <TextField label="First name" value={first} onChangeText={setFirst} autoComplete="given-name" textContentType="givenName" error={errors.first} editable={!saving} testID="first-name" />

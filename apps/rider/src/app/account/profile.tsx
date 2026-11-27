@@ -46,7 +46,7 @@ export default function Profile() {
       <TextField label="Email (optional)" value={email} onChangeText={setEmail} error={errors.email} keyboardType="email-address" autoCapitalize="none" />
       <TextField label="Mobile number" value={user ? formatPhone(user.phone) : ''} disabled helper="Can’t be changed in this preview." />
       <Text variant="footnote" color="textSecondary">
-        Drivers see only your first name.
+        Drivers only see your first name.
       </Text>
     </Screen>
   );

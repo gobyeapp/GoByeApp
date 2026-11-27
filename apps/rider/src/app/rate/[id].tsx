@@ -39,7 +39,7 @@ export default function RateDriver() {
     <Screen
       footer={
         <>
-          <Button title="Submit rating" onPress={submit} disabled={!stars} testID="submit-rating" />
+          <Button title="Rate driver" onPress={submit} disabled={!stars} testID="submit-rating" />
           <Button title="Skip" variant="tertiary" onPress={leave} />
         </>
       }

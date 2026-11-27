@@ -116,7 +116,7 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
         durationSeconds: r.durationSeconds,
       });
     } catch {
-      toast('Couldn’t create the receipt. Try again.', 'error');
+      toast('We couldn’t create your receipt. Try again.', 'error');
     } finally {
       setSharing(false);
     }
@@ -228,13 +228,13 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
           {/* With no fee the fare is the total, so it is shown once. */}
           {r.processingFee > 0 ? (
             <>
-              <Line label="Agreed trip fare" value={formatNaira(r.fare)} spoken={nairaAccessibilityLabel(r.fare)} />
+              <Line label="Fare" value={formatNaira(r.fare)} spoken={nairaAccessibilityLabel(r.fare)} />
               <Line label={`${method} fee`} hint="Separate from the fare" value={formatNaira(r.processingFee)} spoken={nairaAccessibilityLabel(r.processingFee)} />
               <View style={[styles.totalRule, { backgroundColor: colors.border }]} />
               <Line label="Total" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
             </>
           ) : (
-            <Line label="Agreed trip fare" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
+            <Line label="Fare" value={formatNaira(total)} spoken={nairaAccessibilityLabel(total)} strong />
           )}
           <View style={[styles.commission, { backgroundColor: colors.surfaceMuted }]}>
             <Icon name="heart" variant="filled" size={14} color={brand.tangerine} />

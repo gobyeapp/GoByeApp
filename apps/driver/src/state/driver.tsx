@@ -563,7 +563,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         await relay.insert('demo_ride_responses', answer);
       } catch {
         setCounter(null);
-        return { ok: false, error: 'Couldn’t reach the demo relay. Try again.' };
+        return { ok: false, error: 'We couldn’t reach GoBye. Check your connection and try again.' };
       }
       logRelayEvent(relay, { actor: 'driver', type: kind === 'accept' ? 'offer.accepted' : 'offer.countered', summary: `${nameRef.current} ${kind === 'accept' ? 'accepted' : `countered with ${amount / 100} naira on`} ${ride.rider.name}’s offer`, ride_id: ride.id, person_id: phone });
       stopSelection.current?.();
@@ -591,7 +591,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       try {
         won = await claimRide(relay, ride.id, summary(), Date.now());
       } catch {
-        return { ok: false, error: 'Couldn’t reach the demo relay. Try again.' };
+        return { ok: false, error: 'We couldn’t reach GoBye. Check your connection and try again.' };
       }
       if (!won) return { ok: false, error: 'Another driver took this ride.' };
       logRelayEvent(relay, { actor: 'driver', type: 'ride.accepted', summary: `${nameRef.current} accepted ${ride.rider.name}’s ride`, ride_id: ride.id, person_id: phone });

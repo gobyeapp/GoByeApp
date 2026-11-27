@@ -277,13 +277,13 @@ export function BookingProvider({ children }: { children: ReactNode }) {
             const fresh = await services.pricing.quote(b.route, b.quote.category);
             dispatch({ type: 'REQUOTE', quote: fresh, now: Date.now() });
           } catch {
-            return { ok: false, error: 'Couldn’t update the price. Check your connection, then retry.' };
+            return { ok: false, error: 'We couldn’t update the price. Check your connection and try again.' };
           }
         }
         if (mode === 'quick_match') {
           const now = Date.now();
           const r = dispatch({ type: 'SUBMIT', now });
-          if (r.error) return { ok: false, error: 'Booking failed. Try again.' };
+          if (r.error) return { ok: false, error: 'We couldn’t book your ride. Try again.' };
           dispatch({ type: 'SEARCH_STARTED', now });
         }
         return { ok: true, value: true };

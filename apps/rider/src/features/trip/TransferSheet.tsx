@@ -39,7 +39,7 @@ export function TransferSheet({
         payout ? (
           <>
             <Button
-              title="I’ve transferred"
+              title="I’ve sent the money"
               onPress={onSent}
               loading={checking}
               loadingLabel="Checking transfer"

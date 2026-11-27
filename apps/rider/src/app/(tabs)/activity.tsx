@@ -175,7 +175,7 @@ export default function Activity() {
           {sections.length === 0 ? (
             <EmptyState
               icon="search"
-              title="No trips here"
+              title="No trips in this period"
               body={filter === 'all' ? `You haven’t taken a ride ${PERIOD_LABEL[period]}.` : 'Try another filter or period.'}
               actionLabel={filter !== 'all' || period !== 'all' ? 'Show all trips' : undefined}
               onAction={() => {

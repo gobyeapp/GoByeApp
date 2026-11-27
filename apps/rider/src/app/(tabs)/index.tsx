@@ -339,7 +339,7 @@ function LocationNotice() {
             Location is off
           </Text>
           <Text variant="footnote" color="textSecondary">
-            Search for your pickup, or turn location on in Settings.
+            Type your pickup, or turn on location in Settings.
           </Text>
         </View>
         <Button title="Settings" size="md" variant="secondary" onPress={location.openSettings} />
@@ -369,7 +369,7 @@ function LocationNotice() {
         <Text variant="footnote" style={styles.flex}>
           {location.error}
         </Text>
-        <Button title="Retry" size="md" variant="secondary" onPress={location.refresh} />
+        <Button title="Try again" size="md" variant="secondary" onPress={location.refresh} />
       </View>
     );
   }

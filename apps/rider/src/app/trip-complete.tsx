@@ -310,7 +310,7 @@ function StatusLine(p: { reduce: boolean; status?: PaymentStatus; isTransfer: bo
   if (p.notConfirmed) {
     tone = 'warning';
     icon = 'clock';
-    text = 'Pending. We couldn’t confirm it yet. Check again; you won’t be charged twice.';
+    text = 'We’re still confirming this payment. Check again; you won’t be charged twice.';
   } else if (p.shortfall > 0) {
     tone = 'danger';
     text = `${formatNaira(p.shortfall)} short. Add money or change method.`;
@@ -318,10 +318,10 @@ function StatusLine(p: { reduce: boolean; status?: PaymentStatus; isTransfer: bo
   } else if (p.notSeen) {
     tone = 'warning';
     icon = 'clock';
-    text = 'Pending. Transfer not received yet. Don’t send it twice.';
+    text = 'We haven’t received your transfer yet. Don’t send it again.';
   } else if (p.status === 'failed') {
     tone = 'danger';
-    text = p.isTransfer ? 'We couldn’t confirm your transfer.' : 'Payment didn’t go through. Nothing was taken.';
+    text = p.isTransfer ? 'We couldn’t confirm your transfer.' : 'Payment didn’t go through. You weren’t charged.';
   } else if (p.status === 'reversed') {
     tone = 'neutral';
     icon = 'refresh';

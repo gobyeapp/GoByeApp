@@ -225,7 +225,7 @@ export default function Wallet() {
         {/* The page rises over the header with rounded corners. */}
         <View style={[styles.sheet, { backgroundColor: colors.background }]}>
           {failed ? (
-            <ErrorState title="Couldn’t load your wallet" body="Check your connection and try again." onRetry={() => void wallet.refresh()} />
+            <ErrorState title="We couldn’t load your wallet" body="Check your connection and try again." onRetry={() => void wallet.refresh()} />
           ) : (
             <>
             {/* A deposit in progress matters now, so it stays above the list. Offers come after it. */}

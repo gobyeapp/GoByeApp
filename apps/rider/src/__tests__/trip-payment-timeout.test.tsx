@@ -110,6 +110,6 @@ describe('Trip completed: payment confirmation timeout', () => {
     expect(api.booking.booking?.paymentStatus).toBe('pending');
     expect(api.booking.booking?.paymentNotice).toBe('not_confirmed');
     expect(await screen.findByTestId('check-transfer')).toBeTruthy();
-    expect(screen.getByText(/couldn’t confirm it yet/)).toBeTruthy();
+    expect(screen.getByText(/still confirming this payment/)).toBeTruthy();
   }, 60_000);
 });

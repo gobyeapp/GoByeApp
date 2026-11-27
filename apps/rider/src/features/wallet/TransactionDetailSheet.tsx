@@ -42,7 +42,7 @@ export function TransactionDetailSheet({ tx, onClose, onNewDeposit }: { tx: Wall
       haptic(s === 'successful' ? 'success' : s === 'failed' ? 'error' : 'selection');
       if (s === 'pending') toast('Not received yet. Transfers can take a few minutes.', 'info');
     } catch {
-      toast('Couldn’t check right now. Try again.', 'error');
+      toast('We couldn’t check just now. Try again.', 'error');
     } finally {
       setChecking(false);
     }
@@ -62,7 +62,7 @@ export function TransactionDetailSheet({ tx, onClose, onNewDeposit }: { tx: Wall
         ? t.status === 'reversed'
           ? 'Returned to your wallet. If the trip is still unpaid, you’ll pay again.'
           : t.status === 'failed'
-            ? 'Didn’t go through. You weren’t charged.'
+            ? 'Payment didn’t go through. You weren’t charged.'
             : t.status === 'pending'
               ? 'Reserved while the payment is processed.'
               : 'Paid from your wallet.'
@@ -71,11 +71,11 @@ export function TransactionDetailSheet({ tx, onClose, onNewDeposit }: { tx: Wall
           : 'Your balance didn’t change.';
 
   const footer = !t ? null : t.type === 'top_up' && t.status === 'pending' ? (
-    <Button title="Check status" onPress={check} loading={checking} disabled={checking} testID="tx-check" />
+    <Button title="Check again" onPress={check} loading={checking} disabled={checking} testID="tx-check" />
   ) : t.type === 'top_up' && t.status === 'failed' ? (
     <>
       <Button
-        title="New deposit"
+        title="Add more money"
         onPress={() => {
           onClose();
           onNewDeposit();

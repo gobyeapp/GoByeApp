@@ -115,7 +115,7 @@ export function receiptHtml(d: ReceiptData): string {
           : ''
       }
       <div class="sec">
-        ${line('Agreed trip fare', formatNaira(d.fare))}
+        ${line('Fare', formatNaira(d.fare))}
         ${d.processingFee > 0 ? line(`${method} fee`, formatNaira(d.processingFee), 'Separate from the fare') : ''}
         <div class="rule"></div>
         <div class="line total"><div class="k">Total</div><div class="v">${esc(formatNaira(d.total))}</div></div>

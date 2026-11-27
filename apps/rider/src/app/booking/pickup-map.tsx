@@ -95,7 +95,7 @@ export default function PickupOnMap() {
               </SkeletonGroup>
             ) : (
               <Text variant="headline" numberOfLines={2}>
-                {failed ? 'No address here. Move the pin.' : place ? `${place.title}` : 'No address yet'}
+                {failed ? 'We can’t find an address here. Move the pin.' : place ? `${place.title}` : 'No address yet'}
               </Text>
             )}
             {!looking && place && !failed ? (

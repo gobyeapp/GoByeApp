@@ -248,7 +248,7 @@ export function createMockServices(options: MockOptions = {}): GoByeServices {
       async updateProfile(_token, profile, current?: Passenger) {
         // The in-memory map is empty after an app restart; fall back to the signed-in user the app holds.
         const user = [...knownUsers.values()].pop() ?? current;
-        if (!user) return delay({ ok: false as const, error: 'Session expired. Sign in again.' });
+        if (!user) return delay({ ok: false as const, error: 'You’ve been signed out. Sign in again.' });
         const updated: Passenger = { ...user, ...profile };
         knownUsers.set(user.phone, updated);
         // A new Apple / Google account: remember it by email (no password) so the same provider signs in next time.

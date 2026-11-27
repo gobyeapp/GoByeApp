@@ -246,7 +246,7 @@ export default function Negotiate() {
             <Card>
               <Text variant="headline">No driver took this offer</Text>
               <Text variant="callout" color="textSecondary">
-                {roundsLeft > 0 ? 'Raise your offer or use Quick Match.' : 'Offer limit reached. Use Quick Match.'}
+                {roundsLeft > 0 ? 'Raise your offer or use Quick Match.' : 'You’ve made all your offers. Use Quick Match to ride at the suggested fare.'}
               </Text>
             </Card>
           ) : null}

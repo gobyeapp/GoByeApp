@@ -143,7 +143,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         return { ok: true, value: { isNewUser: r.value.isNewUser } };
       },
       async saveProfile(profile) {
-        if (!token) return { ok: false, error: 'Session expired. Sign in again.' };
+        if (!token) return { ok: false, error: 'You’ve been signed out. Sign in again.' };
         const r = await auth.updateProfile(token, profile, stored.user ?? undefined);
         // Keep the local photo when the profile service returns the user.
         if (r.ok) persist({ ...stored, user: { ...r.value, photoUri: stored.user?.photoUri } });
@@ -160,7 +160,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         persist({ ...stored, user: null });
       },
       async requestDeletion() {
-        if (!token) return { ok: false, error: 'Session expired. Sign in again.' };
+        if (!token) return { ok: false, error: 'You’ve been signed out. Sign in again.' };
         const r = await auth.requestAccountDeletion(token);
         if (!r.ok) return r;
         await clearAll();

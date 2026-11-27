@@ -47,7 +47,7 @@ export default function DeleteAccount() {
         {[
           'Your driver profile, documents and vehicle are removed.',
           'Any time left on your access pass is lost.',
-          'Trip and payment records we must keep by law are retained, then deleted.',
+          'We keep the trip and payment records the law requires, then delete them.',
         ].map((t) => (
           <View key={t} style={styles.point}>
             <Icon name="minusCircle" size="xs" color="textSecondary" />

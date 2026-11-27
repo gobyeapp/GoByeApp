@@ -83,7 +83,7 @@ export default function TripComplete() {
 
       <View style={[styles.card, { backgroundColor: colors.surfaceMuted }]}>
         <KeyValue label="Pickup" value={trip.pickup.title} />
-        <KeyValue label="Drop off" value={trip.destination.title} />
+        <KeyValue label="Drop-off" value={trip.destination.title} />
         <KeyValue label="Distance" value={formatDistance(trip.route.distanceMeters)} />
         <KeyValue label="Time" value={formatDuration(minutes)} />
       </View>

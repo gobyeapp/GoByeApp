@@ -57,7 +57,7 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
   const amount: Kobo | null = custom ? kobo(Number(custom) * 100) : selected;
 
   const start = async () => {
-    if (!amount || amount <= 0) return setError('Enter an amount greater than ₦0.');
+    if (!amount || amount <= 0) return setError('Enter an amount.');
     if (amount > MAX_DEPOSIT) return setError(`The most you can add at once is ${formatNaira(MAX_DEPOSIT)}.`);
     setError(undefined);
     if (method === 'card') return setStep('card');
@@ -67,7 +67,7 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
       setInstructions(ins);
       setStep('instructions');
     } catch {
-      setError('Couldn’t start the deposit. Check your connection and try again.');
+      setError('We couldn’t start your top-up. Check your connection and try again.');
     } finally {
       setBusy(false);
     }
@@ -106,7 +106,7 @@ export function DepositSheet({ visible, onClose }: { visible: boolean; onClose: 
         setCardError(s === 'failed' ? 'The payment didn’t go through. You weren’t charged. Try again or use bank transfer.' : 'This is taking longer than usual. Check your wallet in a moment before trying again.');
       }
     } catch {
-      setCardError('Couldn’t start the payment. Check your connection and try again.');
+      setCardError('We couldn’t start your payment. Check your connection and try again.');
     } finally {
       setBusy(false);
     }

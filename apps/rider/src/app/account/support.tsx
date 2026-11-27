@@ -19,7 +19,7 @@ export default function Support() {
 
   const submit = () => {
     if (!topic) return setError('Choose a topic.');
-    if (message.trim().length < 10) return setError('Tell us a little more (at least 10 characters).');
+    if (message.trim().length < 10) return setError('Tell us a little more so we can help.');
     const id = addSupportRequest(topic, `${trip ? `[Trip ${trip}] ` : ''}${message.trim()}`);
     setSentId(id);
     toast('Request saved (simulated)', 'success');
@@ -28,13 +28,13 @@ export default function Support() {
   if (sentId) {
     return (
       <Screen header={<PageHeader title="Help and support" onBack={() => router.back()} />} footer={<Button title="Done" onPress={() => router.back()} />}>
-        <EmptyState icon="checkCircle" title="Request recorded" body={`Reference ${sentId}. Saved on this device only in this preview.`} />
+        <EmptyState icon="checkCircle" title="We’ve got your request" body={`Reference ${sentId}. Saved on this device only in this preview.`} />
       </Screen>
     );
   }
 
   return (
-    <Screen header={<PageHeader title="Help and support" onBack={() => router.back()} />} footer={<Button title="Submit request" onPress={submit} testID="support-submit" />}>
+    <Screen header={<PageHeader title="Help and support" onBack={() => router.back()} />} footer={<Button title="Send request" onPress={submit} testID="support-submit" />}>
       <View style={{ flexDirection: 'row', gap: spacing.sm, alignItems: 'center' }}>
         <SimulatedBadge />
         <Text variant="footnote" color="textSecondary" style={{ flex: 1 }}>

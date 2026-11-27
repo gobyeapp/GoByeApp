@@ -97,7 +97,7 @@ export default function DeleteAccount() {
       </Text>
       <View style={styles.list}>
         <Bullet text="Your profile and saved places are removed." />
-        <Bullet text="Refund any Wallet balance first." />
+        <Bullet text="Use or withdraw your wallet balance first." />
         <Bullet text="Some trip and payment records are kept where the law requires." />
         <Bullet text="This can’t be undone." />
       </View>

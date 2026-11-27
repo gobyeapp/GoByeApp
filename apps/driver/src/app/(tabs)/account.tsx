@@ -31,9 +31,9 @@ export default function Account() {
 
   const logOut = () =>
     confirmAction({
-      title: 'Log out?',
+      title: 'Sign out?',
       message: d.location.activity !== 'offline' ? 'You’ll go offline and sign in again with your phone number.' : 'You’ll sign in again with your phone number.',
-      confirm: 'Log out',
+      confirm: 'Sign out',
       destructive: true,
       onConfirm: () => {
         const off = d.goOffline();
@@ -85,9 +85,9 @@ export default function Account() {
 
       <SettingsGroup title="App">
         <SettingsRow icon="settings" title="Appearance" value={APPEARANCE_LABEL[settings.appearance]} onPress={() => router.push('/account/appearance')} />
-        <SettingsRow icon="phone" title="Haptic feedback" trailing="switch" switchValue={settings.haptics} onSwitch={(v) => updateSettings({ haptics: v })} />
+        <SettingsRow icon="phone" title="Vibration" trailing="switch" switchValue={settings.haptics} onSwitch={(v) => updateSettings({ haptics: v })} />
         <SettingsRow icon="support" title="Help and safety" onPress={() => router.push('/account/support')} />
-        <SettingsRow icon="signOut" title="Log out" onPress={logOut} testID="sign-out" />
+        <SettingsRow icon="signOut" title="Sign out" onPress={logOut} testID="sign-out" />
       </SettingsGroup>
 
       <SettingsGroup title="Preview" footer="Clears your application, pass and trips on this device so you can try sign up again.">

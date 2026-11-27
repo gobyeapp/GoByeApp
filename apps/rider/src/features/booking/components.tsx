@@ -179,7 +179,7 @@ export function ResponseCard({
             {expired ? 'Expired' : `Expires in ${formatCountdown(remaining)}`}
           </Text>
           <Button
-            title="Select"
+            title="Choose"
             size="md"
             onPress={onSelect}
             disabled={expired}

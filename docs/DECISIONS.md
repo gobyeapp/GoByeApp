@@ -1113,3 +1113,9 @@ The owner asked for the Wallet's reference sizes on every page.
 - Staff ride and finance routes live under `/v1/ops/*` (the gateway refuses `/v1/admin/*` on purpose).
 - **Follow-ups the same day (owner):** a button that moves money says the verb and the amount as one phrase, the amount a little heavier: "Add ₦5,000", "Pay ₦2,500" (`title` + `trailingText` on `Button`). No box around the amount (tried, read as a button inside a button). "Continue" is only for a plain next step; with nothing chosen the button says what to do ("Choose an amount"). Tab pages (Activities, Account) no longer repeat the tab's name as a page title, and Delete account shows its question once.
 
+## D-106 — Wording rules for the apps (2026-11-27)
+
+- **Rules (owner):** (1) a button says what happens next in the person's words ("Add ₦5,000", "Rate driver", "Send request"), never "Submit", and "Continue" only for a plain next step; (2) one word for one thing everywhere ("Try again", "Sign out", "Check again", "Done" for a finished task and "Close" for just looking); (3) everyday words, not system words ("Vibration", "Notifications", "Add more money"); (4) when something goes wrong say what happened, then what to do, starting with "We couldn’t…" and never blaming the person; (5) an empty screen says what will appear and offers the next step.
+- **Kept:** "Quick Match" and "Negotiate" are product names, each with a plain line under it. "Preview" and "simulated" labels stay in test builds.
+- Applied across the rider and driver apps (buttons, titles, labels, error and empty messages). New wording follows these rules; check near-duplicates before adding a new phrase.
+

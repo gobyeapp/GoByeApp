@@ -1413,3 +1413,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 4. With a deployed API: switch the apps' ride state to `server/rides.ts` (D-104) and verify on two phones.
 5. Admin pages for live rides, finance and identity results on the routes that now exist.
 
+## 2026-11-27 — Wording pass on both apps (D-106)
+
+- About 50 phrases changed in the rider and driver apps to follow the five wording rules; money buttons read "Add ₦5,000" / "Pay ₦2,500" as one phrase; tab pages no longer repeat their tab name.
+- Rider tests 37, driver 14, core 315; typecheck, lint and Android and iOS export pass. **Read as text, not on every screen in context;** nothing was tried on a real phone.
+
