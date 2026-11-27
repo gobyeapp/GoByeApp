@@ -1326,3 +1326,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - Wallet tab, `TransactionRow` and `SignedAmount` (optional weight).
 - **Checked:** side by side with the reference at the same width in Chromium (iPhone 13 size); rider tests 37; typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Home and Work shortcuts only once saved (D-090)
+
+- `apps/rider/src/app/(tabs)/index.tsx` (tile label, icon and style by state); `state/account.tsx` (no pre-saved places).
+- **Checked** in Chromium at iPhone 13 size: with nothing saved the tiles read "Add home", "Add work", "Saved"; with a home saved, "Home", "Add work", "Saved". Rider tests 37, typecheck, lint, Android and iOS export pass. **Not tried on a real phone.**
+- People who already opened the preview keep the made-up Home and Work stored in their browser until they sign out or clear the site's data.

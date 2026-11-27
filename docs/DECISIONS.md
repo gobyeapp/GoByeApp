@@ -984,3 +984,8 @@ The owner confirmed the Wallet should match the bank-app reference's sizes (meas
 - filter chips and "See all" 12.
 
 Nothing is below 11. Wallet only: the rest of the app keeps the shared type scale until the owner decides.
+
+## D-090 — Home and Work shortcuts appear only once an address is saved (2026-11-27)
+
+- On the rider Home screen, the tile reads "Home" (or "Work") only when that address is saved, and then it books a ride there. Until then it reads "Add home" / "Add work" with a plus, in a quieter style, and opens the search to save one. "Saved" always opens the saved places list.
+- New accounts start with **no** saved places. Before, test accounts were given a made-up Home and Work, so "Home" took a new rider to an address they had never added.

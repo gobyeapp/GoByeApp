@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import {
   MOCK_PAYMENT_METHODS,
   enabledMethods,
-  MOCK_SAVED_PLACES,
   mockNotifications,
   naira,
   type AppNotification,
@@ -44,7 +43,8 @@ function seed(): AccountData {
   return {
     history: [],
     ratings: [],
-    savedPlaces: MOCK_SAVED_PLACES,
+    // A new account has no saved places (D-090): Home and Work appear only after the rider adds them.
+    savedPlaces: [],
     recentPlaces: [],
     // Only launch-enabled methods (Q-001): wallet + bank transfer; cash hidden while undecided.
     paymentMethods: enabledMethods(MOCK_PAYMENT_METHODS),

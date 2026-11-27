@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Place } from '@gobye/core';
-import { Avatar, Bone, Button, SearchField, Icon, IconButton, MapSheet, SkeletonGroup, Text, layout, minTouch, radii, shadows, spacing, useTheme, useToast } from '@gobye/ui';
+import { Avatar, Bone, Button, SearchField, Icon, IconButton, MapSheet, SkeletonGroup, Text, layout, minTouch, radii, shadows, spacing, useTheme, useToast, type IconName } from '@gobye/ui';
 import { PassengerSheet, PickupSheet } from '@/features/home/HomeSheets';
 import { PromoCarousel } from '@/features/promo/PromoCarousel';
 import { MapCanvas, type MapCanvasHandle } from '@/features/map/MapCanvas';
@@ -239,19 +239,22 @@ export default function Home() {
               {[
                 {
                   key: 'home',
-                  label: 'Home',
-                  icon: 'homePlace' as const,
+                  // "Home" only once an address is saved (D-090); until then the tile says what it does.
+                  label: home ? 'Home' : 'Add home',
+                  set: !!home,
+                  icon: (home ? 'homePlace' : 'plus') as IconName,
                   a11y: home ? `Go home, ${home.title}` : 'Add home address',
                   onPress: () => (home ? chooseDestination(home) : router.push({ pathname: '/booking/search', params: { field: 'save-home' } })),
                 },
                 {
                   key: 'work',
-                  label: 'Work',
-                  icon: 'work' as const,
+                  label: work ? 'Work' : 'Add work',
+                  set: !!work,
+                  icon: (work ? 'work' : 'plus') as IconName,
                   a11y: work ? `Go to work, ${work.title}` : 'Add work address',
                   onPress: () => (work ? chooseDestination(work) : router.push({ pathname: '/booking/search', params: { field: 'save-work' } })),
                 },
-                { key: 'saved', label: 'Saved', icon: 'heart' as const, a11y: 'Saved places', onPress: () => router.push('/account/places') },
+                { key: 'saved', label: 'Saved', set: true, icon: 'heart' as IconName, a11y: 'Saved places', onPress: () => router.push('/account/places') },
               ].map((t) => (
                 <Pressable
                   key={t.key}
@@ -265,8 +268,8 @@ export default function Home() {
                     scheme === 'light' && !pressed && styles.tileLift,
                   ]}
                 >
-                  <Icon name={t.icon} size={18} color="text" />
-                  <Text variant="caption" weight="semibold" numberOfLines={1}>
+                  <Icon name={t.icon} size={18} color={t.set ? 'text' : 'textSecondary'} />
+                  <Text variant="caption" weight={t.set ? 'semibold' : 'medium'} color={t.set ? 'text' : 'textSecondary'} numberOfLines={1}>
                     {t.label}
                   </Text>
                 </Pressable>
