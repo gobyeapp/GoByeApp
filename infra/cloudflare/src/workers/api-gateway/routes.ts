@@ -49,12 +49,19 @@ const SEGMENT: Record<string, RouteClass | ((method: string, rest: string[]) => 
   me: 'users',
   costs: 'users',
   ops: 'users',
+  // Staff review of driver applications (D-080). Permissions and the second factor are checked by the API.
+  staff: 'users',
   drivers: 'drivers',
   // POST /v1/rides creates a booking; anything on /v1/rides/{id}/... is an existing ride (status, cancel, PIN, location).
   rides: (method, rest) => (rest.length === 0 && method === 'POST' ? 'rides_create' : 'rides_active'),
   fares: 'fares',
+  // Prices and place lookups each cost a maps call (D-100, D-103): the fares limit caps what one caller can spend.
+  quotes: 'fares',
+  places: 'fares',
   offers: 'offers',
   payments: 'payments',
+  // Wallet top-ups and balances (D-101) share the payments limit.
+  wallet: 'payments',
   files: 'files',
   notifications: 'notifications',
   support: 'support',

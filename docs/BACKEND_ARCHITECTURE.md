@@ -163,7 +163,9 @@ Forward-only SQL in `apps/api/migrations`. Runner in `src/database/migrations.ts
 | Notifications | `NotificationSender` (push, sms, email; idempotent message id) | `NOT_CONFIGURED` | `logNotifications` (records ids; never logs addresses or data) | Refuses log-only. Sign-in SMS and OTP come from Supabase Auth. |
 | Document storage | `ObjectStore` (`packages/core/src/files`) | `NOT_CONFIGURED` | In-memory mock store | R2 presigned PUT/GET (same SigV4 code and signed headers as the edge Worker). Head, move and delete stay with the upload signer Worker. |
 
-## 9. Money: what is deliberately not built
+## 9. Money: built and switched off (D-101)
+
+> **Update 2026-11-27 (D-101):** the ledger, collections, transfers, refunds and the webhook described below as "proposed" are now built (migration 0010, `src/money/`) and switched off behind `WALLET_ENABLED`. The four reviews at the end of this section are still required before it is switched on; `docs/PAYMENTS_GO_LIVE.md` has the steps. The text below is kept as the original restriction.
 
 Owner restriction: no real-money wallet before the ledger, reconciliation, payment-provider and security designs are reviewed.
 

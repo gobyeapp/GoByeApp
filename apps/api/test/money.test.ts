@@ -143,7 +143,7 @@ describe('money API', async () => {
     assert.equal((data(await call('GET', `/v1/payments/${second.reference}`, rider)) as unknown as { status: string }).status, 'credited');
     const lines = (await tdb.db.query<{ account_kind: string; amount_kobo: string }>(`select e.account_kind, e.amount_kobo from app.ledger_entries e join app.ledger_journals j on j.id = e.journal_id where j.reference = $1 order by e.account_kind`, [second.reference])).rows;
     assert.deepEqual(lines.map((l) => [l.account_kind, Number(l.amount_kobo)]), [['passenger_wallet', 500_000], ['processing_costs', -7500], ['provider_clearing', -492_500]], 'the provider’s charge is recorded separately');
-    const review = data(await staffCall('GET', '/v1/admin/finance/collections/review', await addStaff(tdb.db, { roles: ['finance'] }))) as unknown as { collections: { reference: string }[] };
+    const review = data(await staffCall('GET', '/v1/ops/finance/collections/review', await addStaff(tdb.db, { roles: ['finance'] }))) as unknown as { collections: { reference: string }[] };
     assert.ok(review.collections.some((c) => c.reference === first.reference));
   });
 
@@ -177,22 +177,24 @@ describe('money API', async () => {
     data(await call('PUT', '/v1/drivers/me/payout-account', d, { bankName: 'GTBank', accountNumber: '0123456789', accountName: 'Ada Obi' }));
     assert.match((await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 })).json().error.message, /bank account/);
     data(await call('PUT', '/v1/drivers/me/payout-account', d, { bankName: 'GTBank', accountNumber: '0123456789', accountName: 'Ada Obi', bankCode: '058' }));
+    assert.equal((await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 })).json().error.code, 'PAYOUT_ACCOUNT_CHANGED', 'no withdrawal for 24 hours after the bank account changes');
+    await tdb.db.query(`update app.driver_payout_accounts set updated_at = now() - interval '25 hours' where driver_id = $1`, [d]);
     assert.equal((await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: ride.fare + 100_000 })).json().error.code, 'INSUFFICIENT_FUNDS');
     const w1 = data(await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 }), 201) as unknown as { id: string; status: string };
     assert.equal((await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 })).statusCode, 409, 'one at a time');
     let e = data(await call('GET', '/v1/drivers/me/earnings', d)) as unknown as { balanceKobo: number; setAsideKobo: number };
     assert.deepEqual([e.balanceKobo, e.setAsideKobo], [ride.fare - 100_000, 100_000]);
 
-    assert.equal((await staffCall('POST', `/v1/admin/finance/withdrawals/${w1.id}/approve`, ops, {})).statusCode, 403, 'not a finance reviewer');
-    assert.equal((await call('POST', `/v1/admin/finance/withdrawals/${w1.id}/approve`, finance.authUserId, {})).statusCode, 403, 'second factor needed');
-    data(await staffCall('POST', `/v1/admin/finance/withdrawals/${w1.id}/reject`, finance, { reason: 'Account name does not match' }));
+    assert.equal((await staffCall('POST', `/v1/ops/finance/withdrawals/${w1.id}/approve`, ops, {})).statusCode, 403, 'not a finance reviewer');
+    assert.equal((await call('POST', `/v1/ops/finance/withdrawals/${w1.id}/approve`, finance.authUserId, {})).statusCode, 403, 'second factor needed');
+    data(await staffCall('POST', `/v1/ops/finance/withdrawals/${w1.id}/reject`, finance, { reason: 'Account name does not match' }));
     e = data(await call('GET', '/v1/drivers/me/earnings', d)) as never;
     assert.deepEqual([e.balanceKobo, e.setAsideKobo], [ride.fare, 0], 'rejected: the money is back');
 
     const w2 = data(await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 200_000 }), 201) as unknown as { id: string };
     assert.equal(await submitPayout(tdb.db, gateway, w2.id), 'skipped', 'never sent before approval');
-    data(await staffCall('POST', `/v1/admin/finance/withdrawals/${w2.id}/approve`, finance, {}));
-    assert.equal((await staffCall('POST', `/v1/admin/finance/withdrawals/${w2.id}/approve`, finance, {})).statusCode, 409);
+    data(await staffCall('POST', `/v1/ops/finance/withdrawals/${w2.id}/approve`, finance, {}));
+    assert.equal((await staffCall('POST', `/v1/ops/finance/withdrawals/${w2.id}/approve`, finance, {})).statusCode, 409);
     const before = sim.calls.createTransfer;
     assert.equal(await submitPayout(tdb.db, gateway, w2.id), 'submitted');
     assert.equal(await submitPayout(tdb.db, gateway, w2.id), 'skipped', 'a second run sends nothing');
@@ -207,7 +209,7 @@ describe('money API', async () => {
 
     // A transfer the provider fails: the money returns to earnings.
     const w3 = data(await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 }), 201) as unknown as { id: string };
-    data(await staffCall('POST', `/v1/admin/finance/withdrawals/${w3.id}/approve`, finance, {}));
+    data(await staffCall('POST', `/v1/ops/finance/withdrawals/${w3.id}/approve`, finance, {}));
     assert.equal(await submitPayout(tdb.db, gateway, w3.id), 'submitted');
     transfers.set((await tdb.db.query<{ reference: string }>(`select reference from app.withdrawals where id = $1`, [w3.id])).rows[0]!.reference, 'failed');
     assert.equal(await checkPayout(tdb.db, gateway, w3.id), 'failed');
@@ -217,7 +219,7 @@ describe('money API', async () => {
     // The provider times out after we sent it: marked unknown, and never sent again.
     const failing = createSimulatedGateway({ failNext: ['unknown_outcome'] });
     const w4 = data(await call('POST', '/v1/drivers/me/withdrawals', d, { amountKobo: 100_000 }), 201) as unknown as { id: string };
-    data(await staffCall('POST', `/v1/admin/finance/withdrawals/${w4.id}/approve`, finance, {}));
+    data(await staffCall('POST', `/v1/ops/finance/withdrawals/${w4.id}/approve`, finance, {}));
     assert.equal(await submitPayout(tdb.db, failing, w4.id), 'unknown');
     assert.equal(await submitPayout(tdb.db, failing, w4.id), 'skipped');
     assert.equal(failing.calls.createTransfer, 1);
@@ -232,14 +234,14 @@ describe('money API', async () => {
     const care = await addStaff(tdb.db, { roles: ['care'] });
     const fin = await addStaff(tdb.db, { roles: ['finance'] });
     const fin2 = await addStaff(tdb.db, { roles: ['finance'] });
-    assert.equal((await staffCall('POST', '/v1/admin/finance/refunds', care, { rideId: ride.id, amountKobo: 50_000, reason: 'Driver took a longer route' })).statusCode, 409, 'not paid yet');
+    assert.equal((await staffCall('POST', '/v1/ops/finance/refunds', care, { rideId: ride.id, amountKobo: 50_000, reason: 'Driver took a longer route' })).statusCode, 409, 'not paid yet');
     data(await call('POST', `/v1/rides/${ride.id}/payment`, rider, { method: 'wallet' }));
-    assert.equal((await staffCall('POST', '/v1/admin/finance/refunds', care, { rideId: ride.id, amountKobo: ride.fare + 100, reason: 'Driver took a longer route' })).json().error.code, 'REFUND_TOO_LARGE');
-    const r = data(await staffCall('POST', '/v1/admin/finance/refunds', fin, { rideId: ride.id, amountKobo: 50_000, reason: 'Driver took a longer route' }), 201) as unknown as { id: string };
-    assert.equal((await staffCall('POST', `/v1/admin/finance/refunds/${r.id}/approve`, care, {})).statusCode, 403, 'care can ask, not approve');
-    assert.equal((await staffCall('POST', `/v1/admin/finance/refunds/${r.id}/approve`, fin, {})).json().error.code, 'SECOND_PERSON_REQUIRED');
-    data(await staffCall('POST', `/v1/admin/finance/refunds/${r.id}/approve`, fin2, {}));
-    assert.equal((await staffCall('POST', `/v1/admin/finance/refunds/${r.id}/approve`, fin2, {})).statusCode, 409);
+    assert.equal((await staffCall('POST', '/v1/ops/finance/refunds', care, { rideId: ride.id, amountKobo: ride.fare + 100, reason: 'Driver took a longer route' })).json().error.code, 'REFUND_TOO_LARGE');
+    const r = data(await staffCall('POST', '/v1/ops/finance/refunds', fin, { rideId: ride.id, amountKobo: 50_000, reason: 'Driver took a longer route' }), 201) as unknown as { id: string };
+    assert.equal((await staffCall('POST', `/v1/ops/finance/refunds/${r.id}/approve`, care, {})).statusCode, 403, 'care can ask, not approve');
+    assert.equal((await staffCall('POST', `/v1/ops/finance/refunds/${r.id}/approve`, fin, {})).json().error.code, 'SECOND_PERSON_REQUIRED');
+    data(await staffCall('POST', `/v1/ops/finance/refunds/${r.id}/approve`, fin2, {}));
+    assert.equal((await staffCall('POST', `/v1/ops/finance/refunds/${r.id}/approve`, fin2, {})).statusCode, 409);
     assert.equal((data(await call('GET', '/v1/wallet', rider)) as unknown as { balanceKobo: number }).balanceKobo, 50_000);
 
     const pass = data(await call('POST', '/v1/drivers/me/pass', d, { plan: 'daily', method: 'transfer' }), 201) as unknown as { reference: string; amountKobo: number };
@@ -270,7 +272,7 @@ describe('money API', async () => {
     assert.deepEqual(twice, [false, true, true]);
     const report = await integrity(tdb.db);
     assert.deepEqual(report, { ok: true, total: 0, unbalancedJournals: 0, balanceMismatches: 0, suspenseKobo: 0 }, 'after every test above, the books still add up');
-    const s = data(await staffCall('GET', '/v1/admin/finance/summary', await addStaff(tdb.db, { roles: ['finance'] }))) as unknown as { integrity: { ok: boolean }; accounts: Record<string, number> };
+    const s = data(await staffCall('GET', '/v1/ops/finance/summary', await addStaff(tdb.db, { roles: ['finance'] }))) as unknown as { integrity: { ok: boolean }; accounts: Record<string, number> };
     assert.equal(s.integrity.ok, true);
     assert.equal(Object.values(s.accounts).reduce((a, b) => a + b, 0), 0);
   });

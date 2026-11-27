@@ -1397,3 +1397,19 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **Button:** `packages/ui/src/components/Button.tsx`. Checked in Chromium at iPhone 13 size on rider and driver builds.
 - **Not done here:** nothing ran against Paystack, a real maps provider or a deployed API. Nothing was tried on a real phone.
 
+## 2026-11-27 — Connections (D-103), app ride code (D-104), security review (D-105)
+
+- **API:** migration 0011; `providers/{google-maps,notify,qoreid,paystack}.ts`; `notify/` (queue, job, hooks controller: place search, receipt setting, push token, SMS hook); `drivers/identity.job.ts`; `common/meter.ts`; account deletion guard. Staff routes at `/v1/ops/rides` and `/v1/ops/finance`.
+- **Core:** `server/rides.ts`. **Gateway:** new areas routed; self-check against `apps/api/routes.snapshot.json`.
+- **Tests:** API 176 (5 pooler tests need CI), including `connections` (9), `app-services` (2) and `security` (9); gateway 53; core 315; admin 418; rider 37; driver 14. Lint and typecheck clean.
+- **Docs:** `SECURITY_REVIEW.md`, `PAYMENTS_GO_LIVE.md`, threat model T24 to T35, `apps/api/.env.example`.
+- **Not done / not tested:** no real provider was called; nothing ran on the deployed gateway or a phone; the apps' screens still use the demo connection for rides (D-104); the admin has no pages yet for live rides, finance or identity results (the API routes exist).
+
+## Next steps
+
+1. Owner: fix the website waitlist (Supabase project paused, or `20261022c_waitlist_state.sql` not run).
+2. Owner: the free dashboard steps (backup passphrase, staging database `up` now including 0009 to 0011, R2 buckets and Worker secrets).
+3. Android test build on EAS (first run of the ML Kit face check).
+4. With a deployed API: switch the apps' ride state to `server/rides.ts` (D-104) and verify on two phones.
+5. Admin pages for live rides, finance and identity results on the routes that now exist.
+

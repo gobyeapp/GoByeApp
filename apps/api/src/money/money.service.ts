@@ -22,6 +22,8 @@ export const LIMITS = {
   collectionTtlMs: 60 * 60 * 1000,
   /** A pending payment is looked up at most this often when the app asks. */
   recheckMs: 8000,
+  /** No withdrawals for this long after the payout account changes (account-takeover brake). */
+  payoutAccountCoolOffMs: 24 * 60 * 60 * 1000,
 } as const;
 
 export interface CollectionRow {

@@ -12,6 +12,7 @@ import type { Principal } from '../auth/principal';
 import type { Providers } from '../providers/ports';
 import { AppError, Errors } from '../common/errors';
 import { validate } from '../common/validation';
+import { Meter } from '../common/meter';
 import { DISPATCH, OPEN, WITH_DRIVER, addRating, at, audit, cityAt, notifyRide, dispatch, expireIfDue, loadRide, newPin, notYours, rideEvent, riderView, updateRide, type RideRow } from './rides.repository';
 import { payByWallet } from '../money/ride-payment';
 
@@ -67,12 +68,19 @@ export class RidesController {
     @Inject(CLOCK) private readonly now: () => number,
     @Inject(PROVIDERS) private readonly providers: Providers,
     @Inject(CONFIG) private readonly config: AppConfig,
-  ) {}
+  ) {
+    this.quoteMeter = new Meter(20, this.now);
+  }
+
+  /** Each set of prices is a maps call that costs money: 20 a minute per rider is far more than booking needs. */
+  private readonly quoteMeter: Meter;
 
   /** POST /v1/quotes: a price for every vehicle type, worked out here from the route. */
   @Post('quotes')
   async quotes(@Body(validate(QuoteBody)) body: z.infer<typeof QuoteBody>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Res({ passthrough: true }) reply: FastifyReply) {
     this.rider(p);
+    parseIdempotencyKey(key);
+    this.quoteMeter.hit(p.userId);
     const city = cityAt(body.pickup);
     if (!city || cityAt(body.destination) !== city) throw new AppError(422, 'OUT_OF_AREA', 'GoBye isn’t available for this trip yet. Pickup and destination must both be in Lagos or both in Abuja.');
     // Outside the transaction: a slow maps provider must not hold a database connection.

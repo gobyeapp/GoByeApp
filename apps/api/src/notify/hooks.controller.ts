@@ -10,8 +10,9 @@ import { CurrentPrincipal, Public } from '../auth/decorators';
 import type { Principal } from '../auth/principal';
 import type { Providers } from '../providers/ports';
 import { verifyStandardWebhook } from '../providers/notify';
-import { AppError, Errors } from '../common/errors';
+import { Errors } from '../common/errors';
 import { validate } from '../common/validation';
+import { Meter } from '../common/meter';
 
 const Search = z.object({ q: z.string().trim().min(2).max(120), lat: z.coerce.number().min(-90).max(90).optional(), lng: z.coerce.number().min(-180).max(180).optional() }).strict();
 const Reverse = z.object({ lat: z.coerce.number().min(-90).max(90), lng: z.coerce.number().min(-180).max(180) }).strict();
@@ -27,25 +28,19 @@ const MAP_LIMIT = 40;
  */
 @Controller()
 export class HooksController {
-  private readonly used = new Map<string, { minute: number; n: number }>();
+  private readonly maps: Meter;
 
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(CLOCK) private readonly now: () => number,
     @Inject(PROVIDERS) private readonly providers: Providers,
     @Inject(CONFIG) private readonly config: AppConfig,
-  ) {}
+  ) {
+    this.maps = new Meter(MAP_LIMIT, this.now);
+  }
 
-  /** A per-process cap: enough to stop one account running up the maps bill. The gateway limits per IP as well. */
   private meter(userId: string) {
-    const minute = Math.floor(this.now() / 60_000);
-    const u = this.used.get(userId);
-    if (!u || u.minute !== minute) {
-      if (this.used.size > 20_000) this.used.clear();
-      this.used.set(userId, { minute, n: 1 });
-      return;
-    }
-    if (++u.n > MAP_LIMIT) throw new AppError(429, 'rate_limited', 'Too many searches. Wait a moment.', { retryAfterSeconds: 30 });
+    this.maps.hit(userId);
   }
 
   /** GET /v1/places/search?q=…&lat=…&lng=… */
@@ -100,11 +95,11 @@ export class HooksController {
   }
 
   /**
-   * POST /v1/hooks/auth/send-sms: the sign-in service (Supabase Auth "Send SMS" hook) asks us to deliver a
+   * POST /v1/webhooks/auth/send-sms: the sign-in service (Supabase Auth "Send SMS" hook) asks us to deliver a
    * sign-in code. The request must carry a valid Standard Webhooks signature made with the hook's secret.
    * The code is passed straight to the SMS provider: never logged, stored or returned.
    */
-  @Post('hooks/auth/send-sms')
+  @Post('webhooks/auth/send-sms')
   @Public()
   @HttpCode(200)
   async sendSms(@Req() req: RawBodyRequest<FastifyRequest>) {

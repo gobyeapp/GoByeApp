@@ -28,14 +28,14 @@ const GROUPS: Record<string, string[]> = { open: [...OPEN], active: [...WITH_DRI
  * Rides for staff (D-100, D-067): the live list, one ride with its full history, and stopping a ride.
  * Staff see first names only here; contact details need their own permission on the person's page.
  */
-@Controller('admin/rides')
+@Controller('ops/rides')
 export class StaffRidesController {
   constructor(
     @Inject(DATABASE) private readonly db: Database,
     @Inject(CLOCK) private readonly now: () => number,
   ) {}
 
-  /** GET /v1/admin/rides */
+  /** GET /v1/ops/rides */
   @Get()
   @RequirePermission('trips.view')
   async list(@Query(validate(List)) q: z.infer<typeof List>, @CurrentPrincipal() p: Principal) {
@@ -72,7 +72,7 @@ export class StaffRidesController {
     };
   }
 
-  /** GET /v1/admin/rides/{id}: the ride and everything that happened to it. */
+  /** GET /v1/ops/rides/{id}: the ride and everything that happened to it. */
   @Get(':id')
   @RequirePermission('trips.view')
   async get(@Param(validate(Id)) params: z.infer<typeof Id>, @CurrentPrincipal() p: Principal) {
@@ -88,13 +88,13 @@ export class StaffRidesController {
     return { ...view, pickupPin: null, payTo: null, riderId: r.rider_id, driverId: r.driver_id, riderFirstName: name(r.rider_id), driver, cancelReason: r.cancel_reason, events: events.rows.map((e) => ({ at: e.at.toISOString(), type: e.type, by: e.actor_kind, data: e.data })) };
   }
 
-  /** POST /v1/admin/rides/{id}/cancel: stop a ride that hasn't finished (a reason is required and audited). */
+  /** POST /v1/ops/rides/{id}/cancel: stop a ride that hasn't finished (a reason is required and audited). */
   @Post(':id/cancel')
   @HttpCode(200)
   @RequirePermission('trips.intervene')
   async cancel(@Param(validate(Id)) params: z.infer<typeof Id>, @Body(validate(CancelBody)) body: z.infer<typeof CancelBody>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
     const idem = parseIdempotencyKey(key);
-    const path = `/v1/admin/rides/${params.id}/cancel`;
+    const path = `/v1/ops/rides/${params.id}/cancel`;
     const out = await withIdempotency(this.db, { scope: `staff:${p.staff!.id}`, key: idem, method: 'POST', path, hash: requestHash('POST', path, body) }, async (tx) => {
       const r = await loadRide(tx, params.id, true);
       if (!r) throw Errors.notFound('Ride not found.');

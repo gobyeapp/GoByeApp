@@ -1090,3 +1090,25 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Decision (owner):** the primary button in the rider and driver apps matches the website: a soft tangerine gradient, a warm glow and a dark label. The white arrow chip was tried and removed the same day (owner). This replaces the black primary button and the earlier "no gradient or glow" note of 2026-10-22. Disabled stays neutral grey. Selected tiles and small "Add" pills stay black.
 - One component (`Button` in `@gobye/ui`); `primary` and `brand` are now the same.
 
+## D-103 — Outside services are connected in code and wait for keys (2026-11-27)
+
+- **Decision:** each outside service has an adapter behind the existing ports, off by default, switched on by setting its key in the server's secret store (`apps/api/.env.example` lists the names):
+  - **Maps:** Google Maps Platform through a server key (`MAPS_PROVIDER=google`). The apps ask our server for places and prices, so no maps key for search ships in an app.
+  - **Push:** Expo push (free). **Email:** Resend. **SMS:** Termii (Nigerian numbers only, transactional route).
+  - **Sign-in codes by SMS:** Supabase Auth's "Send SMS" hook calls `POST /v1/webhooks/auth/send-sms`, signed; we pass the code to the SMS provider and never log or store it.
+  - **Identity:** QoreID NIN face match. The result is stored in `app.identity_checks` and shown on the driver's application (D-067). It never approves a driver by itself, and the selfie is only shared after our own file check clears it.
+- **Notifications** are queued in the same transaction as the change they describe (`ops.notifications`, one row per message, no text stored). Ride steps send a push; a paid trip sends an emailed receipt.
+- **Receipts by email (owner):** on by default, a switch in notification settings (`PATCH /v1/me/notifications`), and only ever sent to an address the sign-in service has confirmed.
+- **Not run against the real services.** Each adapter is written from the provider's public documentation and tested against a stand-in. QoreID's token call in particular needs confirming with test credentials. Which SMS, email and identity providers to pay for is still the owner's choice: another provider is one adapter.
+
+## D-104 — The apps' ride code for the server exists; the screens still use the demo connection (2026-11-27)
+
+- **Decision:** `packages/core/src/server/rides.ts` holds the typed calls both apps make and the rider's booking services (prices, matching, live trip, choose, cancel, pay, rate) on the same interfaces the simulated and demo versions use. They are tested end to end against the API with the real client code (`apps/api/test/app-services.test.ts`).
+- **Not done:** the rider and driver apps' state (booking and driver screens) still talks to the demo connection. Switching them over changes how the PIN reaches each side (the server makes it; the driver types it) and needs a deployed API and real phones to verify. That is the one piece of app code still to do before rides run on the server in the apps.
+
+## D-105 — Security review of 2026-11-27 (see docs/SECURITY_REVIEW.md)
+
+- Every route is now checked by tests for sign-in, staff access, error leaks and idempotency; the gateway checks itself against the API's route list.
+- Fixed: gateway did not route `/v1/staff/*` and the new areas; a per-person limit on price requests; a 24 hour hold on withdrawals after a bank account change; account deletion refused while money or a ride is outstanding; the admin's router updated for published advisories.
+- Staff ride and finance routes live under `/v1/ops/*` (the gateway refuses `/v1/admin/*` on purpose).
+

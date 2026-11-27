@@ -17,7 +17,7 @@
     "@supabase/supabase-js": "2.119.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "7.9.4"
+    "react-router-dom": "7.18.7"
   },
   "devDependencies": {
     "@testing-library/react": "16.3.0",

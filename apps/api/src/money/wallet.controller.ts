@@ -124,8 +124,10 @@ export class WalletController {
     const idem = parseIdempotencyKey(key);
     const path = '/v1/drivers/me/withdrawals';
     const out = await withIdempotency(this.db, { scope: `user:${p.userId}`, key: idem, method: 'POST', path, hash: requestHash('POST', path, body) }, async (tx) => {
-      const acct = (await tx.query<{ bank_code: string | null; bank_name: string; account_number: string; account_name: string }>(`select bank_code, bank_name, account_number, account_name from app.driver_payout_accounts where driver_id = $1`, [p.userId])).rows[0];
+      const acct = (await tx.query<{ bank_code: string | null; bank_name: string; account_number: string; account_name: string; updated_at: Date }>(`select bank_code, bank_name, account_number, account_name, updated_at from app.driver_payout_accounts where driver_id = $1`, [p.userId])).rows[0];
       if (!acct?.bank_code) throw Errors.conflict('Add your bank account (with the bank chosen from the list) before withdrawing.');
+      // Someone who gets into an account can't change the bank details and take the money in one go.
+      if (this.now() - acct.updated_at.getTime() < LIMITS.payoutAccountCoolOffMs) throw new AppError(409, 'PAYOUT_ACCOUNT_CHANGED', 'You changed your bank account recently. For your safety, withdrawals open 24 hours after a change.');
       await tx.query('savepoint wd');
       let w: WithdrawalRow;
       try {

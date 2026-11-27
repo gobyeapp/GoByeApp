@@ -80,7 +80,7 @@ describe('connections API', async () => {
   test('the sign-in service can send a code by SMS only with a valid, fresh signature', { skip }, async () => {
     const body = JSON.stringify({ user: { id: randomUUID(), phone: '+2348031234567' }, sms: { otp: '482913' } });
     const sign = (id: string, ts: number, b = body) => `v1,${createHmac('sha256', Buffer.from(HOOK_SECRET.replace('v1,whsec_', ''), 'base64')).update(`${id}.${ts}.${b}`).digest('base64')}`;
-    const post = (headers: Record<string, string>, b = body) => t.inject({ method: 'POST', url: '/v1/hooks/auth/send-sms', headers: { 'content-type': 'application/json', ...headers }, payload: b });
+    const post = (headers: Record<string, string>, b = body) => t.inject({ method: 'POST', url: '/v1/webhooks/auth/send-sms', headers: { 'content-type': 'application/json', ...headers }, payload: b });
     const ts = Math.floor(Date.now() / 1000);
     assert.equal((await post({})).statusCode, 401, 'no signature');
     assert.equal((await post({ 'webhook-id': 'm1', 'webhook-timestamp': String(ts), 'webhook-signature': 'v1,AAAA' })).statusCode, 401, 'wrong signature');
@@ -97,7 +97,7 @@ describe('connections API', async () => {
     assert.equal((await post({ 'webhook-id': 'm2', 'webhook-timestamp': String(ts), 'webhook-signature': sign('m2', ts, abroad) }, abroad)).statusCode, 422, 'no SMS to other countries (toll fraud)');
     assert.equal(verifyStandardWebhook('v1,whsec_c2hvcnQ=', body, { 'webhook-id': 'm', 'webhook-timestamp': String(ts), 'webhook-signature': 'v1,x' }, Date.now()), false, 'a weak secret is refused');
     const off = await makeApp({ db: tdb.db, keys });
-    assert.equal((await off.inject({ method: 'POST', url: '/v1/hooks/auth/send-sms', payload: {} })).statusCode, 404, 'off unless configured');
+    assert.equal((await off.inject({ method: 'POST', url: '/v1/webhooks/auth/send-sms', payload: {} })).statusCode, 404, 'off unless configured');
     await off.app.close();
   });
 

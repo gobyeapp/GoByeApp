@@ -30,6 +30,10 @@ const req = (path: string, init: RequestInit = {}) => new Request(`https://api.g
 describe('API gateway: routing', () => {
   it('classifies /v1 routes, booking creation separately from trips in progress', () => {
     expect(matchRoute('POST', '/v1/rides')).toMatchObject({ kind: 'api', rule: { routeClass: 'rides_create' } });
+    expect(matchRoute('POST', '/v1/quotes')).toMatchObject({ kind: 'api', rule: { routeClass: 'fares' } });
+    expect(matchRoute('POST', '/v1/wallet/deposits')).toMatchObject({ kind: 'api', rule: { routeClass: 'payments', auth: true } });
+    expect(matchRoute('POST', '/v1/webhooks/payments/paystack')).toMatchObject({ kind: 'api', rule: { routeClass: 'webhooks', auth: false } });
+    expect(matchRoute('POST', '/v1/webhooks/auth/send-sms')).toMatchObject({ kind: 'api', rule: { routeClass: 'webhooks', auth: false } });
     expect(matchRoute('POST', '/v1/rides/bk-1/cancel')).toMatchObject({ kind: 'api', rule: { routeClass: 'rides_active' } });
     expect(matchRoute('POST', '/v1/auth/otp')).toMatchObject({ kind: 'api', isOtp: true });
     for (const a of ['users', 'drivers', 'fares', 'offers', 'payments', 'files', 'notifications', 'support']) expect(matchRoute('GET', `/v1/${a}/me`).kind).toBe('api');
@@ -176,5 +180,24 @@ describe('API gateway: request checks', () => {
     expect(line).not.toContain('abcdefghijklmnop');
     expect(line).not.toContain('0803');
     expect(line).not.toContain('internal.example');
+  });
+});
+
+/**
+ * The API writes the list of its routes to apps/api/routes.snapshot.json (its security test fails when the
+ * list is out of date). Every one must be routable here, with the same answer to "does it need a sign-in?".
+ */
+describe('the gateway and the API agree on every route', () => {
+  const routes = require('../../../apps/api/routes.snapshot.json') as { method: string; path: string; public: boolean }[];
+  const fill = (p: string) => p.replace(/:[A-Za-z]+/g, '3f0e8a52-1c2d-4e5f-8a9b-0c1d2e3f4a5b');
+  it('knows them all', () => {
+    expect(routes.length).toBeGreaterThan(70);
+    for (const r of routes) {
+      const m = matchRoute(r.method, fill(r.path));
+      expect([r.path, m.kind]).not.toEqual([r.path, 'not_found']);
+      if (m.kind !== 'api') continue;
+      expect([r.path, r.method, (m.rule.methods as readonly string[]).includes(r.method)]).toEqual([r.path, r.method, true]);
+      expect([r.path, m.rule.auth]).toEqual([r.path, !r.public]);
+    }
   });
 });

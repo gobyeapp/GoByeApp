@@ -1,0 +1,387 @@
+[
+ {
+  "method": "GET",
+  "path": "/health/live",
+  "public": true
+ },
+ {
+  "method": "GET",
+  "path": "/health/ready",
+  "public": true
+ },
+ {
+  "method": "GET",
+  "path": "/v1/costs/break-even",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/costs/expenses",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/costs/expenses",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/:driverId/subscription",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/application",
+  "public": false
+ },
+ {
+  "method": "PUT",
+  "path": "/v1/drivers/me/application/steps/:step",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/application/submit",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/earnings",
+  "public": false
+ },
+ {
+  "method": "PUT",
+  "path": "/v1/drivers/me/location",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/pass",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/payout-account",
+  "public": false
+ },
+ {
+  "method": "PUT",
+  "path": "/v1/drivers/me/payout-account",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/presence",
+  "public": false
+ },
+ {
+  "method": "PUT",
+  "path": "/v1/drivers/me/presence",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/requests",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/requests/:rideId/accept",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/requests/:rideId/counter",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/requests/:rideId/decline",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/rides",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/rides/:id",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/arrived",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/cancel",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/complete",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/payment/confirm",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/rating",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/rides/:id/start",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/drivers/me/rides/current",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/drivers/me/withdrawals",
+  "public": false
+ },
+ {
+  "method": "DELETE",
+  "path": "/v1/me",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/me",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/consents",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/deletion/cancel",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/devices",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/me/export",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/me/notifications",
+  "public": false
+ },
+ {
+  "method": "PATCH",
+  "path": "/v1/me/notifications",
+  "public": false
+ },
+ {
+  "method": "PATCH",
+  "path": "/v1/me/profile",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/profile",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/push-token",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/me/roles",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/finance/collections/review",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/finance/journals",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/ops/finance/refunds",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/ops/finance/refunds/:id/approve",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/finance/summary",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/finance/withdrawals",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/ops/finance/withdrawals/:id/approve",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/ops/finance/withdrawals/:id/reject",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/health",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/rides",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/ops/rides/:id",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/ops/rides/:id/cancel",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/payments/:reference",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/places/reverse",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/places/search",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/quotes",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/rides",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/rides/:id",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides/:id/cancel",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides/:id/offers",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides/:id/payment",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides/:id/rating",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/rides/:id/select",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/rides/current",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/staff/driver-applications",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/staff/driver-applications/:driverId",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/staff/driver-applications/:driverId/decision",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/staff/driver-applications/:driverId/request-changes",
+  "public": false
+ },
+ {
+  "method": "GET",
+  "path": "/v1/wallet",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/wallet/deposits",
+  "public": false
+ },
+ {
+  "method": "POST",
+  "path": "/v1/webhooks/auth/send-sms",
+  "public": true
+ },
+ {
+  "method": "POST",
+  "path": "/v1/webhooks/payments/:provider",
+  "public": true
+ },
+ {
+  "method": "GET",
+  "path": "/v1/webhooks/whatsapp",
+  "public": true
+ },
+ {
+  "method": "POST",
+  "path": "/v1/webhooks/whatsapp",
+  "public": true
+ }
+]

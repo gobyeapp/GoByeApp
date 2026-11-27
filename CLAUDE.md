@@ -66,7 +66,8 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 - Business rules come from `@gobye/core` (compiled into the API). Never re-implement them in the API.
 - Migrations: forward-only SQL in `apps/api/migrations`. Never edit one after it is applied (`docs/DATABASE_MIGRATIONS.md`).
 - Every write that creates or changes something takes an `Idempotency-Key` (`withIdempotency`) and writes its audit row in the same transaction.
-- No real-money wallet, ledger, payouts or webhook endpoints until the reviews in `BACKEND_ARCHITECTURE.md` §9 are done.
+- Money (D-101) is built and switched off: the ledger, wallet, payouts, refunds and the payment webhook answer "not connected" until `WALLET_ENABLED=true` and a provider are set. Do not switch it on, in any environment that real people use, before the reviews in `BACKEND_ARCHITECTURE.md` §9 and the steps in `docs/PAYMENTS_GO_LIVE.md`. Never edit a balance: post a balanced journal (`money/ledger.ts`).
+- Rides (D-100): a fare only ever comes from a server quote. Staff routes live under `/v1/ops/*`. After adding or changing a route run `UPDATE_ROUTES=1 npm test -w apps/api` and the gateway tests (`docs/SECURITY_REVIEW.md`).
 - No Redis, ClickHouse, Kubernetes or new paid services without a measured need.
 - Run `npm test -w apps/api` with PostgreSQL available. The database tests skip without it, so a pass without Postgres proves little. CI runs `npm run test:ci -w apps/api` with PgBouncer (`apps/api/test/pooler/start.sh`, `TEST_POOLER_URL`), where any skip fails.
 - Database connections send **no session settings at start-up** (Supavisor transaction mode, C-1). Timeouts live on the role (`apps/api/db/roles.sql`) and in `SET LOCAL`.

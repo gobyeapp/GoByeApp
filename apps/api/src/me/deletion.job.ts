@@ -1,6 +1,7 @@
 import { DELETED_USER_NAME } from '@gobye/core';
 import type { AppConfig } from '../config/config';
 import type { JobHandler } from '../jobs/worker';
+import { holdsMoneyOrRide } from './accounts.controller';
 
 type FetchLike = (url: string, init: { method: string; headers: Record<string, string>; signal?: AbortSignal }) => Promise<{ ok: boolean; status: number }>;
 
@@ -24,6 +25,8 @@ export function accountHandlers(o: { config: AppConfig; fetch?: FetchLike }): Re
         if (!d || d.status === 'cancelled') return 'skip' as const;
         if (d.status === 'completed') return 'done' as const;
         if (d.scheduled_for.getTime() > Date.now() + 60_000) return 'early' as const;
+        // Something changed during the grace period (a ride, a top-up): wait until it is settled.
+        if (await holdsMoneyOrRide(tx, userId)) return 'early' as const;
         await tx.query(`update app.users set full_name = $2, email = null, phone = null, status = 'deleted', deleted_at = now() where id = $1 and status <> 'deleted'`, [userId, DELETED_USER_NAME]);
         await tx.query(`delete from app.devices where user_id = $1`, [userId]);
         await tx.query(

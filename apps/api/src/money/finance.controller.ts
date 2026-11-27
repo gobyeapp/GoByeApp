@@ -22,11 +22,11 @@ const Paging = z.object({ limit: z.coerce.number().int().min(1).max(100).default
  * Money for finance staff (D-101, D-067): totals from the ledger, the integrity checks, withdrawals to
  * approve, payments that need a person, and refunds (asked by one person, approved by another).
  */
-@Controller('admin/finance')
+@Controller('ops/finance')
 export class FinanceController {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
-  /** GET /v1/admin/finance/summary */
+  /** GET /v1/ops/finance/summary */
   @Get('summary')
   @RequirePermission('finance.view')
   async summary() {
@@ -37,7 +37,7 @@ export class FinanceController {
     return { accounts: Object.fromEntries(totals.rows.map((t) => [t.account_kind, Number(t.s)])), integrity: await integrity(this.db), collections: by(collections.rows), withdrawals: by(withdrawals.rows) };
   }
 
-  /** GET /v1/admin/finance/journals: the newest journals with their entries. */
+  /** GET /v1/ops/finance/journals: the newest journals with their entries. */
   @Get('journals')
   @RequirePermission('ledger.view')
   async journals(@Query(validate(Paging)) q: z.infer<typeof Paging>) {
@@ -50,7 +50,7 @@ export class FinanceController {
     return { journals: r.rows };
   }
 
-  /** GET /v1/admin/finance/collections/review: payments that did not match and were not credited. */
+  /** GET /v1/ops/finance/collections/review: payments that did not match and were not credited. */
   @Get('collections/review')
   @RequirePermission('finance.view')
   async review() {
@@ -58,7 +58,7 @@ export class FinanceController {
     return { collections: r.rows };
   }
 
-  /** GET /v1/admin/finance/withdrawals */
+  /** GET /v1/ops/finance/withdrawals */
   @Get('withdrawals')
   @RequirePermission('withdrawals.view')
   async withdrawals(@Query(validate(WList)) q: z.infer<typeof WList>) {
@@ -71,7 +71,7 @@ export class FinanceController {
   @HttpCode(200)
   @RequirePermission('withdrawals.review')
   async approve(@Param(validate(Id)) params: z.infer<typeof Id>, @Body(validate(Empty)) body: z.infer<typeof Empty>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
-    return this.write(p, key, `/v1/admin/finance/withdrawals/${params.id}/approve`, body, reply, async (tx) => {
+    return this.write(p, key, `/v1/ops/finance/withdrawals/${params.id}/approve`, body, reply, async (tx) => {
       const w = (await tx.query<WithdrawalRow>(`select * from app.withdrawals where id = $1 for update`, [params.id])).rows[0];
       if (!w) throw Errors.notFound('Withdrawal not found.');
       if (w.status !== 'requested') throw Errors.conflict('This withdrawal has already been decided.');
@@ -89,7 +89,7 @@ export class FinanceController {
   @HttpCode(200)
   @RequirePermission('withdrawals.review')
   async reject(@Param(validate(Id)) params: z.infer<typeof Id>, @Body(validate(Reason)) body: z.infer<typeof Reason>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
-    return this.write(p, key, `/v1/admin/finance/withdrawals/${params.id}/reject`, body, reply, async (tx) => {
+    return this.write(p, key, `/v1/ops/finance/withdrawals/${params.id}/reject`, body, reply, async (tx) => {
       const w = (await tx.query<WithdrawalRow>(`select * from app.withdrawals where id = $1 for update`, [params.id])).rows[0];
       if (!w) throw Errors.notFound('Withdrawal not found.');
       if (w.status !== 'requested') throw Errors.conflict('This withdrawal has already been decided.');
@@ -100,11 +100,11 @@ export class FinanceController {
     });
   }
 
-  /** POST /v1/admin/finance/refunds: ask for a refund to a rider's wallet. Someone else must approve it. */
+  /** POST /v1/ops/finance/refunds: ask for a refund to a rider's wallet. Someone else must approve it. */
   @Post('refunds')
   @RequirePermission('refunds.request')
   async requestRefund(@Body(validate(RefundBody)) body: z.infer<typeof RefundBody>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
-    return this.write(p, key, '/v1/admin/finance/refunds', body, reply, async (tx) => {
+    return this.write(p, key, '/v1/ops/finance/refunds', body, reply, async (tx) => {
       const ride = (await tx.query<{ rider_id: string; agreed_fare_kobo: string | null; status: string }>(`select rider_id, agreed_fare_kobo, status from app.rides where id = $1 for update`, [body.rideId])).rows[0];
       if (!ride) throw Errors.notFound('Ride not found.');
       if (ride.status !== 'completed') throw Errors.conflict('Only a completed, paid ride can be refunded.');
@@ -121,7 +121,7 @@ export class FinanceController {
   @HttpCode(200)
   @RequirePermission('refunds.approve')
   async approveRefund(@Param(validate(Id)) params: z.infer<typeof Id>, @Body(validate(Empty)) body: z.infer<typeof Empty>, @Headers('idempotency-key') key: string | undefined, @CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
-    return this.write(p, key, `/v1/admin/finance/refunds/${params.id}/approve`, body, reply, async (tx) => {
+    return this.write(p, key, `/v1/ops/finance/refunds/${params.id}/approve`, body, reply, async (tx) => {
       const r = (await tx.query<{ id: string; ride_id: string; rider_id: string; amount_kobo: string; reason: string; status: string; requested_by: string }>(`select * from app.refunds where id = $1 for update`, [params.id])).rows[0];
       if (!r) throw Errors.notFound('Refund not found.');
       if (r.status !== 'requested') throw Errors.conflict('This refund has already been decided.');

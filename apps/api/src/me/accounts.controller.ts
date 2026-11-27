@@ -9,7 +9,7 @@ import type { Database, Querier } from '../database/database';
 import { parseIdempotencyKey, requestHash, withIdempotency } from '../database/idempotency';
 import { CurrentPrincipal } from '../auth/decorators';
 import type { Principal } from '../auth/principal';
-import { Errors } from '../common/errors';
+import { AppError, Errors } from '../common/errors';
 import { validate } from '../common/validation';
 import { enqueue } from '../jobs/queue';
 import { meView } from './me.view';
@@ -175,6 +175,9 @@ export class AccountsController {
   ) {
     return this.write(p, key, 'DELETE', '/v1/me', {}, req, reply, async (tx) => {
       this.requireUser(p);
+      // Money and rides are settled first, so nothing a person is owed (or owes) disappears with the account.
+      const held = await holdsMoneyOrRide(tx, p.userId);
+      if (held) throw new AppError(409, 'ACCOUNT_NOT_SETTLED', held);
       const now = this.now();
       const due = new Date(deletionDueAt(now));
       await tx.query(
@@ -273,4 +276,14 @@ export class AccountsController {
       [kind, userId, `${kind}:${userId}`, action, summary, req.id, JSON.stringify(data)],
     );
   }
+}
+
+/** Why this account can't be deleted yet, in words for the person; null when it can. */
+export async function holdsMoneyOrRide(q: Querier, userId: string): Promise<string | null> {
+  const ride = (await q.query(`select 1 from app.rides where (rider_id = $1 or driver_id = $1) and status in ('searching', 'negotiating', 'matched', 'driver_en_route', 'driver_arrived', 'in_progress', 'payment_pending') limit 1`, [userId])).rows[0];
+  if (ride) return 'Finish or cancel your current ride, and settle its payment, before deleting your account.';
+  const money = (await q.query<{ account_kind: string }>(`select account_kind from app.ledger_balances where owner_id = $1 and balance_kobo > 0 limit 1`, [userId])).rows[0];
+  if (money) return money.account_kind === 'passenger_wallet' ? 'You still have money in your wallet. Spend it or ask Support for a refund before deleting your account.' : 'You still have earnings to withdraw. Withdraw them before deleting your account.';
+  const open = (await q.query(`select 1 from app.withdrawals where driver_id = $1 and status in ('requested', 'approved', 'submitted', 'unknown') limit 1`, [userId])).rows[0];
+  return open ? 'A withdrawal is still on its way. Delete your account once it has arrived.' : null;
 }
