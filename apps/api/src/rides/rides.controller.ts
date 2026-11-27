@@ -17,7 +17,9 @@ import { payByWallet } from '../money/ride-payment';
 
 const Point = z.object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), label: z.string().trim().min(1, 'Add a name for this place.').max(200) }).strict();
 const QuoteBody = z.object({ pickup: Point, destination: Point }).strict();
-const BookBody = z.object({ quoteId: z.string().uuid(), mode: z.enum(['quick_match', 'negotiate']), offerKobo: z.number().int().positive().max(100_000_000).optional() }).strict();
+const Label = z.string().trim().min(1).max(200);
+// Labels are the rider's own names for the two places (shown to the driver). They never change the price or the coordinates.
+const BookBody = z.object({ quoteId: z.string().uuid(), mode: z.enum(['quick_match', 'negotiate']), offerKobo: z.number().int().positive().max(100_000_000).optional(), pickupLabel: Label.optional(), destinationLabel: Label.optional() }).strict();
 const OfferBody = z.object({ amountKobo: z.number().int().positive().max(100_000_000) }).strict();
 const SelectBody = z.object({ responseId: z.string().uuid() }).strict();
 const CancelBody = z.object({ reason: z.string().trim().max(200).optional() }).strict();
@@ -125,7 +127,7 @@ export class RidesController {
                                     quote_id, quoted_fare_kobo, agreed_fare_kobo, fare_locked_at, channel, route_distance_m, route_duration_s, route_estimated,
                                     offer_id, offer_kobo, offer_round, offer_expires_at, min_offer_kobo, max_offer_kobo, search_expires_at)
              values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'app', $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) returning *`,
-            [p.userId, body.mode, q.category, negotiate ? 'negotiating' : 'searching', q.city, q.pickup_lat, q.pickup_lng, q.pickup_label, q.destination_lat, q.destination_lng, q.destination_label,
+            [p.userId, body.mode, q.category, negotiate ? 'negotiating' : 'searching', q.city, q.pickup_lat, q.pickup_lng, body.pickupLabel ?? q.pickup_label, q.destination_lat, q.destination_lng, body.destinationLabel ?? q.destination_label,
               q.id, suggested, negotiate ? null : suggested, negotiate ? null : at(now), q.distance_m, q.duration_s, q.estimated,
               offer?.id ?? null, offer?.amount ?? null, offer ? 1 : 0, offer ? at(offer.expiresAt) : null, q.min_offer_kobo, q.max_offer_kobo,
               at(offer ? offer.expiresAt : now + DISPATCH.searchSeconds * 1000)],

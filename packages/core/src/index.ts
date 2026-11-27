@@ -34,3 +34,4 @@ export * from './subscriptions';
 export * from './accounts';
 export * from './wallet/account';
 export * from './whatsapp';
+export * from './server/rides';
