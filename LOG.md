@@ -1272,3 +1272,12 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **API:** `GET /v1/me/export` (`src/me/export.ts`), with a test. API 113 passed, 5 pooler tests skipped.
 - **Docs:** `THREAT_MODEL.md` T16 to T23.
 - **Owner step:** add `BACKUP_PASSPHRASE` (32+ characters) to GitHub → Settings → Environments → staging, and keep a copy in a password manager. Then run Actions → Staging backup once.
+
+## 2026-11-27 — Rider web: no play button on the welcome screen
+
+- When Safari doesn't start the road clip by itself (iPhone Low Power Mode), it drew its own play button over it.
+- Fix in `RoadVideo.web.tsx`:
+  - the clip stays invisible until it is actually moving, so the still picture shows until then;
+  - Safari's built-in video buttons are hidden for this clip;
+  - it starts on the first touch.
+- Checked in Chromium at iPhone 13 size with autoplay blocked: the still picture shows with no button, and the first touch starts the clip. Normal autoplay is unchanged. **Not tried on a real iPhone.**
