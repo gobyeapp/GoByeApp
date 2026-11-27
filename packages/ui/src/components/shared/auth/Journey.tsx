@@ -2,7 +2,7 @@ import { createContext, forwardRef, useContext, useEffect, useRef, useState, typ
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Defs, LinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { passwordChecks, passwordStrength, type SocialProvider } from '@gobye/core';
 import { OrDivider, SocialButtons } from './AuthKit';
@@ -26,11 +26,12 @@ const EASE = Easing.bezier(0.3, 0.8, 0.2, 1);
 const EDGE = 17;
 const LABEL_W = 84;
 
-/** Solid aubergine header (one brand colour; no gradient or glow, owner 2026-10-22). */
+/* The header was a flat aubergine until D-088; it now follows the website. */
 /**
- * The brand header background (D-088): a soft diagonal gradient, lighter plum at the top-left falling to
- * deep plum at the bottom-right, over the flat aubergine (which shows if the gradient can't draw).
- * Used by the sign-up, sign-in and reset headers and by the Wallet header, so they match.
+ * The brand header background (D-088, D-102): the website's header, drawn the same way. Deep plum running
+ * to a lighter plum, a warm tangerine glow coming in from the top-right corner and a violet glow rising
+ * from the bottom-left, with a faint sheen along the top edge. The flat aubergine underneath shows if the
+ * drawing can't render. Used by the sign-up, sign-in and reset headers and by the Wallet header.
  */
 export function PlumBackground({ radius = 0 }: { radius?: number }) {
   return (
@@ -38,12 +39,28 @@ export function PlumBackground({ radius = 0 }: { radius?: number }) {
       <Svg width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <LinearGradient id="gobye-plum" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={PLUM.mid} />
-            <Stop offset="0.55" stopColor={brand.aubergine} />
-            <Stop offset="1" stopColor={PLUM.deep} />
+            <Stop offset="0" stopColor={PLUM.deep} />
+            <Stop offset="0.5" stopColor="#3A1A46" />
+            <Stop offset="1" stopColor={PLUM.mid} />
+          </LinearGradient>
+          <RadialGradient id="gobye-plum-warm" cx="1" cy="0" rx="0.9" ry="1.25" fx="1" fy="0" gradientUnits="objectBoundingBox">
+            <Stop offset="0" stopColor={brand.tangerine} stopOpacity={0.55} />
+            <Stop offset="0.35" stopColor={brand.tangerine} stopOpacity={0.22} />
+            <Stop offset="0.65" stopColor={brand.tangerine} stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id="gobye-plum-violet" cx="0" cy="1" rx="0.75" ry="0.95" fx="0" fy="1" gradientUnits="objectBoundingBox">
+            <Stop offset="0" stopColor="#A85FC4" stopOpacity={0.5} />
+            <Stop offset="0.7" stopColor="#9B50B4" stopOpacity={0} />
+          </RadialGradient>
+          <LinearGradient id="gobye-plum-sheen" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.07} />
+            <Stop offset="0.35" stopColor="#FFFFFF" stopOpacity={0} />
           </LinearGradient>
         </Defs>
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum-violet)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum-warm)" />
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum-sheen)" />
       </Svg>
     </View>
   );
