@@ -115,8 +115,9 @@ export const versionConflict = () => new AppError(409, 'VERSION_CONFLICT', 'This
 
 /** The file classes each slot accepts (ops.files.file_class). */
 const SLOT_CLASSES: Record<ApplicationFileSlot, string[]> = {
+  photo: ['profile_photo'],
   licence: ['driver_licence'],
-  selfie: ['identity_document', 'profile_photo'],
+  selfie: ['identity_document'],
   registration: ['vehicle_document'],
   insurance: ['vehicle_document'],
   roadworthiness: ['vehicle_document'],

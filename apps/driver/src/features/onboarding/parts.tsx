@@ -15,7 +15,7 @@ export const STEP_ROUTES: Record<OnboardingStepId, `/onboarding/${OnboardingStep
 };
 
 export const STEP_META: Record<OnboardingStepId, { title: string; icon: IconName; summary: string }> = {
-  personal: { title: 'About you', icon: 'account', summary: 'Name, email and city' },
+  personal: { title: 'About you', icon: 'account', summary: 'Name, photo and city' },
   licence: { title: 'Driver’s licence', icon: 'idcard', summary: 'Number, expiry and a photo' },
   identity: { title: 'Identity check', icon: 'userSecurity', summary: 'NIN or ID and a selfie' },
   vehicle: { title: 'Your vehicle', icon: 'car', summary: 'Make, model, year and plate' },

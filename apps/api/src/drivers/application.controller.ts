@@ -29,7 +29,7 @@ const FileId = z.string().uuid('Upload the file first.');
 const Text = (max: number, msg: string) => z.string().trim().min(1, msg).max(max, `Use ${max} characters or fewer.`);
 
 const Steps = {
-  personal: z.object({ firstName: Text(40, 'Enter your first name.'), lastName: Text(40, 'Enter your last name.'), email: z.string().trim().email('Check the email address.').max(254).optional() }).strict(),
+  personal: z.object({ firstName: Text(40, 'Enter your first name.'), lastName: Text(40, 'Enter your last name.'), email: z.string().trim().email('Check the email address.').max(254).optional(), photoFileId: FileId }).strict(),
   licence: z.object({ number: z.string().max(30), expiry: z.string().max(10), photoFileId: FileId }).strict(),
   identity: z.object({ type: z.enum(['nin', 'voters_card', 'passport']), number: z.string().max(30), selfieFileId: FileId }).strict(),
   vehicle: z
@@ -145,7 +145,7 @@ export class DriverApplicationController {
     switch (step) {
       case 'personal': {
         const b = body as z.infer<typeof Steps.personal>;
-        return { app: { ...a, personal: { firstName: b.firstName, lastName: b.lastName, email: b.email?.toLowerCase(), city: s.city === 'abuja' ? 'Abuja' : 'Lagos' } }, slots: [] };
+        return { app: { ...a, personal: { firstName: b.firstName, lastName: b.lastName, email: b.email?.toLowerCase(), photoUri: b.photoFileId.toLowerCase(), city: s.city === 'abuja' ? 'Abuja' : 'Lagos' } }, slots: ['photo'] };
       }
       case 'licence': {
         const b = body as z.infer<typeof Steps.licence>;

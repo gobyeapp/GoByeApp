@@ -71,6 +71,7 @@ describe('driver applications API', async () => {
   /** Fill every step; returns the version and the file ids. */
   async function fill(sub: string) {
     const files = {
+      photo: await file(sub, 'profile_photo'),
       licence: await file(sub, 'driver_licence'),
       selfie: await file(sub, 'identity_document'),
       registration: await file(sub, 'vehicle_document'),
@@ -84,7 +85,7 @@ describe('driver applications API', async () => {
       v = r.json().data.version;
       return r;
     };
-    await put('personal', { firstName: 'Tunde', lastName: 'Bakare' });
+    await put('personal', { firstName: 'Tunde', lastName: 'Bakare', photoFileId: files.photo });
     await put('licence', { number: 'abc 123456789', expiry: '2031-05-01', photoFileId: files.licence });
     await put('identity', { type: 'nin', number: '12345678901', selfieFileId: files.selfie });
     await put('vehicle', { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: `KJA${String(Math.floor(Math.random() * 900) + 100)}AB` });
@@ -119,7 +120,7 @@ describe('driver applications API', async () => {
     assert.ok(body.files.every((f: { state: string }) => f.state === 'checking'));
     assert.equal(last.headers.etag, '"5"');
 
-    const stale = await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'Tunde', lastName: 'B' }, version: 3 });
+    const stale = await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'Tunde', lastName: 'B', photoFileId: await file(sub, 'profile_photo') }, version: 3 });
     assert.equal(stale.statusCode, 409);
     assert.equal(stale.json().error.code, 'VERSION_CONFLICT');
 
@@ -141,7 +142,7 @@ describe('driver applications API', async () => {
     assert.equal(sent.json().data.summary.checks.length, 5);
     const d = await tdb.db.query(`select verification_status from app.drivers where user_id = $1`, [sub]);
     assert.equal(d.rows[0].verification_status, 'pending_review');
-    assert.equal((await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'X', lastName: 'Y' }, version: version + 1 })).statusCode, 409, 'locked while in review');
+    assert.equal((await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'X', lastName: 'Y', photoFileId: files.photo }, version: version + 1 })).statusCode, 409, 'locked while in review');
 
     const queue = await staff('GET', '/v1/staff/driver-applications', lagos);
     assert.equal(queue.statusCode, 200, queue.body);
@@ -231,8 +232,8 @@ describe('driver applications API', async () => {
         return { ok: r.statusCode < 400, status: r.statusCode, headers: { get: (k: string) => (r.headers[k.toLowerCase()] as string | undefined) ?? null }, text: async () => r.body };
       },
     });
-    const ids = { lic: await file(sub, 'driver_licence', 'approved'), me: await file(sub, 'identity_document', 'approved'), r: await file(sub, 'vehicle_document', 'approved'), i: await file(sub, 'vehicle_document', 'approved'), w: await file(sub, 'vehicle_document', 'approved') };
-    const uploaded = new Map(Object.entries({ 'file:///lic.jpg': ids.lic, 'file:///me.jpg': ids.me, 'file:///r.jpg': ids.r, 'file:///i.jpg': ids.i, 'file:///w.jpg': ids.w }));
+    const ids = { face: await file(sub, 'profile_photo', 'approved'), lic: await file(sub, 'driver_licence', 'approved'), me: await file(sub, 'identity_document', 'approved'), r: await file(sub, 'vehicle_document', 'approved'), i: await file(sub, 'vehicle_document', 'approved'), w: await file(sub, 'vehicle_document', 'approved') };
+    const uploaded = new Map(Object.entries({ 'file:///face.jpg': ids.face, 'file:///lic.jpg': ids.lic, 'file:///me.jpg': ids.me, 'file:///r.jpg': ids.r, 'file:///i.jpg': ids.i, 'file:///w.jpg': ids.w }));
     let n = 0;
     const sync = createApplicationSync({
       api: createDriverApplicationApi(api),
@@ -241,7 +242,7 @@ describe('driver applications API', async () => {
       newKey: () => `sync-${sub.slice(0, 8)}-${++n}`,
     });
     const local: DriverApplication = {
-      personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+      personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos', photoUri: 'file:///face.jpg' },
       licence: { number: 'ABC123456789', expiry: '2031-01-01', photoUri: 'file:///lic.jpg' },
       identity: { type: 'nin', number: '12345678901', selfieUri: 'file:///me.jpg' },
       vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: `KJA ${String(Math.floor(Math.random() * 900) + 100)} AB` },
@@ -253,7 +254,7 @@ describe('driver applications API', async () => {
       assert.ok(r.ok, r.ok ? '' : r.error);
     }
     // Another device saves meanwhile: the next save re-reads the version and still succeeds.
-    await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'Tunde', lastName: 'Bakare' }, version: 5 });
+    await req('PUT', '/v1/drivers/me/application/steps/personal', sub, { payload: { firstName: 'Tunde', lastName: 'Bakare', photoFileId: ids.face }, version: 5 });
     const again = await sync.pushStep(local, 'vehicle');
     assert.ok(again.ok && again.value?.version === 7, JSON.stringify(again));
     const sent = await sync.submit();

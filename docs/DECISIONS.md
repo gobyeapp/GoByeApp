@@ -1037,3 +1037,14 @@ The owner asked for the Wallet's reference sizes on every page.
 - Both fill in the pickup and destination and open the ride options, so the **fare is a fresh quote**, never the old price, and the rider can still change either place, the ride type or the payment.
 - One trip at a time: with a ride in progress it says so, and an unpaid trip is settled first (`useBookAgain`).
 - Places visited before were already on Home as "Recent" (tap to set the destination); that stays.
+
+## D-097 — Drivers add a profile photo (2026-11-27)
+
+- **About you** (registration step 1) now asks for **Your photo**: a clear picture of the driver's face, taken with the camera or chosen from the phone. It is required: the step isn't complete, and the application can't be submitted, without it.
+- **Why separate from the ID selfie:** the selfie in the Identity step is only matched against the ID. The profile photo is the one riders see when the driver is matched, so they can check who is picking them up.
+- **Rules and API:** `DriverPersonalDetails.photoUri`; the `photo` file slot (file class `profile_photo`); `PUT …/steps/personal` takes `photoFileId`; staff see "Profile photo" with its check state. The ID selfie now accepts only `identity_document` files.
+- **Privacy:** the demo relay carries only whether a photo exists, never the picture.
+- **Still to do:**
+  - show the approved photo to riders (it arrives as `DriverSummary.photoUrl` once drivers come from the server; test drivers have none);
+  - let a driver change the photo later from Account, with staff re-approval;
+  - an "unclear photo" item for staff to send back.

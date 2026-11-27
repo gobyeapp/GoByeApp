@@ -26,7 +26,7 @@ jest.mock('@gobye/ui/src/map/MapCanvas', () => ({ MapCanvas: () => null }));
 
 const now = Date.UTC(2026, 9, 22, 12);
 const complete: DriverApplication = {
-  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos', photoUri: 'file:///face.jpg' },
   licence: { number: 'ABC123456789', expiry: '2029-01-01', photoUri: 'file://l.jpg' },
   identity: { type: 'nin', number: '12345678901', selfieUri: 'file://s.jpg' },
   vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: 'KJA123AB' },

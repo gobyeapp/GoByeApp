@@ -16,7 +16,7 @@ const detail = (status: string, version: number) => ({
     city: 'lagos',
     status,
     documents: {},
-    personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+    personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos', photoUri: 'f0' },
     licence: { number: 'ABC123456789', expiry: '2031-01-01', photoUri: 'f1' },
     identity: { type: 'nin', number: '12345678901', selfieUri: 'f2' },
     vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: 'KJA 123 AB' },

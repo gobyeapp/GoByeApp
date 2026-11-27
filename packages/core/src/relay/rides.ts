@@ -58,7 +58,8 @@ export function personRow(p: { role: RelayPerson['role']; phone: string; name: s
 
 export function shareApplication(app: DriverApplication): SharedApplication {
   return {
-    personal: app.personal ? { ...app.personal } : null,
+    // Photos never leave the phone through the relay: only whether there is one.
+    personal: app.personal ? { firstName: app.personal.firstName, lastName: app.personal.lastName, email: app.personal.email, city: app.personal.city, hasPhoto: !!app.personal.photoUri } : null,
     licence: app.licence ? { number: maskNumber(app.licence.number), expiry: app.licence.expiry, hasPhoto: !!app.licence.photoUri } : null,
     identity: app.identity ? { type: app.identity.type, number: maskNumber(app.identity.number), hasSelfie: !!app.identity.selfieUri } : null,
     vehicle: app.vehicle ? { ...app.vehicle } : null,

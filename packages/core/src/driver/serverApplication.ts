@@ -84,6 +84,7 @@ export function createFileUploader(d: FileUploaderDeps) {
 
 /** The photos each step carries: local URI and the file class the server expects. */
 export function stepFiles(app: DriverApplication, step: OnboardingStepId): { uri: string; fileClass: FileClass }[] {
+  if (step === 'personal' && app.personal?.photoUri) return [{ uri: app.personal.photoUri, fileClass: 'profile_photo' }];
   if (step === 'licence' && app.licence?.photoUri) return [{ uri: app.licence.photoUri, fileClass: 'driver_licence' }];
   if (step === 'identity' && app.identity?.selfieUri) return [{ uri: app.identity.selfieUri, fileClass: 'identity_document' }];
   if (step === 'documents') return VEHICLE_DOCUMENTS.flatMap((d) => (app.documents[d.id] ? [{ uri: app.documents[d.id]!, fileClass: 'vehicle_document' as FileClass }] : []));
@@ -93,8 +94,11 @@ export function stepFiles(app: DriverApplication, step: OnboardingStepId): { uri
 /** The PUT body for a step, with local photo URIs replaced by uploaded file ids. Null when the step has nothing to send. */
 export function stepBody(app: DriverApplication, step: OnboardingStepId, fileId: (uri: string) => string | undefined): object | null {
   switch (step) {
-    case 'personal':
-      return app.personal ? { firstName: app.personal.firstName, lastName: app.personal.lastName, ...(app.personal.email ? { email: app.personal.email } : {}) } : null;
+    case 'personal': {
+      const p = app.personal;
+      const id = p?.photoUri && fileId(p.photoUri);
+      return p && id ? { firstName: p.firstName, lastName: p.lastName, ...(p.email ? { email: p.email } : {}), photoFileId: id } : null;
+    }
     case 'licence': {
       const l = app.licence;
       const id = l?.photoUri && fileId(l.photoUri);

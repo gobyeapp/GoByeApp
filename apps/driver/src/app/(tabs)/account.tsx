@@ -49,7 +49,7 @@ export default function Account() {
       </Text>
 
       <View style={styles.identity}>
-        <Avatar uri={d.application.identity?.selfieUri} name={name} size={76} />
+        <Avatar uri={d.application.personal?.photoUri ?? d.application.identity?.selfieUri} name={name} size={76} />
         <View style={styles.center}>
           <Text variant="headline">{name}</Text>
           <View style={styles.pill}>

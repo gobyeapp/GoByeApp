@@ -33,7 +33,7 @@ export interface RelayPerson {
  * whether each one was provided is shared; ID and licence numbers are masked to the last four.
  */
 export interface SharedApplication {
-  personal: { firstName: string; lastName: string; email?: string; city: 'Lagos' | 'Abuja' } | null;
+  personal: { firstName: string; lastName: string; email?: string; city: 'Lagos' | 'Abuja'; hasPhoto?: boolean } | null;
   licence: { number: string; expiry: string; hasPhoto: boolean } | null;
   identity: { type: IdentityDocumentType; number: string; hasSelfie: boolean } | null;
   vehicle: { category: VehicleCategoryId; make: string; model: string; year: number; colour: string; plate: string } | null;

@@ -25,6 +25,12 @@ export interface DriverPersonalDetails {
   firstName: string;
   lastName: string;
   email?: string;
+  /**
+   * The driver's profile photo (D-097): a clear picture of their face that riders see when a driver is
+   * matched, so they can check who is picking them up. Separate from the identity selfie, which is only
+   * matched against the ID. A local file on the device; an ops.files id on the server.
+   */
+  photoUri?: string;
   /** Launch city the driver will work in (Q-007). */
   city: 'Lagos' | 'Abuja';
 }
@@ -133,7 +139,7 @@ export function validateVehicleYear(input: string | number, now: number): Result
 export function isStepComplete(app: DriverApplication, step: OnboardingStepId): boolean {
   switch (step) {
     case 'personal':
-      return !!app.personal?.firstName && !!app.personal.lastName;
+      return !!app.personal?.firstName && !!app.personal.lastName && !!app.personal.photoUri;
     case 'licence':
       return !!app.licence?.number && !!app.licence.expiry && !!app.licence.photoUri;
     case 'identity':

@@ -39,7 +39,7 @@ const NOW = Date.UTC(2026, 9, 22, 10, 0, 0);
 
 const complete: DriverApplication = {
   status: 'in_progress',
-  personal: { firstName: 'Musa', lastName: 'Bello', city: 'Lagos' },
+  personal: { firstName: 'Musa', lastName: 'Bello', city: 'Lagos', photoUri: 'file:///face.jpg' },
   licence: { number: 'ABC12345AA12', expiry: '2028-01-31', photoUri: 'file://l.jpg' },
   identity: { type: 'nin', number: '12345678901', selfieUri: 'file://s.jpg' },
   vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2015, colour: 'Silver', plate: 'KJA 123 AB' },

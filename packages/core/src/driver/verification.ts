@@ -231,9 +231,10 @@ export function verificationSummary(app: DriverApplication): VerificationSummary
 }
 
 /** Files an application points at, with the kind of file each must be (Backend Phase 2, WP3). */
-export type ApplicationFileSlot = 'licence' | 'selfie' | VehicleDocumentId;
+export type ApplicationFileSlot = 'photo' | 'licence' | 'selfie' | VehicleDocumentId;
 export function applicationFiles(app: DriverApplication): { slot: ApplicationFileSlot; ref: string }[] {
   const out: { slot: ApplicationFileSlot; ref: string }[] = [];
+  if (app.personal?.photoUri) out.push({ slot: 'photo', ref: app.personal.photoUri });
   if (app.licence?.photoUri) out.push({ slot: 'licence', ref: app.licence.photoUri });
   if (app.identity?.selfieUri) out.push({ slot: 'selfie', ref: app.identity.selfieUri });
   for (const d of VEHICLE_DOCUMENTS) {

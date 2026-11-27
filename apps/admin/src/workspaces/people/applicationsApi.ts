@@ -52,8 +52,9 @@ export function actionError(r: ApiResult<unknown>): string | null {
 export const masked = (v: string | undefined) => (v ? `•••• ${v.slice(-4)}` : '—');
 
 export const FILE_LABEL: Record<string, string> = {
+  photo: 'Profile photo',
   licence: 'Driver’s licence',
-  selfie: 'Selfie',
+  selfie: 'ID selfie',
   registration: 'Vehicle licence',
   insurance: 'Insurance',
   roadworthiness: 'Roadworthiness',

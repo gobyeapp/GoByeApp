@@ -12,7 +12,7 @@ import {
 } from '../index';
 
 const app: DriverApplication = {
-  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos', photoUri: 'file:///face.jpg' },
   licence: { number: 'ABC123456789', expiry: '2031-01-01', photoUri: 'file:///lic.jpg' },
   identity: { type: 'nin', number: '12345678901', selfieUri: 'file:///me.jpg' },
   vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: 'KJA 123 AB' },
@@ -53,12 +53,13 @@ describe('driver application client (WP4)', () => {
   });
 
   it('builds step bodies with file ids, and nothing until the photo is uploaded', () => {
-    const ids: Record<string, string> = { 'file:///lic.jpg': 'f-lic', 'file:///r.jpg': 'f-r' };
+    const ids: Record<string, string> = { 'file:///lic.jpg': 'f-lic', 'file:///r.jpg': 'f-r', 'file:///face.jpg': 'f-face' };
     const id = (u: string) => ids[u];
     expect(stepBody(app, 'licence', id)).toEqual({ number: 'ABC123456789', expiry: '2031-01-01', photoFileId: 'f-lic' });
     expect(stepBody(app, 'identity', id)).toBeNull();
     expect(stepBody(app, 'documents', id)).toEqual({ registration: 'f-r' });
-    expect(stepBody(app, 'personal', id)).toEqual({ firstName: 'Tunde', lastName: 'Bakare' });
+    expect(stepBody(app, 'personal', id)).toEqual({ firstName: 'Tunde', lastName: 'Bakare', photoFileId: 'f-face' });
+    expect(stepBody(app, 'personal', () => undefined)).toBeNull();
   });
 
   it('uploads each photo once, then saves; retries once on a version conflict with a new key', async () => {

@@ -2,7 +2,7 @@ import { ISSUES, applicationFiles, decideApplication, emptyApplication, requestC
 
 const now = Date.UTC(2026, 9, 22, 12);
 const complete: DriverApplication = {
-  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos' },
+  personal: { firstName: 'Tunde', lastName: 'Bakare', city: 'Lagos', photoUri: 'f' },
   licence: { number: 'ABC123456789', expiry: '2029-01-01', photoUri: 'p' },
   identity: { type: 'nin', number: '12345678901', selfieUri: 's' },
   vehicle: { category: 'go', make: 'Toyota', model: 'Corolla', year: 2016, colour: 'Silver', plate: 'KJA123AB' },
@@ -77,6 +77,7 @@ describe('driver verification', () => {
 
   it('lists the files an application points at', () => {
     expect(applicationFiles(complete)).toEqual([
+      { slot: 'photo', ref: 'f' },
       { slot: 'licence', ref: 'p' },
       { slot: 'selfie', ref: 's' },
       { slot: 'registration', ref: 'r' },

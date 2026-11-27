@@ -1370,3 +1370,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - `features/booking/useBookAgain.ts`; the Activities row; `ReceiptView` (footer and the two quiet actions).
 - **Checked** in Chromium at iPhone 13 size: Book again from the list and from the receipt open the ride options with the same places; Return trip opens them swapped; a new fare is quoted. Rider tests 37 (none added for this); typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Driver profile photo (D-097)
+
+- **Core:** `photoUri` on the personal step (required), the `photo` slot, step bodies; the relay strips it.
+- **API:** the personal step takes `photoFileId`. **Driver app:** photo field on About you; Account shows it. **Admin:** label.
+- **Tests:** core 313, driver 14, admin 418, API 113 (5 pooler tests skipped); fixtures updated. An existing relay test caught the local photo path leaking into the relay row; fixed before release.
+- **Checked** in Chromium at iPhone 13 size: About you shows the photo field and Continue is off without a photo. Typecheck, lint, Android and iOS export pass. **Taking a photo was not tried** (no camera here), and nothing was tried on a real phone.
