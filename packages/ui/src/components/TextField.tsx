@@ -24,7 +24,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
 ) {
   const { colors, scheme } = useTheme();
   const [focused, setFocused] = useState(false);
-  const borderColor = error ? colors.danger : focused ? colors.primary : colors.border;
+  const borderColor = error ? colors.danger : focused ? colors.primary : colors.borderStrong;
 
   return (
     <View style={styles.wrapper}>

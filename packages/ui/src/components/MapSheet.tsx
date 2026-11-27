@@ -122,7 +122,7 @@ export function MapSheet({ snapPoints, index = 0, onIndexChange, children, heade
             accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
             onAccessibilityAction={(e) => step(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
           >
-            <View style={[styles.grabber, { backgroundColor: colors.border }]} />
+            <View style={[styles.grabber, { backgroundColor: colors.borderStrong }]} />
           </View>
           {header}
         </View>

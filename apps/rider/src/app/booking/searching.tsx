@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatNaira, nairaAccessibilityLabel } from '@gobye/core';
-import { Button, ConnectionPill, EmptyState, MapSheet, SkeletonGroup, SkeletonRow, Text, layout, spacing, useTheme, useToast } from '@gobye/ui';
+import { Button, ConnectionPill, EmptyState, MapSheet, SkeletonGroup, SkeletonRow, Text, layout, shadows, spacing, useTheme, useToast } from '@gobye/ui';
 import { SearchingPulse, SimulatedNote } from '@/features/booking/components';
 import { useCancelRide, useConfirmBeforeBack } from '@/features/booking/useCancelRide';
 import { MapCanvas } from '@/features/map/MapCanvas';
@@ -20,7 +20,7 @@ export default function Searching() {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const sheetH = Math.round(Math.min(520, Math.max(380, height * 0.66)));
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const toast = useToast();
   const haptic = useHaptics();
   const booking = useBooking();
@@ -83,7 +83,7 @@ export default function Searching() {
               </Text>
             </View>
             <View
-              style={[styles.summary, { backgroundColor: colors.surfaceMuted, borderColor: colors.border }]}
+              style={[styles.summary, { backgroundColor: colors.card, borderColor: colors.border }, scheme === 'light' && shadows.card]}
               accessible
               accessibilityLabel={`${catName(b.quote.category)}, ${b.mode === 'negotiate' ? 'agreed fare' : 'fixed fare'} ${nairaAccessibilityLabel(b.agreedFare ?? b.quote.suggested)}. From ${b.pickup.title} to ${b.destination.title}`}
             >
@@ -101,7 +101,7 @@ export default function Searching() {
             </View>
             {/* Where the driver's details will appear: a skeleton, never a guessed driver. */}
             <SkeletonGroup label="Waiting for a driver to accept">
-              <View style={[styles.summary, { backgroundColor: colors.surfaceMuted, borderColor: colors.border }]}>
+              <View style={[styles.summary, { backgroundColor: colors.card, borderColor: colors.border }, scheme === 'light' && shadows.card]}>
                 <SkeletonRow />
               </View>
             </SkeletonGroup>

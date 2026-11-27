@@ -939,3 +939,12 @@ The owner reviewed the web preview on an iPhone and asked for the alignment and 
 - **Sign-up route** (`RouteProgress`):
   - the car, each stop and each label now share one centre (before, the labels sat in four equal columns and drifted from their dots);
   - the line is thinner, upcoming stops are hollow rings, and the current label is bold.
+
+## D-086 — Whiter panels and near-white edges (2026-11-27)
+
+The owner asked for a cleaner, crisper look: backgrounds close to white and outlines closer still.
+
+- **Light-mode tokens** (`packages/ui`): `surfaceMuted` and `navSurface` → #FCFCFC; `border` #E8E8E8 → #F1F1F1.
+- **New token `borderStrong`** (#E4E4E4 light, #3A3A3A dark) for things people must be able to find: text field outlines, the sign-up choice tiles and fields, sheet grabbers and the password strength track. Everything else uses the faint `border`.
+- **Finding-a-driver cards** are white with the faint edge and the soft card shadow, instead of grey boxes.
+- Dark mode's other colours are unchanged.

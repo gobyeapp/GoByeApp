@@ -55,7 +55,7 @@ export function Sheet({ visible, onClose, title, subtitle, children, footer, top
             accessibilityViewIsModal
             style={[styles.sheet, shadows.sheet, { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: scheme === 'dark' ? StyleSheet.hairlineWidth : 0, paddingBottom: insets.bottom + spacing.lg }]}
           >
-            <View style={[styles.grabber, { backgroundColor: colors.border }]} />
+            <View style={[styles.grabber, { backgroundColor: colors.borderStrong }]} />
             {headerAlign === 'leading' ? (
               <View style={styles.leadHeader}>
                 <View style={styles.leadTitle}>

@@ -303,7 +303,7 @@ export function PasswordRules({ password, testID }: { password: string; testID?:
       </View>
       <View style={styles.pwBars} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {[1, 2, 3].map((b) => (
-          <StrengthBar key={b} on={b <= meta.bars} color={meta.tone} track={colors.border} />
+          <StrengthBar key={b} on={b <= meta.bars} color={meta.tone} track={colors.borderStrong} />
         ))}
       </View>
       <View style={styles.pwChecks}>
@@ -366,7 +366,7 @@ export const JourneyField = forwardRef<TextInput, TextInputProps & { icon: IconN
           styles.field,
           {
             backgroundColor: scheme === 'dark' ? colors.surface : '#FFFFFF',
-            borderColor: error ? colors.danger : focused ? (scheme === 'dark' ? '#C79BD6' : PLUM.mid) : scheme === 'dark' ? colors.border : '#E7E3EA',
+            borderColor: error ? colors.danger : focused ? (scheme === 'dark' ? '#C79BD6' : PLUM.mid) : colors.borderStrong,
             borderWidth: focused || error ? 1.5 : 1,
           },
         ]}
@@ -426,7 +426,7 @@ export function ChoiceTile({ icon, title, subtitle, selected, onPress, wide, tes
         wide && styles.tileWide,
         {
           backgroundColor: selected ? ink : scheme === 'dark' ? colors.surface : '#FFFFFF',
-          borderColor: selected ? ink : scheme === 'dark' ? colors.border : '#E7E3EA',
+          borderColor: selected ? ink : colors.borderStrong,
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
@@ -465,7 +465,7 @@ export function RoundBack({ onPress, disabled }: { onPress: () => void; disabled
         styles.back,
         {
           backgroundColor: pressed ? colors.surfaceMuted : scheme === 'dark' ? colors.surface : '#FFFFFF',
-          borderColor: scheme === 'dark' ? colors.border : '#E4E1E6',
+          borderColor: colors.borderStrong,
           opacity: disabled ? 0.4 : 1,
           transform: [{ scale: pressed ? 0.94 : 1 }],
         },

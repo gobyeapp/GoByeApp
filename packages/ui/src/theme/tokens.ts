@@ -36,6 +36,8 @@ export interface ColorTokens {
   textSecondary: string;
   /* Borders */
   border: string;
+  /** For things that must be found without help: input outlines, sheet grabbers, progress tracks. */
+  borderStrong: string;
   /* Actions */
   /** Primary action fill (black in light mode, white in dark mode); also focus rings, progress and links. */
   primary: string;
@@ -84,12 +86,14 @@ export const lightColors: ColorTokens = {
   background: '#FFFFFF',
   surface: '#FFFFFF',
   // Near-white (D-085): panels sit just off the white page, so screens feel light and crisp.
-  surfaceMuted: '#FAFAFA',
+  surfaceMuted: '#FCFCFC',
   surfaceSelected: '#F2F2F2',
   card: '#FFFFFF',
   text: '#171717',
   textSecondary: '#666666',
-  border: '#E8E8E8',
+  // A whisper of an edge (D-086): cards read through a soft shadow and this faint line, not a grey frame.
+  border: '#F1F1F1',
+  borderStrong: '#E4E4E4',
   primary: '#171717',
   primaryPressed: '#3D3D3D',
   onPrimary: '#FFFFFF',
@@ -115,7 +119,7 @@ export const lightColors: ColorTokens = {
   accentText: '#B4500F',
   mapRoute: brand.tangerine,
   navActive: brand.aubergine,
-  navSurface: '#FAFAFA',
+  navSurface: '#FCFCFC',
   brandBanner: brand.aubergine,
   onBrandBanner: '#FFFFFF',
 };
@@ -130,6 +134,7 @@ export const darkColors: ColorTokens = {
   text: '#FAFAFA',
   textSecondary: '#A3A3A3',
   border: '#292929',
+  borderStrong: '#3A3A3A',
   primary: '#FAFAFA',
   primaryPressed: '#D4D4D4',
   onPrimary: '#000000',
