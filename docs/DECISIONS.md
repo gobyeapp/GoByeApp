@@ -928,3 +928,14 @@ The owner reviewed the web preview on an iPhone and asked for the alignment and 
   - inactive step labels are brighter; the tiles are one height;
   - Continue is off on the City step until a city is chosen.
 - **Kept:** the Simulated badges (required while services are simulated), and the X on sheets beside Done.
+
+## D-085 — Near-white panels and a redrawn sign-up route (2026-11-27)
+
+- **Light greys closer to white** (owner: "premium and crisp"), in `packages/ui` tokens, so every screen in both apps follows:
+  - `surfaceMuted` and `navSurface` #F7F7F7 → #FAFAFA;
+  - `surfaceSelected` #F0F0F0 → #F2F2F2;
+  - `secondary` and `neutralSurface` #F2F2F2 → #F5F5F5; `secondaryPressed` #E5E5E5 → #EBEBEB.
+  - Dark mode is unchanged.
+- **Sign-up route** (`RouteProgress`):
+  - the car, each stop and each label now share one centre (before, the labels sat in four equal columns and drifted from their dots);
+  - the line is thinner, upcoming stops are hollow rings, and the current label is bold.

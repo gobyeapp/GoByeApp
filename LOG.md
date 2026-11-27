@@ -1295,3 +1295,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Each screen was opened in Chromium at iPhone 13 size on a local build and looked at (Wallet, Transfer details before and after confirmation, Activities, Ride details, Create account), with no page errors.
   - Tests: core 312, rider 37, driver 14. Typecheck, lint, and Android and iOS exports for both apps pass.
   - **Not tried on a real phone.**
+
+## 2026-11-27 — Near-white panels; sign-up route redrawn (D-085)
+
+- `packages/ui/src/theme/tokens.ts`: lighter neutral surfaces in light mode.
+- `Journey.tsx` `RouteProgress`: labels centred under their stops, a thinner line and hollow upcoming stops.
+- **Checked:** screenshots at iPhone 13 size in Chromium (sign-up steps 1 and 2, Wallet, Transfer details, Activities, Ride details). Rider tests 37 and driver tests 14 pass; lint and Android and iOS exports pass. **Not tried on a real phone.**

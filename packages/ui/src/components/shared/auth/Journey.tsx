@@ -21,6 +21,9 @@ import { Text } from '../../Text';
 
 export const PLUM = { deep: '#2A1233', mid: '#4B2159', eyebrow: '#FFC59E' };
 const EASE = Easing.bezier(0.3, 0.8, 0.2, 1);
+/** Route progress: half the car's width, and the width each label is centred in. */
+const EDGE = 17;
+const LABEL_W = 84;
 
 /** Solid aubergine header (one brand colour; no gradient or glow, owner 2026-10-22). */
 export function PlumBackground({ radius = 0 }: { radius?: number }) {
@@ -36,9 +39,11 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
   useEffect(() => {
     p.value = reduce ? target : withTiming(target, { duration: 600, easing: EASE });
   }, [target, reduce, p]);
-  const inner = Math.max(0, w - 20);
+  // Stops sit EDGE in from each side (half the car), so the car, each dot and each label share one centre.
+  const inner = Math.max(0, w - 2 * EDGE);
+  const at = (i: number) => EDGE + (inner * i) / Math.max(1, labels.length - 1);
   const fill = useAnimatedStyle(() => ({ width: inner * p.value }));
-  const car = useAnimatedStyle(() => ({ transform: [{ translateX: 10 + inner * p.value - 16 }] }));
+  const car = useAnimatedStyle(() => ({ transform: [{ translateX: inner * p.value }] }));
   const onLayout = (e: LayoutChangeEvent) => setW(e.nativeEvent.layout.width);
 
   return (
@@ -54,18 +59,24 @@ export function RouteProgress({ step, labels, arrived }: { step: number; labels:
         <Animated.View style={[styles.fill, { backgroundColor: brand.tangerine }, fill]}></Animated.View>
       </View>
       {labels.map((_, i) => (
-        <View key={i} style={[styles.stop, { left: 10 + (inner * i) / Math.max(1, labels.length - 1) - 5, backgroundColor: i <= step ? brand.tangerine : 'rgba(255,255,255,0.28)' }]} />
+        <View key={i} style={[styles.stop, { left: at(i) - 5 }, i <= step ? { backgroundColor: brand.tangerine, borderColor: brand.tangerine } : null]} />
       ))}
       <Animated.View style={[styles.car, { backgroundColor: arrived ? brand.tangerine : '#FFFFFF' }, car]}>
         <Icon name="car" variant="filled" size={18} color={arrived ? '#FFFFFF' : PLUM.mid} />
       </Animated.View>
-      <View style={styles.labels}>
-        {labels.map((l, i) => (
-          <Text key={l} variant="caption" style={[styles.label, { textAlign: i === 0 ? 'left' : i === labels.length - 1 ? 'right' : 'center', color: i === step ? '#FFFFFF' : 'rgba(255,255,255,0.82)' }]}>
-            {l}
-          </Text>
-        ))}
-      </View>
+      {/* Each label is centred under its own stop. */}
+      {w
+        ? labels.map((l, i) => (
+            <Text
+              key={l}
+              variant="caption"
+              numberOfLines={1}
+              style={[styles.label, { left: at(i) - LABEL_W / 2, color: i === step ? '#FFFFFF' : i < step ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)', fontFamily: i === step ? 'Inter_700Bold' : 'Inter_500Medium' }]}
+            >
+              {l}
+            </Text>
+          ))
+        : null}
     </View>
   );
 }
@@ -551,27 +562,24 @@ const styles = StyleSheet.create({
   slimFill: { height: 3, borderRadius: 2, backgroundColor: brand.tangerine },
   heroTitleCompact: { fontSize: 17, lineHeight: 22 },
   heroTitle: { color: '#FFFFFF', fontFamily: 'Inter_600SemiBold', fontSize: 18, lineHeight: 24, letterSpacing: -0.3 },
-  route: { height: 54, marginTop: 18 },
-  track: { position: 'absolute', left: 10, right: 10, top: 15, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.16)', overflow: 'hidden' },
-  fill: { height: 4, borderRadius: 2, overflow: 'hidden' },
-  stop: { position: 'absolute', top: 12, width: 10, height: 10, borderRadius: 5 },
+  route: { height: 60, marginTop: 16 },
+  track: { position: 'absolute', left: EDGE, right: EDGE, top: 16, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.22)', overflow: 'hidden' },
+  fill: { height: 2, borderRadius: 1, overflow: 'hidden' },
+  // Upcoming stops are hollow rings on the plum; reached ones fill with tangerine.
+  stop: { position: 'absolute', top: 12, width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: 'rgba(255,255,255,0.45)', backgroundColor: brand.aubergine },
   car: {
     position: 'absolute',
-    top: 1,
+    top: 0,
     left: 0,
-    width: 32,
-    height: 32,
-    borderRadius: 11,
+    width: 34,
+    height: 34,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 9,
-    shadowOffset: { width: 0, height: 6 },
+    boxShadow: '0px 4px 12px rgba(0, 0, 0, 0.28)',
     elevation: 4,
-  },
-  labels: { position: 'absolute', left: 0, right: 0, top: 38, flexDirection: 'row' },
-  label: { flex: 1, fontFamily: 'Inter_600SemiBold', letterSpacing: 0.4, fontSize: 11 },
+  } as object,
+  label: { position: 'absolute', top: 42, width: LABEL_W, textAlign: 'center', fontSize: 12, lineHeight: 16, letterSpacing: 0.1 },
   fieldWrap: { gap: 6 },
   field: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 60, borderRadius: 18, paddingHorizontal: 16 },
   input: { flex: 1, minWidth: 0, height: '100%', fontSize: 18 },
