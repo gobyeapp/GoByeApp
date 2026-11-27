@@ -1064,3 +1064,29 @@ The owner asked for the Wallet's reference sizes on every page.
 - First and last name sit side by side on About you so the step fits on one screen.
 - The rider's profile photo already worked this way (a sheet with a preview); unchanged.
 
+## D-100 — Rides run on the server (2026-11-27)
+
+- **Decision:** the API now runs the whole ride: `POST /v1/quotes` (prices worked out on the server from the route), `POST /v1/rides` (Quick Match or Negotiate, always from a stored quote, never a fare in the request), driver presence and position, requests sent to the nearest online approved drivers of the right vehicle type, accept / counter / raise / choose, arrive, start with the rider's 4 digit PIN, end, pay the driver (bank transfer or cash, confirmed by the driver), ratings, history, and a staff list with a reasoned cancel. Migration 0009.
+- **Races are decided by the database** (one active ride per driver, one open ride per rider): two drivers accepting at once gives exactly one winner.
+- **News by asking, not pushing:** apps read `GET /v1/rides/{id}` every few seconds. No extra realtime service to run or pay for. A search that runs out ends as "no drivers" when anyone reads it, and the worker's `rides.sweep` covers rides nobody is watching.
+- **Privacy:** a driver sees the rider's first name and rating only; a rider sees the driver's first name, rating, vehicle and approved photo. No phone numbers either way. Only the latest driver position is kept (no location history). Staff do not see the PIN or the payout account.
+- **Exceptions to "every write takes an Idempotency-Key":** `PUT /v1/drivers/me/presence` and `PUT /v1/drivers/me/location` overwrite one row and are safe to repeat, so they take none. Location is sent every few seconds and is not audited.
+- **Switches (all off):** `RIDE_CASH_ENABLED`, `DRIVER_PASS_REQUIRED` (a driver needs a pass to go online; off until passes can be bought), `WALLET_ENABLED`.
+- **Still placeholders:** prices use `MOCK_PRICING_CONFIG`; the route comes from the stand-in maps provider (straight line, labelled `estimated`) until a real maps key is set; city boxes are generous rectangles.
+
+## D-101 — Money is built and switched off (2026-11-27)
+
+- **Decision:** the ledger, wallet, payments in, payouts and refunds are built and tested (migration 0010), and every route that moves money answers "not connected" until `WALLET_ENABLED=true` **and** a payment provider is configured. This supersedes "not built" in BACKEND_ARCHITECTURE §9; the four reviews there (finance, reconciliation, provider test mode, security) are still required before switching on. Steps: `docs/PAYMENTS_GO_LIVE.md`.
+- **What the database guarantees:** journals and entries are append-only; a journal that does not add up to zero cannot be committed; the same provider reference cannot be posted twice; a person's balance cannot go below zero.
+- **Payments in:** credited only after our own lookup with the provider says "successful" for the exact amount in NGN. A webhook only triggers the lookup. A mismatch is not credited and goes to finance (`collection.needs_review`). Card details are typed only on the provider's page (D-093).
+- **Paying a trip from the wallet:** fare from the rider's wallet to the driver's earnings, one journal per ride (0% commission, D-024).
+- **Withdrawals:** money is set aside at once, a member of staff approves (never their own), the transfer is marked "submitted" before the provider is called, and the same reference is never sent as a new transfer. Unknown outcome means look it up.
+- **Refunds:** asked by one member of staff, approved by a different one; posted as a cost to GoBye (`promotions_expense`). Whether a driver is ever charged back is a policy question still open.
+- **Provider:** a Paystack adapter exists, written from Paystack's public documentation and run only against a stand-in server. It has not touched Paystack. Choosing Paystack or another provider is still the owner's decision; another provider is one adapter.
+- **Fees:** GoBye charges none yet and absorbs the provider's charge (recorded separately as `processing_costs`). Fee schedules from `packages/core/src/gateway/fees.ts` are not wired to the server.
+
+## D-102 — The main button is the website's tangerine call to action (2026-11-27)
+
+- **Decision (owner):** the primary button in the rider and driver apps matches the website: a soft tangerine gradient, a warm glow, a dark label, and a white round arrow chip on forward actions (Continue, Next, Get started, Create account, Sign in, Confirm). This replaces the black primary button and the earlier "no gradient or glow" note of 2026-10-22. Disabled stays neutral grey. Selected tiles and small "Add" pills stay black.
+- One component (`Button` in `@gobye/ui`); `primary` and `brand` are now the same.
+

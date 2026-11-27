@@ -1389,3 +1389,11 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - `PhotoCapture` rewritten in `apps/driver/src/features/onboarding/parts.tsx` (row, capture sheet, review, view, permission refused); `cameraOnly` on the ID selfie; names side by side on About you.
 - **Checked** in Chromium at iPhone 13 size on a local build: all four steps with photos fit without scrolling; choosing a photo shows the review, Use photo marks the row Added and turns Continue on; the ID selfie offers the camera only. No page errors. **Not tried:** the real camera, the face check, or a real phone.
 
+## 2026-11-27 — Rides on the server (D-100), money built and off (D-101), tangerine button (D-102)
+
+- **API rides:** migration 0009; `src/rides/` (rider, driver and staff controllers, repository, sweep job); `subscriptions/access.ts`. Tests `test/rides.test.ts` (5) against PostgreSQL: quotes, Quick Match with two drivers racing, PIN (wrong tries, new PIN), paying the driver, ratings, Negotiate (counter, raise, choose, driver cancels and the ride searches again), cancel fees, "no drivers", access rules, staff city scope.
+- **API money:** migration 0010; `src/money/` (ledger, service, wallet and finance controllers, jobs); `providers/paystack.ts`. Tests `test/money.test.ts` (10): off by default, credit once and only for the exact amount, wallet trip payment, withdrawals to the end (paid, failed, unknown), two-person refunds, driver pass, the database refusing bad money, and the Paystack adapter against a stand-in server.
+- **Found by the tests and fixed:** a debit against an existing balance failed (PostgreSQL checks the proposed INSERT row before merging); accepting a negotiated ride after its driver cancelled was treated as an offer.
+- **Button:** `packages/ui/src/components/Button.tsx`. Checked in Chromium at iPhone 13 size on rider and driver builds.
+- **Not done here:** nothing ran against Paystack, a real maps provider or a deployed API. Nothing was tried on a real phone.
+

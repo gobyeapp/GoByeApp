@@ -12,10 +12,10 @@ GoBye is a mobile-first ride-hailing platform for Nigeria ("Your ride. Your say.
 
 ## Brand rules
 
-- Colour (D-034): a monochrome interface (black, white, neutral greys) with brand accents aubergine `#351A40` and tangerine `#FF751F` used only for logo details, illustrations, route lines, ratings and rewards. Status colours (success/warning/error) are separate and always paired with text or an icon. Use semantic tokens from `@gobye/ui` (DESIGN_SYSTEM §11), never raw hex in screens.
+- Colour (D-034): a monochrome interface (black, white, neutral greys) with brand accents aubergine `#351A40` and tangerine `#FF751F` used only for logo details, illustrations, route lines, ratings and rewards. Exception (D-102): the main action button is the website's tangerine call to action (soft gradient, warm glow, dark label, white arrow chip on forward actions); use `Button` from `@gobye/ui` and never restyle it per screen. Status colours (success/warning/error) are separate and always paired with text or an icon. Use semantic tokens from `@gobye/ui` (DESIGN_SYSTEM §11), never raw hex in screens.
 - Typography: Inter only, via `Text` from `@gobye/ui`.
 - Do not invent logo geometry; brand assets are placeholders until supplied (`docs/ASSET_INVENTORY.md`). The owner's `Go-Bye_Working_Brand_Assets.zip` (received 2026-10-21) contains **working concepts only** — final colours, typography and vector logos are pending (Q-008); do not treat its green direction as final.
-- No random gradients, extra shadows or decoration that competes with booking.
+- No random gradients, extra shadows or decoration that competes with booking (the main button's gradient and the plum headers are the designed ones).
 - Appearance: Light / Dark / System chosen in Account → Appearance (D-028); light pages are pure white. Follow the `layout` tokens and alignment rules in `docs/DESIGN_SYSTEM.md` §10.
 - Payment is a separate stage after the trip (D-030): never ask for a method on the pricing screen, never show "Paid" before confirmation, and a bank transfer not yet seen is *pending*, not failed.
 
