@@ -143,12 +143,10 @@ export function Button({
             {title}
           </Text>
           {trailingText ? (
-            // The amount sits in its own box, so the eye separates "what happens" from "how much" (D-102).
-            <View style={[styles.amount, { backgroundColor: brandOn ? '#FFFFFF' : disabledPrimary ? colors.border : colors.surfaceMuted }]}>
-              <Text variant="headline" tabular style={{ color: brandOn ? BRAND_CTA.ink : fg }}>
-                {trailingText}
-              </Text>
-            </View>
+            // One phrase, one colour: the verb, then the amount a little heavier ("Add ₦5,000").
+            <Text variant="headline" weight="bold" tabular style={{ color: fg }}>
+              {trailingText}
+            </Text>
           ) : null}
         </View>
       )}
@@ -199,8 +197,7 @@ const styles = StyleSheet.create({
   glow: { shadowColor: '#FF751F', shadowOpacity: 0.32, shadowRadius: 14, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
   glowPressed: { shadowColor: '#FF751F', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   chipShadow: { shadowColor: '#7A2E00', shadowOpacity: 0.18, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', justifyContent: 'center' },
   title: { textAlign: 'center', letterSpacing: -0.1 },
-  amount: { paddingHorizontal: spacing.md, paddingVertical: 5, borderRadius: 999 },
   chip: { position: 'absolute', top: '50%', alignItems: 'center', justifyContent: 'center' },
 });
