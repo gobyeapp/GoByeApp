@@ -5,4 +5,11 @@
 // crashing (react-native-maps needs a key on Android).
 const withAndroidMapsKey = require('../../tools/expo/with-android-maps-key');
 
-module.exports = ({ config }) => withAndroidMapsKey(config, process.env.GOOGLE_MAPS_ANDROID_API_KEY);
+// Web only: each screen is its own file, loaded when first opened, so the browser version starts faster.
+// Phones keep one bundle (the option is web-only in production anyway).
+const withWebAsyncRoutes = (config) => ({
+  ...config,
+  plugins: (config.plugins ?? []).map((p) => (p === 'expo-router' ? ['expo-router', { asyncRoutes: { web: 'production', default: false } }] : p)),
+});
+
+module.exports = ({ config }) => withAndroidMapsKey(withWebAsyncRoutes(config), process.env.GOOGLE_MAPS_ANDROID_API_KEY);

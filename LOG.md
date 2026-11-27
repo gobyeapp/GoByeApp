@@ -1250,3 +1250,18 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - Core 310. Typecheck and lint clean.
   - `wrangler deploy --dry-run --env staging` bundles at 70 KB gzip.
 - **Owner steps:** R2 buckets and token, Hyperdrive, Worker secrets, gobye.app on Cloudflare, and choosing a virus scanner.
+
+## 2026-11-27 — Rider web preview: faster start, the road video plays on iPhone
+
+- **The road video now plays in the browser:**
+  - Before, Safari on iPhone showed only the still poster, because expo-video's web player gets no `playsinline`.
+  - Fix: `features/onboarding/RoadVideo.web.tsx` uses a plain `<video>` that is muted, inline, looping and without controls. If the browser holds it back (iPhone Low Power Mode), it starts on the first touch.
+  - Phones keep expo-video (`RoadVideo.tsx`).
+- **Faster start on the web:**
+  - **Fonts:** the four Inter weights are Latin-subset WOFF2 files in `public/fonts`, about 120 KB in total instead of 1.37 MB of TTF (`theme/fonts.web.ts`). The page no longer waits for them; text switches to Inter when they arrive. Phones are unchanged.
+  - **Per-screen loading** (expo-router `asyncRoutes` for web only): the first download went from about 912 KB to about 788 KB gzipped. Other screens load when first opened.
+  - **Caching:** files with a content hash are cached for a year (`_headers`), so a second visit fetches almost nothing.
+- **Checked:**
+  - In Chromium at iPhone 13 size on a local server, the headline shows after about 1.2 s, the video plays inline and muted, Inter loads, and Create account opens sign-up with no page errors.
+  - Rider tests 37, typecheck, lint, and Android and iOS exports pass.
+  - **Not tried in Safari on a real iPhone.**

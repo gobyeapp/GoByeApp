@@ -1,8 +1,3 @@
-// Per-weight imports so only the four weights GoBye uses are bundled (the package root pulls in all 18).
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -21,12 +16,13 @@ import { WalletProvider } from '@/state/wallet';
 import { LocationProvider } from '@/state/location';
 import { ServicesProvider } from '@/state/services';
 import { SessionProvider, useSession } from '@/state/session';
+import { INTER_FONTS, WAIT_FOR_FONTS } from '@/theme/fonts';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
-  if (!fontsLoaded && !fontError) return null;
+  const [fontsLoaded, fontError] = useFonts(INTER_FONTS);
+  if (WAIT_FOR_FONTS && !fontsLoaded && !fontError) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

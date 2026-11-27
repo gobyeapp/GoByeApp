@@ -89,6 +89,9 @@ jobs:
           cd apps/rider
           CI=1 npx expo export --platform web --output-dir dist-web
           printf '/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n' > dist-web/_headers
+          # File names under _expo/static and assets carry a content hash: browsers keep them for a year, so
+          # a second visit loads only index.html. Fonts keep their names, so a week.
+          printf '/_expo/static/*\n  Cache-Control: public, max-age=31536000, immutable\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/fonts/*\n  Cache-Control: public, max-age=604800\n' >> dist-web/_headers
           test -f dist-web/index.html
       - name: Rider web
         if: inputs.site == 'rider'
