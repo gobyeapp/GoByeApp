@@ -1360,3 +1360,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 ## 2026-11-27 — Offers banner: dots removed, pale strip fixed (D-094)
 
 - `features/promo/PromoCarousel.tsx`, `PromoCard.tsx` (`flat`). Checked in Chromium at iPhone 13 size on Home; rider tests 37, lint, and Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Driver app web preview (D-095)
+
+- **Added:** `apps/driver/wrangler.toml`, `public/fonts`, `src/theme/fonts(.web).ts`, `src/features/welcome/RoadVideo(.web).tsx`; web-only per-screen loading in `app.config.js`; `deploy-sites.yml` takes site `driver`.
+- **Checked** in Chromium at iPhone 13 size on a local build: Welcome (the clip plays), Become a driver (step 2), Drive, Earnings, Trips and Account, with no page errors. Driver tests 14; typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**

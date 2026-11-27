@@ -16,9 +16,9 @@ on:
   workflow_dispatch:
     inputs:
       site:
-        description: "Which site (both = website and admin; rider = rider app in the browser, preview only)"
+        description: "Which site (both = website and admin; rider / driver = that app in the browser, preview only)"
         type: choice
-        options: [both, website, admin, rider]
+        options: [both, website, admin, rider, driver]
         default: both
       target:
         description: "preview = workers.dev check · production = gobye.app and admin.gobye.app"
@@ -75,27 +75,27 @@ jobs:
         run: $WRANGLER deploy -c apps/admin/wrangler.toml --env ${{ inputs.target }}
       # Rider app in the browser (D-076): for trying the app on an iPhone in Safari without an Apple
       # account. Simulated services, plus the connected demo relay when set. Preview (workers.dev) only.
-      - name: Build the rider app for the web
-        if: inputs.site == 'rider'
+      - name: Build the app for the web
+        if: inputs.site == 'rider' || inputs.site == 'driver'
         env:
           EXPO_PUBLIC_ENV: development
           EXPO_PUBLIC_USE_MOCKS: "true"
           EXPO_PUBLIC_DEMO_RELAY_URL: ${{ vars.DEMO_RELAY_URL }}
           EXPO_PUBLIC_DEMO_RELAY_KEY: ${{ secrets.DEMO_RELAY_KEY }}
         run: |
-          if [ "${{ inputs.target }}" != preview ]; then echo "::error::The rider web build is for testing only: use target = preview"; exit 1; fi
+          if [ "${{ inputs.target }}" != preview ]; then echo "::error::The app web builds are for testing only: use target = preview"; exit 1; fi
           node -e 'const k = process.env.EXPO_PUBLIC_DEMO_RELAY_KEY || ""; let role = ""; try { role = JSON.parse(Buffer.from(k.split(".")[1] || "", "base64url").toString()).role || ""; } catch {} if (k.startsWith("sb_secret_") || role === "service_role") { console.log("::error::DEMO_RELAY_KEY must be the anon / publishable key, never a secret key"); process.exit(1); }'
           npm ci --no-audit --no-fund
-          cd apps/rider
+          cd apps/${{ inputs.site }}
           CI=1 npx expo export --platform web --output-dir dist-web
           printf '/*\n  X-Robots-Tag: noindex, nofollow\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: strict-origin-when-cross-origin\n' > dist-web/_headers
           # File names under _expo/static and assets carry a content hash: browsers keep them for a year, so
           # a second visit loads only index.html. Fonts keep their names, so a week.
           printf '/_expo/static/*\n  Cache-Control: public, max-age=31536000, immutable\n/assets/*\n  Cache-Control: public, max-age=31536000, immutable\n/fonts/*\n  Cache-Control: public, max-age=604800\n' >> dist-web/_headers
           test -f dist-web/index.html
-      - name: Rider web
-        if: inputs.site == 'rider'
-        run: $WRANGLER deploy -c apps/rider/wrangler.toml --env preview
+      - name: App in the browser
+        if: inputs.site == 'rider' || inputs.site == 'driver'
+        run: $WRANGLER deploy -c apps/${{ inputs.site }}/wrangler.toml --env preview
       - name: Where to look
         run: |
           if [ "${{ inputs.target }}" = "preview" ]; then

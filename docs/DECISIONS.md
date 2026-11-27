@@ -1023,3 +1023,9 @@ The owner asked for the Wallet's reference sizes on every page.
 
 - The pagination dots under the swipeable offers banner are removed (owner request). The banner still changes by itself and can be swiped.
 - Cards inside the swipeable row have no shadow: the row cut the shadow off at its edge, which showed as a pale strip under the banner.
+
+## D-095 — The Driver app in the browser, for testing (2026-11-27)
+
+- Same approach as the rider web build (D-076): `expo export --platform web`, served from a free Cloudflare Worker (`apps/driver/wrangler.toml`, `gobye-driver-web-preview`), preview only, not indexed. Deploy with Actions → Deploy sites → site `driver`, target `preview`.
+- The driver app got the rider's web fixes: small web fonts that don't block the page, per-screen loading, and a welcome road clip that plays inline in Safari with no play button.
+- Simulated services, like the rider preview. The phone apps remain the real product.

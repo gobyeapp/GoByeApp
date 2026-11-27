@@ -2,12 +2,12 @@ import { Image } from 'expo-image';
 import { Component, type ReactNode } from 'react';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRAND_NAME, BrandMark, Button, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { useSession } from '@/state/session';
+import { RoadVideo } from '@/features/welcome/RoadVideo';
 
 /** The road clip in both appearances: rendered from the website's 3D footer on white (light) and on black (dark). */
 const ROAD = {
@@ -55,7 +55,7 @@ export default function Welcome() {
         {reduce ? null : (
           <VideoGuard>
             {/* Keyed by appearance, so switching Light/Dark swaps the clip. */}
-            <RoadLoop key={scheme} source={road.video} />
+            <RoadVideo key={scheme} source={road.video} />
           </VideoGuard>
         )}
       </View>
@@ -78,16 +78,6 @@ export default function Welcome() {
   );
 }
 
-/** The looping road. Its own component so a player failure can be contained by `VideoGuard`. */
-function RoadLoop({ source }: { source: number }) {
-  const player = useVideoPlayer(source, (p) => {
-    p.loop = true;
-    p.muted = true;
-    p.audioMixingMode = 'mixWithOthers';
-    p.play();
-  });
-  return <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} allowsPictureInPicture={false} />;
-}
 
 /** If the video can't play on this device or build, the still poster underneath stays: the welcome never breaks. */
 class VideoGuard extends Component<{ children: ReactNode }, { failed: boolean }> {

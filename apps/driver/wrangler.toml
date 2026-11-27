@@ -1,0 +1,16 @@
+# GoBye Driver app in the browser (D-095), for trying it on a phone in Safari or Chrome without a store build.
+# Built by .github/workflows/deploy-sites.yml (site = driver, target = preview): `expo export --platform web`
+# into dist-web/, then served as static files. Unknown paths return index.html so Expo Router handles them.
+# Preview only: never a production domain. The phone apps remain the real product.
+
+name = "gobye-driver-web"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+[assets]
+directory = "./dist-web"
+not_found_handling = "single-page-application"
+
+[env.preview]
+name = "gobye-driver-web-preview"
+workers_dev = true

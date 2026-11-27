@@ -1,8 +1,3 @@
-// Per-weight imports so only the four weights GoBye uses are bundled.
-import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
-import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
-import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
-import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -10,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+import { INTER_FONTS, WAIT_FOR_FONTS } from '@/theme/fonts';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider, useTheme } from '@gobye/ui';
@@ -25,8 +21,8 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
  * building blocks first made for the rider app: sign-in steps, map, tab tray, settings groups).
  */
 export default function DriverRoot() {
-  const [loaded, error] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold });
-  if (!loaded && !error) return null;
+  const [loaded, error] = useFonts(INTER_FONTS);
+  if (WAIT_FOR_FONTS && !loaded && !error) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
