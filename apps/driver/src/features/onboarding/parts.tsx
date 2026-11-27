@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { checkFacePhoto } from './faceCheck';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
@@ -71,6 +72,7 @@ export function PhotoCapture({
 }) {
   const { colors } = useTheme();
   const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
 
   const pick = async (from: 'camera' | 'library') => {
     setError(null);
@@ -82,8 +84,18 @@ export function PhotoCapture({
       }
       const opts: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.6, allowsEditing: !selfie, cameraType: selfie ? ImagePicker.CameraType.front : ImagePicker.CameraType.back };
       const res = from === 'camera' ? await ImagePicker.launchCameraAsync(opts) : await ImagePicker.launchImageLibraryAsync(opts);
-      if (!res.canceled && res.assets[0]) onChange(res.assets[0].uri);
+      const asset = !res.canceled ? res.assets[0] : undefined;
+      if (!asset) return;
+      // A photo of a person is checked for one clear face before it is accepted (D-098).
+      if (selfie) {
+        setChecking(true);
+        const face = await checkFacePhoto({ uri: asset.uri, width: asset.width, height: asset.height });
+        setChecking(false);
+        if (!face.ok) return setError(face.error);
+      }
+      onChange(asset.uri);
     } catch {
+      setChecking(false);
       setError('We couldn’t open the camera. Try choosing a photo instead.');
     }
   };
@@ -130,6 +142,11 @@ export function PhotoCapture({
         <Button title={uri ? 'Retake' : 'Take photo'} size="md" variant="secondary" leadingIcon="camera" onPress={() => pick('camera')} style={styles.flex} />
         <Button title="Choose photo" size="md" variant="tertiary" onPress={() => pick('library')} style={styles.flex} />
       </View>
+      {checking ? (
+        <Text variant="footnote" color="textSecondary" accessibilityLiveRegion="polite">
+          Checking your photo…
+        </Text>
+      ) : null}
       {error ? (
         <Pressable onPress={() => void Linking.openSettings()} accessibilityRole="link">
           <Text variant="footnote" color="danger">

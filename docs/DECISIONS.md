@@ -1048,3 +1048,11 @@ The owner asked for the Wallet's reference sizes on every page.
   - show the approved photo to riders (it arrives as `DriverSummary.photoUrl` once drivers come from the server; test drivers have none);
   - let a driver change the photo later from Account, with staff re-approval;
   - an "unclear photo" item for staff to send back.
+
+## D-098 — A face check on the phone for driver photos (2026-11-27)
+
+- **Decision:** when a driver takes or chooses a photo of themselves ("Your photo" and the ID selfie), the driver app checks it on the phone with Google ML Kit face detection (`@react-native-ml-kit/face-detection` 2.0.1, MIT; the ML Kit SDK itself is free under Google's terms). The photo is accepted only when there is one face, large enough, in the middle, facing the camera, with eyes open; otherwise the driver sees what to fix and retakes it. The rule is `assessFacePhoto` in `@gobye/core`.
+- **Why ML Kit and not TensorFlow:** it is made for this job, runs offline, costs nothing, adds a few MB instead of a model we would have to ship and maintain, and the photo is not sent anywhere for the check.
+- **Limits:** it is a quality check, not an identity check. It does not prove the person is real or matches the ID: that stays with staff review and the identity provider's face match (owner decision, still open). If the detector is missing or fails, the photo is accepted as before. The browser test build has no detector.
+- **Not yet proven:** the native module has not been built or run. The first Android build (EAS) will show whether it works with this React Native version; if it does not, the check is skipped by design and the dependency should be replaced or removed.
+

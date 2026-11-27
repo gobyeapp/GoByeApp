@@ -1377,3 +1377,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - **API:** the personal step takes `photoFileId`. **Driver app:** photo field on About you; Account shows it. **Admin:** label.
 - **Tests:** core 313, driver 14, admin 418, API 113 (5 pooler tests skipped); fixtures updated. An existing relay test caught the local photo path leaking into the relay row; fixed before release.
 - **Checked** in Chromium at iPhone 13 size: About you shows the photo field and Continue is off without a photo. Typecheck, lint, Android and iOS export pass. **Taking a photo was not tried** (no camera here), and nothing was tried on a real phone.
+
+## 2026-11-27 — Face check for driver photos (D-098)
+
+- **Core:** `driver/facePhoto.ts` (`assessFacePhoto`, `FACE_PHOTO_RULES`) with tests.
+- **Driver app:** `features/onboarding/faceCheck(.web).ts`; `PhotoCapture` runs it for photos of a person and shows what to fix. New dependency `@react-native-ml-kit/face-detection` 2.0.1.
+- **Not tried:** the detector itself. It is native code, so it runs only in an installed Android or iOS build, and none has been made with it yet. The browser preview accepts photos unchanged.
+
