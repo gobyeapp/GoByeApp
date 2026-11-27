@@ -989,3 +989,13 @@ Nothing is below 11. Wallet only: the rest of the app keeps the shared type scal
 
 - On the rider Home screen, the tile reads "Home" (or "Work") only when that address is saved, and then it books a ride there. Until then it reads "Add home" / "Add work" with a plus, in a quieter style, and opens the search to save one. "Saved" always opens the saved places list.
 - New accounts start with **no** saved places. Before, test accounts were given a made-up Home and Work, so "Home" took a new rider to an address they had never added.
+
+## D-091 — The compact type scale across both apps (2026-11-27)
+
+The owner asked for the Wallet's reference sizes on every page.
+
+- **Shared type scale** (`packages/ui` `typography`) is now compact: body and headings 14, names and labels 13, hints 12, times and badges 11; titles 16 to 26. Weight carries the hierarchy. The table is in `DESIGN_SYSTEM.md` §3.
+- **Hero figures** that set their own size were brought down to fit: receipt total 30, trip totals 32, the Activities total 26, welcome headlines 28, the sign-up question 22.
+- **Typed text stays at 16.** Smaller makes Safari on iPhone zoom the page when a field is focused.
+- **Both apps change**, because the rider and driver apps share the design system. Touch targets and button heights are unchanged.
+- Body text at 14 is below iOS's default of 17. Text still grows with the phone's text-size setting.

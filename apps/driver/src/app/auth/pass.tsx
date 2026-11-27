@@ -64,6 +64,6 @@ export default function DriverPassScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, paddingHorizontal: 20, gap: spacing.xxl },
   head: { gap: spacing.sm },
-  title: { fontFamily: 'Inter_700Bold', fontSize: 28, lineHeight: 33, letterSpacing: -1 },
+  title: { fontFamily: 'Inter_700Bold', fontSize: 24, lineHeight: 29, letterSpacing: -0.7 },
   pass: { flex: 1, justifyContent: 'center' },
 });

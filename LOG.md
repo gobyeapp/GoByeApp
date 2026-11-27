@@ -1332,3 +1332,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - `apps/rider/src/app/(tabs)/index.tsx` (tile label, icon and style by state); `state/account.tsx` (no pre-saved places).
 - **Checked** in Chromium at iPhone 13 size: with nothing saved the tiles read "Add home", "Add work", "Saved"; with a home saved, "Home", "Add work", "Saved". Rider tests 37, typecheck, lint, Android and iOS export pass. **Not tried on a real phone.**
 - People who already opened the preview keep the made-up Home and Work stored in their browser until they sign out or clear the site's data.
+
+## 2026-11-27 — Compact type scale across both apps (D-091)
+
+- `packages/ui` tokens (`typography`, `inputFontSize`), `TextField`, `SearchField`, `Journey`; hero figure sizes in rider and driver screens; the Wallet's variants remapped so its sizes stay as matched in D-089.
+- **Checked:** screenshots at iPhone 13 size in Chromium of Home, Wallet, Transfer details, Activities, Ride details, Account, Welcome and Create account; no page errors. Rider tests 37, driver tests 14; typecheck and lint pass.
+- **Not checked:** the driver app's screens were not looked at (tests and builds only), and nothing was tried on a real phone.

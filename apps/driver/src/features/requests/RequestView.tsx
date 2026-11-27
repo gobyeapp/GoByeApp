@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: layout.page, paddingVertical: spacing.lg, gap: spacing.lg },
   map: { height: 180, borderRadius: layout.cardRadius, overflow: 'hidden' },
   money: { alignItems: 'center', gap: 2 },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 52, letterSpacing: -1 },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
   stops: { borderRadius: layout.cardRadius, padding: spacing.lg, gap: spacing.xs },
   stop: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
   stopLine: { width: 2, height: 14, marginLeft: 9, borderRadius: 1 },

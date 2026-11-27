@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: layout.page, paddingBottom: spacing.xxl, gap: spacing.lg },
   title: { paddingTop: spacing.xs },
   total: { alignItems: 'center', gap: spacing.xs, paddingVertical: spacing.sm },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 52, letterSpacing: -1 },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
   chart: { flexDirection: 'row', justifyContent: 'space-between', height: 168, padding: spacing.lg, borderRadius: layout.cardRadius },
   barCol: { flex: 1, alignItems: 'center', gap: spacing.sm },
   barTrack: { flex: 1, width: 18, justifyContent: 'flex-end' },

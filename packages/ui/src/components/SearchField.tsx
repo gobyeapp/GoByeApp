@@ -3,7 +3,7 @@ import { Platform, Pressable, StyleSheet, TextInput, View, type StyleProp, type 
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Icon, type IconName } from '../icons/Icon';
 import { useTheme } from '../theme/useTheme';
-import { fontFamily, inputElevation, spacing, typography } from '../theme/tokens';
+import { fontFamily, inputElevation, spacing, inputFontSize } from '../theme/tokens';
 import { Text } from './Text';
 
 const E = inputElevation.primary;
@@ -94,7 +94,7 @@ export const SearchField = forwardRef<TextInput, SearchFieldProps>(function Sear
             setFocused(false);
             onBlur?.(e);
           }}
-          style={[styles.input, { color: colors.text, fontFamily: fontFamily.medium, fontSize: typography.body.fontSize }]}
+          style={[styles.input, { color: colors.text, fontFamily: fontFamily.medium, fontSize: inputFontSize }]}
           testID={testID}
         />
       )}

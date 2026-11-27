@@ -91,11 +91,11 @@ class VideoGuard extends Component<{ children: ReactNode }, { failed: boolean }>
 const styles = StyleSheet.create({
   root: { flex: 1 },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: layout.page, paddingTop: spacing.lg },
-  word: { fontFamily: 'Inter_700Bold', fontSize: 22, lineHeight: 28, letterSpacing: -0.6 },
+  word: { fontFamily: 'Inter_700Bold', fontSize: 20, lineHeight: 26, letterSpacing: -0.5 },
   spacer: { flex: 1, minHeight: spacing.md },
   stage: { overflow: 'hidden' },
   copy: { paddingHorizontal: layout.page, gap: spacing.md, marginBottom: spacing.xxl },
-  headline: { fontSize: 34, lineHeight: 41, letterSpacing: -1 },
-  headlineCompact: { fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
+  headline: { fontSize: 28, lineHeight: 34, letterSpacing: -0.8 },
+  headlineCompact: { fontSize: 24, lineHeight: 30, letterSpacing: -0.5 },
   actions: { paddingHorizontal: layout.page, gap: spacing.md },
 });

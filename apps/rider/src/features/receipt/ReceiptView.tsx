@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   brandRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   bandLabel: { letterSpacing: 1.2, opacity: 0.85 },
   amountBlock: { alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing.lg },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 40, lineHeight: 48, letterSpacing: -1 },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 30, lineHeight: 36, letterSpacing: -0.6 },
   methodPill: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: 999 },
   tear: { height: NOTCH, justifyContent: 'center' },
   dash: { marginHorizontal: NOTCH, borderTopWidth: 1.5, borderStyle: 'dashed' },

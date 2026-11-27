@@ -205,24 +205,27 @@ export interface TypeStyle {
   weight: FontWeightToken;
 }
 
-/** Mirrors Apple's default Dynamic Type "Large" sizes. */
 /**
- * Type scale (UI audit 2026-10-21): tightened so headings no longer dominate small screens.
- * Page titles 24, hero headlines 28, body 16. All sizes scale with the system text size
- * (Text caps the multiplier per variant so layouts stay intact at large accessibility sizes).
+ * Type scale (D-091, owner's reference): compact, with weight carrying the hierarchy instead of size.
+ * Nearly all text sits between 11 and 14; headings are the body size in semibold or bold; only hero
+ * figures and page headlines are large. Nothing is below 11. All sizes still scale with the system text
+ * size (Text caps the multiplier per variant so layouts stay intact at large accessibility sizes).
  */
 export const typography = {
-  largeTitle: { fontSize: 28, lineHeight: 34, weight: 'bold' },
-  title1: { fontSize: 24, lineHeight: 30, weight: 'bold' },
-  title2: { fontSize: 20, lineHeight: 26, weight: 'semibold' },
-  title3: { fontSize: 18, lineHeight: 24, weight: 'semibold' },
-  headline: { fontSize: 16, lineHeight: 22, weight: 'semibold' },
-  body: { fontSize: 16, lineHeight: 22, weight: 'regular' },
-  callout: { fontSize: 15, lineHeight: 20, weight: 'regular' },
-  subhead: { fontSize: 14, lineHeight: 19, weight: 'medium' },
-  footnote: { fontSize: 13, lineHeight: 18, weight: 'regular' },
-  caption: { fontSize: 12, lineHeight: 16, weight: 'medium' },
+  largeTitle: { fontSize: 26, lineHeight: 32, weight: 'bold' },
+  title1: { fontSize: 22, lineHeight: 28, weight: 'bold' },
+  title2: { fontSize: 18, lineHeight: 24, weight: 'semibold' },
+  title3: { fontSize: 16, lineHeight: 22, weight: 'semibold' },
+  headline: { fontSize: 14, lineHeight: 20, weight: 'semibold' },
+  body: { fontSize: 14, lineHeight: 20, weight: 'regular' },
+  callout: { fontSize: 13, lineHeight: 18, weight: 'regular' },
+  subhead: { fontSize: 13, lineHeight: 18, weight: 'medium' },
+  footnote: { fontSize: 12, lineHeight: 16, weight: 'regular' },
+  caption: { fontSize: 11, lineHeight: 15, weight: 'medium' },
 } as const satisfies Record<string, TypeStyle>;
+
+/** Typed text stays at 16: smaller makes Safari on iPhone zoom the page when a field is focused. */
+export const inputFontSize = 16;
 
 export type TypographyVariant = keyof typeof typography;
 

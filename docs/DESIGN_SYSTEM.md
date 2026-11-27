@@ -54,20 +54,22 @@ Rules: never communicate state with colour alone (icon + label always); text ≥
 
 ## 3. Typography — Inter
 
-Inter 400/500/600/700 via `@expo-google-fonts/inter`. Sizes mirror Apple's default Dynamic Type "Large" values so scaling feels native; all text scales with the system setting (`allowFontScaling` on).
+Inter 400/500/600/700 (`@expo-google-fonts/inter` in the apps; Latin-subset WOFF2 on the web build). The scale is compact (D-091): nearly all text is 11 to 14, weight carries the hierarchy, and only hero figures and page headlines are large. All text scales with the system setting (`allowFontScaling` on).
 
 | Token | Size / line | Weight | Use |
 |---|---|---|---|
-| `largeTitle` | 34 / 41 | 700 | Onboarding headlines |
-| `title1` | 28 / 34 | 700 | Screen titles |
-| `title2` | 22 / 28 | 600 | Sheet titles ("Where are you going?") |
-| `title3` | 20 / 25 | 600 | Section titles, fares |
-| `headline` | 17 / 22 | 600 | List titles, buttons |
-| `body` | 17 / 22 | 400 | Default |
-| `callout` | 16 / 21 | 400 | Secondary body |
-| `subhead` | 15 / 20 | 500 | Metadata |
-| `footnote` | 13 / 18 | 400 | Hints, legal |
-| `caption` | 12 / 16 | 500 | Badges, tab labels (max multiplier 1.4) |
+| `largeTitle` | 26 / 32 | 700 | Headlines |
+| `title1` | 22 / 28 | 700 | Screen titles |
+| `title2` | 18 / 24 | 600 | Sheet titles ("Where are you going?") |
+| `title3` | 16 / 22 | 600 | Section titles, fares |
+| `headline` | 14 / 20 | 600 | List titles, buttons, section headings |
+| `body` | 14 / 20 | 400 | Default |
+| `callout` | 13 / 18 | 400 | Secondary body |
+| `subhead` | 13 / 18 | 500 | Names, labels |
+| `footnote` | 12 / 16 | 400 | Hints, chips |
+| `caption` | 11 / 15 | 500 | Times, badges, tab labels |
+
+Hero figures set their own size: wallet balance 28, receipt total 30, trip total 32. Typed text in fields stays at 16 (`inputFontSize`), because smaller makes Safari on iPhone zoom the page. Nothing is below 11.
 
 Fare amounts use `fontVariant: ['tabular-nums']`.
 

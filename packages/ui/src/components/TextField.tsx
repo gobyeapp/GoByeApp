@@ -2,7 +2,7 @@ import { forwardRef, useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 import { Icon, type IconName } from '../icons/Icon';
 import { useTheme } from '../theme/useTheme';
-import { fontFamily, minTouch, radii, spacing, typography } from '../theme/tokens';
+import { fontFamily, minTouch, radii, spacing, inputFontSize } from '../theme/tokens';
 import { Text } from './Text';
 
 export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
@@ -66,7 +66,7 @@ export const TextField = forwardRef<TextInput, TextFieldProps>(function TextFiel
           }}
           style={[
             styles.input,
-            { color: colors.text, fontFamily: fontFamily.regular, fontSize: typography.body.fontSize },
+            { color: colors.text, fontFamily: fontFamily.regular, fontSize: inputFontSize },
             // Web QA build only: the field draws its own focus border, so hide the browser outline.
             Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
           ]}

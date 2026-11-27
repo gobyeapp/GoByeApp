@@ -102,7 +102,7 @@ export default function TripComplete() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   hero: { alignItems: 'center', gap: spacing.sm, marginTop: spacing.xxl, marginBottom: spacing.xl },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 52, letterSpacing: -1 },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
   card: { borderRadius: layout.cardRadius, padding: spacing.lg, gap: spacing.sm, marginBottom: spacing.md },
   payHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   rate: { gap: spacing.sm, marginVertical: spacing.lg },

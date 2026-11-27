@@ -119,10 +119,10 @@ export default function Wallet() {
             <Pressable onPress={() => router.push('/(tabs)/account')} accessibilityRole="button" accessibilityLabel={`Your account${name ? `, ${name}` : ''}`} style={styles.who}>
               <Avatar uri={user?.photoUri} name={name} size={40} />
               <View style={styles.flex}>
-                <Text variant="footnote" style={{ color: on, opacity: 0.8 }}>
+                <Text variant="subhead" weight="regular" style={{ color: on, opacity: 0.8 }}>
                   {greeting}
                 </Text>
-                <Text variant="footnote" weight="bold" numberOfLines={1} style={{ color: on }}>
+                <Text variant="subhead" weight="bold" numberOfLines={1} style={{ color: on }}>
                   {user?.firstName || 'Your wallet'}
                 </Text>
               </View>
@@ -136,7 +136,7 @@ export default function Wallet() {
 
           <View style={styles.balance}>
             <View style={styles.balanceLabel}>
-              <Text variant="footnote" style={{ color: on, opacity: 0.85 }}>
+              <Text variant="subhead" weight="regular" style={{ color: on, opacity: 0.85 }}>
                 Available balance
               </Text>
             </View>
@@ -151,7 +151,7 @@ export default function Wallet() {
                     {hidden ? '₦ ••••••' : whole}
                   </Text>
                   {hidden ? null : (
-                    <Text variant="subhead" tabular style={{ color: on, opacity: 0.75 }}>
+                    <Text variant="body" tabular style={{ color: on, opacity: 0.75 }}>
                       {kobo}
                     </Text>
                   )}
@@ -165,7 +165,7 @@ export default function Wallet() {
               {wallet.reserved > 0 && !hidden ? (
                 <View style={[styles.metaChip, styles.glass]} accessible accessibilityLabel={`Reserved for a trip in progress, ${nairaAccessibilityLabel(wallet.reserved)}`}>
                   <Icon name="lock" size="xs" color={on} />
-                  <Text variant="caption" style={{ color: on }}>
+                  <Text variant="footnote" style={{ color: on }}>
                     {formatNaira(wallet.reserved)} reserved
                   </Text>
                 </View>
@@ -199,7 +199,7 @@ export default function Wallet() {
 
             {/* History */}
             <View style={styles.sectionHead}>
-              <Text variant="subhead" weight="bold" accessibilityRole="header" style={styles.flex}>
+              <Text variant="body" weight="bold" accessibilityRole="header" style={styles.flex}>
                 {mode === 'recent' ? 'Recent activity' : 'Transaction history'}
               </Text>
               {sorted.length > 0 ? (
@@ -212,7 +212,7 @@ export default function Wallet() {
                   hitSlop={8}
                   style={styles.link}
                 >
-                  <Text variant="caption" weight="semibold">
+                  <Text variant="footnote" weight="semibold">
                     {mode === 'history' ? 'Show less' : 'See all'}
                   </Text>
                   <Icon name={mode === 'history' ? 'chevronUp' : 'chevronRight'} size="xs" color="text" />
@@ -231,7 +231,7 @@ export default function Wallet() {
                       accessibilityState={{ selected: on }}
                       style={[styles.chip, { backgroundColor: on ? colors.primary : colors.card, borderColor: colors.border }]}
                     >
-                      <Text variant="caption" weight={on ? 'semibold' : 'medium'} color={on ? 'onPrimary' : 'text'}>
+                      <Text variant="footnote" weight={on ? 'semibold' : 'medium'} color={on ? 'onPrimary' : 'text'}>
                         {f.label}
                       </Text>
                     </Pressable>
@@ -271,10 +271,10 @@ export default function Wallet() {
             {wallet.state === 'error' ? (
               <Pressable onPress={() => void wallet.refresh()} accessibilityRole="button" style={[styles.notice, { backgroundColor: colors.dangerSurface }]}>
                 <Icon name="warning" size="sm" color="danger" />
-                <Text variant="footnote" style={styles.flex}>
+                <Text variant="subhead" style={styles.flex}>
                   Couldn’t refresh. Showing saved transactions.
                 </Text>
-                <Text variant="subhead" weight="semibold">
+                <Text variant="body" weight="semibold">
                   Retry
                 </Text>
               </Pressable>
@@ -305,7 +305,7 @@ function HeroAction({ icon, label, onPress, testID }: { icon: IconName; label: s
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} testID={testID} style={({ pressed }) => [styles.tile, styles.glass, pressed && { opacity: 0.75 }]}>
       <Icon name={icon} size="sm" color={colors.onBrandBanner} />
-      <Text variant="footnote" weight="medium" numberOfLines={1} style={{ color: colors.onBrandBanner }}>
+      <Text variant="subhead" weight="medium" numberOfLines={1} style={{ color: colors.onBrandBanner }}>
         {label}
       </Text>
     </Pressable>
@@ -337,11 +337,11 @@ function DepositCard({ tx, onPress }: { tx: WalletTransaction; onPress: () => vo
     >
       <View style={styles.depositHead}>
         <View style={[styles.depositDot, { backgroundColor: colors.accent }]} />
-        <Text variant="footnote" weight="semibold" color="textSecondary" style={styles.flex}>
+        <Text variant="subhead" weight="semibold" color="textSecondary" style={styles.flex}>
           Deposit in progress
         </Text>
         <View style={[styles.pending, { backgroundColor: colors.warningSurface }]}>
-          <Text variant="caption" color="warning">
+          <Text variant="footnote" color="warning">
             Pending confirmation
           </Text>
         </View>
@@ -354,11 +354,11 @@ function DepositCard({ tx, onPress }: { tx: WalletTransaction; onPress: () => vo
           {kobo}
         </Text>
       </Text>
-      <Text variant="footnote" color="textSecondary">
+      <Text variant="subhead" color="textSecondary">
         Your transfer is being confirmed. Your balance updates automatically.
       </Text>
       <View style={styles.depositAction}>
-        <Text variant="footnote" weight="semibold">
+        <Text variant="subhead" weight="semibold">
           View status
         </Text>
         <Icon name="arrowRight" size="xs" color="text" />

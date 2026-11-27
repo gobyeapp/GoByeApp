@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: layout.cardRadius, padding: layout.container, minHeight: 72 },
   bannerAction: { borderRadius: 999, paddingHorizontal: spacing.md, minHeight: 34, justifyContent: 'center' },
   summary: { borderRadius: layout.cardRadius, padding: spacing.lg, gap: spacing.lg },
-  spent: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 40, letterSpacing: -0.6 },
+  spent: { fontFamily: 'Inter_700Bold', fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
   stats: { flexDirection: 'row', alignItems: 'center' },
   stat: { flex: 1, gap: 2 },
   statSep: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch', marginHorizontal: spacing.md },

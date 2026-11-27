@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   body: { gap: spacing.xl, paddingBottom: spacing.lg },
   hero: { alignItems: 'center', gap: spacing.sm },
   amountBlock: { alignItems: 'center', gap: spacing.xs, paddingTop: spacing.sm },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 44, lineHeight: 52, letterSpacing: -1 },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 32, lineHeight: 38, letterSpacing: -0.6 },
   breakdownBtn: { minHeight: 32, justifyContent: 'center' },
   underline: { textDecorationLine: 'underline' },
   method: { flexDirection: 'row', alignItems: 'center', gap: layout.iconGap, borderRadius: layout.cardRadius, padding: spacing.md, paddingLeft: layout.container, minHeight: 72 },

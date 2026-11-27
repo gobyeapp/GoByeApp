@@ -62,5 +62,5 @@ export default function TripPaid() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg, paddingBottom: spacing.xxl },
   text: { alignItems: 'center', gap: spacing.xs },
-  amount: { fontFamily: 'Inter_700Bold', fontSize: 36, lineHeight: 44, letterSpacing: -0.5, marginTop: spacing.xs },
+  amount: { fontFamily: 'Inter_700Bold', fontSize: 28, lineHeight: 34, letterSpacing: -0.5, marginTop: spacing.xs },
 });
