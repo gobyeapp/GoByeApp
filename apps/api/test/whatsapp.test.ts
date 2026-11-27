@@ -102,7 +102,7 @@ describe('WhatsApp webhook and quick booking (database)', async () => {
     tdb = await createTestDb();
     wa = simulatedWhatsApp();
     notes = logNotifications();
-    providers = { payments: null, maps: fakeMaps(), notifications: notes, storage: null as never, whatsapp: wa };
+    providers = { payments: null, maps: fakeMaps(), notifications: notes, storage: null as never, whatsapp: wa, identity: null, smsCodes: null };
     t = await makeApp({ db: tdb.db, config: WA_CONFIG, providers });
     const id = await addUser(tdb.db, { name: 'Ada Obi', rider: true });
     await tdb.db.query(`update app.users set phone = $2 where id = $1`, [id, `+${RIDER_WA}`]);

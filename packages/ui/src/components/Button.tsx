@@ -39,7 +39,7 @@ export interface ButtonProps {
 /**
  * GoBye button. Pill shape, 56 pt tall at `lg`.
  * Primary (D-102): the website's call to action. A soft tangerine gradient (lighter at the top), a warm
- * glow under it, a dark label, and a white round arrow chip on "go forward" actions such as Continue.
+ * glow under it and a dark label. No arrow chip.
  * Secondary: neutral fill with a hairline edge. Tertiary: text only. Press: a gentle spring to 97 %
  * (none under Reduce Motion) plus the pressed colour, so feedback never relies on motion alone.
  */
@@ -85,8 +85,8 @@ export function Button({
   const brandOn = (variant === 'brand' || variant === 'primary') && !disabledPrimary;
   // Label colour: the call to action always uses its dark ink on tangerine, in both themes.
   const fg = brandOn ? BRAND_CTA.ink : colors[palette.fg];
-  // "Go forward" actions get the arrow chip without every screen having to ask for it.
-  const chipIcon: IconName | undefined = trailingIcon ?? (!trailingText && !leadingIcon && size === 'lg' && (variant === 'primary' || variant === 'brand') && FORWARD.test(title) ? 'arrowRight' : undefined);
+  // No arrow chip on the main button (owner, D-102): the label alone says what happens.
+  const chipIcon: IconName | undefined = variant === 'primary' || variant === 'brand' ? undefined : trailingIcon;
   const height = size === 'lg' ? 56 : minTouch;
   const chip = !!chipIcon && !loading;
   const chipSize = size === 'lg' ? 40 : 32;
@@ -167,7 +167,6 @@ export function Button({
 
 /** The website's call to action (styles.css .btn-primary): light at the top, brand tangerine at the bottom. */
 const BRAND_CTA = { top: '#FFB07A', fill: '#FF751F', pressedTop: '#FF9A5A', pressed: '#EE6710', ink: '#1C0E05' };
-const FORWARD = /^(continue|next|get started|create account|sign in|book ride|confirm)$/i;
 
 /** The gradient is a drawing behind the label, clipped to the pill by the button's own rounded corners. */
 function Gradient({ pressed }: { pressed: boolean }) {

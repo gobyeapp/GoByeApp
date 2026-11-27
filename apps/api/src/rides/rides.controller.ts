@@ -12,7 +12,7 @@ import type { Principal } from '../auth/principal';
 import type { Providers } from '../providers/ports';
 import { AppError, Errors } from '../common/errors';
 import { validate } from '../common/validation';
-import { DISPATCH, OPEN, WITH_DRIVER, addRating, at, audit, cityAt, dispatch, expireIfDue, loadRide, newPin, notYours, rideEvent, riderView, updateRide, type RideRow } from './rides.repository';
+import { DISPATCH, OPEN, WITH_DRIVER, addRating, at, audit, cityAt, notifyRide, dispatch, expireIfDue, loadRide, newPin, notYours, rideEvent, riderView, updateRide, type RideRow } from './rides.repository';
 import { payByWallet } from '../money/ride-payment';
 
 const Point = z.object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), label: z.string().trim().min(1, 'Add a name for this place.').max(200) }).strict();
@@ -210,6 +210,7 @@ export class RidesController {
       if (o.response_expires_at.getTime() <= now) throw new AppError(409, 'RESPONSE_EXPIRED', 'That driver’s offer has expired. Choose another or wait for new responses.');
       const next = await assign(tx, r, o.driver_id, Number(o.amount_kobo), now);
       await rideEvent(tx, r.id, 'ride.matched', 'rider', p.userId, { driverId: o.driver_id, agreedFareKobo: Number(o.amount_kobo), via: 'negotiation' });
+      await notifyRide(tx, next, 'matched');
       await audit(tx, { actorKind: 'rider', actorId: p.userId, actorName: 'Rider', action: 'ride.fare_locked', rideId: r.id, summary: 'Rider accepted a driver’s price', data: { driverId: o.driver_id, agreedFareKobo: Number(o.amount_kobo) }, requestId: req.id });
       return { status: 200, body: await riderView(tx, this.providers.storage, next, now) };
     });
@@ -229,6 +230,7 @@ export class RidesController {
       const next = await updateRide(tx, r.id, `status = 'cancelled', cancelled_at = $2, cancelled_by = 'rider', cancel_reason = $3, cancel_fee_kobo = $4`, [at(now), body.reason ?? null, fee]);
       await tx.query(`update app.ride_offers set status = 'expired' where ride_id = $1 and status in ('open', 'responded')`, [r.id]);
       await rideEvent(tx, r.id, 'ride.cancelled', 'rider', p.userId, { feeKobo: fee, hadDriver: !!r.driver_id });
+      await notifyRide(tx, { ...next, driver_id: r.driver_id }, 'cancelled_by_rider');
       await audit(tx, { actorKind: 'rider', actorId: p.userId, actorName: 'Rider', action: 'ride.cancelled', rideId: r.id, summary: 'Rider cancelled the ride', data: { feeKobo: fee, reason: body.reason ?? null }, requestId: req.id });
       return { status: 200, body: await riderView(tx, this.providers.storage, next, now) };
     });
@@ -258,6 +260,7 @@ export class RidesController {
         next = await updateRide(tx, r.id, `payment_method = $2, payment_claimed_at = $3`, [body.method, at(now)]);
       }
       await rideEvent(tx, r.id, body.method === 'wallet' ? 'ride.paid' : 'ride.payment_claimed', 'rider', p.userId, { method: body.method });
+      await notifyRide(tx, next, body.method === 'wallet' ? 'paid' : 'payment_claimed');
       await audit(tx, { actorKind: 'rider', actorId: p.userId, actorName: 'Rider', action: body.method === 'wallet' ? 'ride.paid' : 'ride.payment_claimed', rideId: r.id, summary: body.method === 'wallet' ? 'Paid from the wallet' : `Rider says they paid by ${body.method}`, data: { method: body.method, amountKobo: Number(r.agreed_fare_kobo) }, requestId: req.id });
       return { status: 200, body: await riderView(tx, this.providers.storage, next, now) };
     });

@@ -9,7 +9,7 @@ import { assertCityScope } from '../auth/guards';
 import type { Principal } from '../auth/principal';
 import { Errors } from '../common/errors';
 import { validate } from '../common/validation';
-import { OPEN, WITH_DRIVER, at, audit, driverCards, loadRide, rideEvent, riderView, updateRide, type RideRow } from './rides.repository';
+import { OPEN, WITH_DRIVER, at, audit, driverCards, loadRide, notifyRide, rideEvent, riderView, updateRide, type RideRow } from './rides.repository';
 
 const List = z
   .object({
@@ -104,6 +104,7 @@ export class StaffRidesController {
       const next = await updateRide(tx, r.id, `status = 'cancelled', cancelled_at = $2, cancelled_by = 'system', cancel_reason = $3`, [at(now), body.reason]);
       await tx.query(`update app.ride_offers set status = 'expired' where ride_id = $1 and status in ('open', 'responded')`, [r.id]);
       await rideEvent(tx, r.id, 'ride.cancelled_by_staff', 'staff', p.staff!.id, { reason: body.reason, was: r.status });
+      await notifyRide(tx, { ...next, driver_id: r.driver_id }, 'cancelled_by_staff');
       await audit(tx, { actorKind: 'staff', actorId: p.staff!.id, actorName: 'Staff', action: 'ride.cancelled_by_staff', rideId: r.id, summary: `Staff cancelled a ride that was ${r.status.replace(/_/g, ' ')}`, data: { reason: body.reason, was: r.status }, requestId: req.id });
       return { status: 200, body: { id: next.id, status: next.status, version: next.version } };
     });

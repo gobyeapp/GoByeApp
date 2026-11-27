@@ -1087,6 +1087,6 @@ The owner asked for the Wallet's reference sizes on every page.
 
 ## D-102 — The main button is the website's tangerine call to action (2026-11-27)
 
-- **Decision (owner):** the primary button in the rider and driver apps matches the website: a soft tangerine gradient, a warm glow, a dark label, and a white round arrow chip on forward actions (Continue, Next, Get started, Create account, Sign in, Confirm). This replaces the black primary button and the earlier "no gradient or glow" note of 2026-10-22. Disabled stays neutral grey. Selected tiles and small "Add" pills stay black.
+- **Decision (owner):** the primary button in the rider and driver apps matches the website: a soft tangerine gradient, a warm glow and a dark label. The white arrow chip was tried and removed the same day (owner). This replaces the black primary button and the earlier "no gradient or glow" note of 2026-10-22. Disabled stays neutral grey. Selected tiles and small "Add" pills stay black.
 - One component (`Button` in `@gobye/ui`); `primary` and `brand` are now the same.
 

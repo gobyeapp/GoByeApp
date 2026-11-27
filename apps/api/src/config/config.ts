@@ -87,7 +87,25 @@ const schema = z.object({
   PAYSTACK_SECRET_KEY: z.string().regex(/^sk_(test|live)_[A-Za-z0-9]{20,}$/, 'must be a Paystack secret key').optional(),
   /** Where the provider's payment page sends the customer afterwards (an app link). */
   PAYMENTS_RETURN_URL: url.optional(),
-  MAPS_PROVIDER: z.enum(['none', 'fake']).default('none'),
+  MAPS_PROVIDER: z.enum(['none', 'fake', 'google']).default('none'),
+  /** Google Maps Platform SERVER key (Routes, Places, Geocoding only). Never an app key. */
+  GOOGLE_MAPS_SERVER_KEY: z.string().min(20).optional(),
+  /** Push, email and SMS each have their own provider; a channel without one is "not connected". */
+  PUSH_PROVIDER: z.enum(['none', 'expo']).default('none'),
+  EXPO_ACCESS_TOKEN: z.string().min(10).optional(),
+  EMAIL_PROVIDER: z.enum(['none', 'resend']).default('none'),
+  RESEND_API_KEY: z.string().regex(/^re_[A-Za-z0-9_]{10,}$/, 'must be a Resend API key').optional(),
+  /** The address receipts come from, e.g. "GoBye <receipts@gobye.app>". The domain must be verified with the provider. */
+  EMAIL_FROM: z.string().max(120).optional(),
+  SMS_PROVIDER: z.enum(['none', 'termii']).default('none'),
+  TERMII_API_KEY: z.string().min(10).optional(),
+  TERMII_SENDER_ID: z.string().regex(/^[A-Za-z0-9 ]{3,11}$/, '3 to 11 letters or digits').optional(),
+  TERMII_BASE_URL: url.optional(),
+  /** Secret of the sign-in service's "Send SMS" hook (v1,whsec_…). With it, sign-in codes go out through SMS_PROVIDER. */
+  SUPABASE_SMS_HOOK_SECRET: z.string().regex(/^v1,whsec_[A-Za-z0-9+/=]{20,}$/, 'must look like v1,whsec_…').optional(),
+  IDENTITY_PROVIDER: z.enum(['none', 'simulated', 'qoreid']).default('none'),
+  QOREID_CLIENT_ID: z.string().min(6).optional(),
+  QOREID_SECRET: z.string().min(10).optional(),
   NOTIFICATIONS_PROVIDER: z.enum(['none', 'log']).default('none'),
   STORAGE_PROVIDER: z.enum(['none', 'memory', 'r2']).default('none'),
   R2_ACCOUNT_ID: z.string().optional(),
@@ -205,6 +223,18 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
   }
   if (corsOrigins.includes('*')) problems.push('CORS_ORIGINS: wildcard is not allowed');
 
+  if (c.MAPS_PROVIDER === 'google' && !c.GOOGLE_MAPS_SERVER_KEY) problems.push('GOOGLE_MAPS_SERVER_KEY: required when MAPS_PROVIDER=google');
+  if (c.EMAIL_PROVIDER === 'resend') {
+    if (!c.RESEND_API_KEY) problems.push('RESEND_API_KEY: required when EMAIL_PROVIDER=resend');
+    if (!c.EMAIL_FROM || !/<[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+>$|^[^<>@\s]+@[^<>@\s]+\.[^<>@\s]+$/.test(c.EMAIL_FROM)) problems.push('EMAIL_FROM: required when EMAIL_PROVIDER=resend (an address on a domain verified with the provider)');
+  }
+  if (c.SMS_PROVIDER === 'termii') {
+    for (const k of ['TERMII_API_KEY', 'TERMII_SENDER_ID', 'TERMII_BASE_URL'] as const) if (!c[k]) problems.push(`${k}: required when SMS_PROVIDER=termii`);
+    if (c.TERMII_BASE_URL && !c.TERMII_BASE_URL.startsWith('https://')) problems.push('TERMII_BASE_URL: must use https');
+  }
+  if (c.SUPABASE_SMS_HOOK_SECRET && c.SMS_PROVIDER === 'none') problems.push('SUPABASE_SMS_HOOK_SECRET: needs SMS_PROVIDER (the hook has nothing to send codes with)');
+  if (c.IDENTITY_PROVIDER === 'qoreid' && (!c.QOREID_CLIENT_ID || !c.QOREID_SECRET)) problems.push('QOREID_CLIENT_ID / QOREID_SECRET: required when IDENTITY_PROVIDER=qoreid');
+  if (c.APP_ENV === 'production' && c.IDENTITY_PROVIDER === 'simulated') problems.push('IDENTITY_PROVIDER: simulated identity checks are refused in production');
   if (c.PAYMENTS_PROVIDER === 'paystack') {
     if (!c.PAYSTACK_SECRET_KEY) problems.push('PAYSTACK_SECRET_KEY: required when PAYMENTS_PROVIDER=paystack');
     if (c.APP_ENV === 'production' && c.PAYSTACK_SECRET_KEY && !c.PAYSTACK_SECRET_KEY.startsWith('sk_live_')) problems.push('PAYSTACK_SECRET_KEY: a live key is required in production');

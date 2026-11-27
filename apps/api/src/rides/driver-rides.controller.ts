@@ -11,7 +11,7 @@ import type { Principal } from '../auth/principal';
 import { AppError, Errors } from '../common/errors';
 import { validate } from '../common/validation';
 import { hasDriverAccess } from '../subscriptions/access';
-import { DISPATCH, WITH_DRIVER, addRating, at, audit, dispatch, driverView, expireIfDue, loadRide, metersBetween, newPin, notYours, rideEvent, updateRide, type RideRow } from './rides.repository';
+import { DISPATCH, WITH_DRIVER, addRating, at, audit, dispatch, driverView, expireIfDue, loadRide, metersBetween, newPin, notYours, notifyRide, rideEvent, updateRide, type RideRow } from './rides.repository';
 import { assign } from './rides.controller';
 
 const Fix = z.object({ latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), heading: z.number().min(0).max(360).optional(), accuracyMeters: z.number().min(0).max(100_000).optional() }).strict();
@@ -142,6 +142,7 @@ export class DriverRidesController {
       if (ride.status === 'negotiating') return { status: 200, body: await this.respond(tx, ride, offerRow, 'accept', Number(ride.offer_kobo), p, now) };
       const next = await assign(tx, ride, p.userId, Number(ride.agreed_fare_kobo), now);
       await rideEvent(tx, ride.id, 'ride.matched', 'driver', p.userId, { driverId: p.userId, agreedFareKobo: Number(ride.agreed_fare_kobo), via: 'quick_match' });
+      await notifyRide(tx, next, 'matched');
       await audit(tx, { actorKind: 'driver', actorId: p.userId, actorName: 'Driver', action: 'ride.accepted', rideId: ride.id, summary: 'Driver accepted the ride', data: { agreedFareKobo: Number(ride.agreed_fare_kobo) }, requestId: req.id });
       return { status: 200, body: { matched: true, ride: await driverView(tx, next) } };
     });
@@ -215,6 +216,7 @@ export class DriverRidesController {
       }
       const next = await updateRide(tx, r.id, `status = 'driver_arrived', arrived_at = $2`, [at(now)]);
       await rideEvent(tx, r.id, 'ride.driver_arrived', 'driver', p.userId, {});
+      await notifyRide(tx, next, 'driver_arrived');
       return next;
     });
   }
@@ -261,6 +263,7 @@ export class DriverRidesController {
       const next = await updateRide(tx, r.id, `status = 'payment_pending', completed_at = $2`, [at(now)]);
       await tx.query(`update app.drivers set completed_trips = completed_trips + 1 where user_id = $1`, [p.userId]);
       await rideEvent(tx, r.id, 'ride.trip_ended', 'driver', p.userId, { fareKobo: Number(r.agreed_fare_kobo) });
+      await notifyRide(tx, next, 'trip_ended');
       await audit(tx, { actorKind: 'driver', actorId: p.userId, actorName: 'Driver', action: 'ride.trip_ended', rideId: r.id, summary: 'Driver ended the trip', data: { fareKobo: Number(r.agreed_fare_kobo) }, requestId: req.id });
       return next;
     });
@@ -285,6 +288,7 @@ export class DriverRidesController {
       await tx.query(`update app.ride_offers set status = case when driver_id = $2 then 'declined' else 'open' end, response_kind = null, amount_kobo = null, for_offer_id = null, response_expires_at = null where ride_id = $1`, [r.id, p.userId]);
       await dispatch(tx, next, now);
       await rideEvent(tx, r.id, 'ride.driver_cancelled', 'driver', p.userId, { reason: body.reason ?? null });
+      await notifyRide(tx, next, 'driver_cancelled');
       await audit(tx, { actorKind: 'driver', actorId: p.userId, actorName: 'Driver', action: 'ride.driver_cancelled', rideId: r.id, summary: 'Driver cancelled; searching for another driver', data: { reason: body.reason ?? null }, requestId: req.id });
       return { status: 200, body: { cancelled: true } };
     });
@@ -306,6 +310,7 @@ export class DriverRidesController {
       if (method === 'cash' && !this.config.RIDE_CASH_ENABLED) throw Errors.conflict('Cash isn’t available. Ask the rider to pay by bank transfer.');
       const next = await updateRide(tx, r.id, `status = 'completed', payment_method = $2, paid_at = $3`, [method, at(now)]);
       await rideEvent(tx, r.id, 'ride.paid', 'driver', p.userId, { method, confirmedBy: 'driver' });
+      await notifyRide(tx, next, 'paid');
       await audit(tx, { actorKind: 'driver', actorId: p.userId, actorName: 'Driver', action: 'ride.payment_confirmed', rideId: r.id, summary: `Driver confirmed receiving payment by ${method}`, data: { method, amountKobo: Number(r.agreed_fare_kobo) }, requestId: req.id });
       return next;
     });

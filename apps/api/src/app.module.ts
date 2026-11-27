@@ -22,6 +22,7 @@ import { DriverRidesController } from './rides/driver-rides.controller';
 import { StaffRidesController } from './rides/staff-rides.controller';
 import { WalletController } from './money/wallet.controller';
 import { FinanceController } from './money/finance.controller';
+import { HooksController } from './notify/hooks.controller';
 import { CLOCK, CONFIG, DATABASE, MIGRATIONS, PRINCIPALS, PROVIDERS, TOKEN_VERIFIER } from './tokens';
 
 export interface AppDeps {
@@ -39,7 +40,7 @@ export class AppModule {
   static forRoot(d: AppDeps): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, MeController, AccountsController, SubscriptionsController, CostsController, WhatsAppWebhookController, DriverRidesController, DriverApplicationController, DriverReviewController, RidesController, StaffRidesController, WalletController, FinanceController],
+      controllers: [HealthController, MeController, AccountsController, SubscriptionsController, CostsController, WhatsAppWebhookController, DriverRidesController, DriverApplicationController, DriverReviewController, RidesController, StaffRidesController, WalletController, FinanceController, HooksController],
       providers: [
         { provide: CONFIG, useValue: d.config },
         { provide: DATABASE, useValue: d.db },

@@ -3,6 +3,9 @@ import { createMockObjectStore, createSimulatedGateway, type LatLng, type Object
 import { hexToBase64, presignR2, type R2Credentials } from '@gobye/r2-sigv4';
 import type { AppConfig } from '../config/config';
 import { paystackGateway } from './paystack';
+import { googleMaps } from './google-maps';
+import { channelSender, expoPush, resendEmail, termiiSms } from './notify';
+import { qoreId, simulatedIdentity } from './qoreid';
 import { Errors } from '../common/errors';
 import { WhatsAppPermanentError, type MapsProvider, type NotificationSender, type PlaceResult, type Providers, type WhatsAppSender } from './ports';
 
@@ -144,10 +147,21 @@ export function r2Storage(creds: R2Credentials, now: () => number = Date.now): O
 
 /** Picks implementations from configuration. Production refusals live in config.ts. */
 export function providersFromConfig(c: AppConfig, log?: (m: string, meta: object) => void): Providers {
+  const fallback = c.NOTIFICATIONS_PROVIDER === 'log' ? logNotifications(log) : notConfiguredNotifications;
+  const sms = c.SMS_PROVIDER === 'termii' ? termiiSms({ apiKey: c.TERMII_API_KEY!, senderId: c.TERMII_SENDER_ID!, baseUrl: c.TERMII_BASE_URL! }) : null;
   return {
     payments: c.PAYMENTS_PROVIDER === 'simulated' ? createSimulatedGateway() : c.PAYMENTS_PROVIDER === 'paystack' ? paystackGateway({ secretKey: c.PAYSTACK_SECRET_KEY! }) : null,
-    maps: c.MAPS_PROVIDER === 'fake' ? fakeMaps() : notConfiguredMaps,
-    notifications: c.NOTIFICATIONS_PROVIDER === 'log' ? logNotifications(log) : notConfiguredNotifications,
+    maps: c.MAPS_PROVIDER === 'fake' ? fakeMaps() : c.MAPS_PROVIDER === 'google' ? googleMaps({ apiKey: c.GOOGLE_MAPS_SERVER_KEY! }) : notConfiguredMaps,
+    notifications: channelSender(
+      {
+        ...(c.PUSH_PROVIDER === 'expo' ? { push: expoPush({ accessToken: c.EXPO_ACCESS_TOKEN }) } : {}),
+        ...(c.EMAIL_PROVIDER === 'resend' ? { email: resendEmail({ apiKey: c.RESEND_API_KEY!, from: c.EMAIL_FROM! }) } : {}),
+        ...(sms ? { sms } : {}),
+      },
+      fallback,
+    ),
+    identity: c.IDENTITY_PROVIDER === 'qoreid' ? qoreId({ clientId: c.QOREID_CLIENT_ID!, secret: c.QOREID_SECRET! }) : c.IDENTITY_PROVIDER === 'simulated' ? simulatedIdentity : null,
+    smsCodes: sms,
     storage:
       c.STORAGE_PROVIDER === 'r2'
         ? r2Storage({ accountId: c.R2_ACCOUNT_ID!, accessKeyId: c.R2_ACCESS_KEY_ID!, secretAccessKey: c.R2_SECRET_ACCESS_KEY! })

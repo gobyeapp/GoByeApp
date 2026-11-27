@@ -2,6 +2,7 @@ import { randomInt } from 'node:crypto';
 import type { LatLng, ObjectStore } from '@gobye/core';
 import type { Querier } from '../database/database';
 import { Errors } from '../common/errors';
+import { naira, notify } from '../notify/notify';
 
 /**
  * Rides on the server (D-100). Shared by the rider, driver and staff controllers: reading a ride,
@@ -154,6 +155,7 @@ export async function dispatch(q: Querier, ride: RideRow, now: number): Promise<
     .slice(0, room);
   for (const d of ranked) {
     await q.query(`insert into app.ride_offers (ride_id, driver_id, distance_m, eta_seconds) values ($1, $2, $3, $4) on conflict (ride_id, driver_id) do nothing`, [ride.id, d.id, Math.round(d.m), etaSeconds(d.m)]);
+    await notify(q, { id: `ride.request:${ride.id}:${d.id}:${ride.offer_round}`, userId: d.id, channel: 'push', template: 'ride.request', data: { rideId: ride.id, pickup: ride.pickup_label.slice(0, 40), destination: ride.destination_label.slice(0, 40), fare: naira(ride.status === 'negotiating' ? ride.offer_kobo : ride.agreed_fare_kobo) } });
   }
   return ranked.length;
 }
@@ -315,3 +317,32 @@ export async function addRating(q: Querier, table: 'riders' | 'drivers', userId:
 }
 
 export const notYours = () => Errors.notFound('Ride not found.');
+
+/** Tells the rider (push, and an emailed receipt once paid) and the driver about a step in the ride. */
+export async function notifyRide(q: Querier, r: RideRow, step: 'matched' | 'driver_arrived' | 'trip_ended' | 'payment_claimed' | 'paid' | 'cancelled_by_rider' | 'cancelled_by_staff' | 'driver_cancelled') {
+  const push = (userId: string | null, template: string, data: Record<string, string> = {}) => (userId ? notify(q, { id: `${template}:${r.id}:${userId}:${r.version}`, userId, channel: 'push', template, data: { rideId: r.id, ...data } }) : Promise.resolve());
+  const fare = naira(r.agreed_fare_kobo);
+  if (step === 'matched' && r.driver_id) {
+    const d = (await driverCards(q, null, [r.driver_id])).get(r.driver_id);
+    await push(r.rider_id, 'ride.matched', { driver: d?.firstName ?? 'Your driver', vehicle: d?.vehicle ? `${d.vehicle.colour} ${d.vehicle.make} ${d.vehicle.model}` : '', plate: d?.vehicle?.plate ?? '' });
+  } else if (step === 'driver_arrived') {
+    const plate = r.driver_id ? ((await driverCards(q, null, [r.driver_id])).get(r.driver_id)?.vehicle?.plate ?? '') : '';
+    await push(r.rider_id, 'ride.driver_arrived', { plate });
+  } else if (step === 'trip_ended') await push(r.rider_id, 'ride.trip_ended', { fare });
+  else if (step === 'payment_claimed') await push(r.driver_id, 'ride.payment_claimed', { fare });
+  else if (step === 'cancelled_by_rider') await push(r.driver_id, 'ride.cancelled');
+  else if (step === 'cancelled_by_staff') {
+    await push(r.rider_id, 'ride.cancelled');
+    await push(r.driver_id, 'ride.cancelled');
+  } else if (step === 'driver_cancelled') await push(r.rider_id, 'ride.driver_cancelled');
+  else if (step === 'paid' && r.driver_id) {
+    const d = (await driverCards(q, null, [r.driver_id])).get(r.driver_id);
+    await notify(q, {
+      id: `ride.receipt:${r.id}`,
+      userId: r.rider_id,
+      channel: 'email',
+      template: 'ride.receipt',
+      data: { rideId: r.id, fare, pickup: r.pickup_label, destination: r.destination_label, method: r.payment_method === 'wallet' ? 'GoBye wallet' : r.payment_method === 'cash' ? 'Cash' : 'Bank transfer', driver: d?.firstName ?? '', date: (r.completed_at ?? new Date()).toLocaleString('en-NG', { timeZone: 'Africa/Lagos', dateStyle: 'medium', timeStyle: 'short' }) },
+    });
+  }
+}

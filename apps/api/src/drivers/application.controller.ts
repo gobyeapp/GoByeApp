@@ -23,6 +23,7 @@ import { CurrentPrincipal } from '../auth/decorators';
 import type { Principal } from '../auth/principal';
 import { Errors } from '../common/errors';
 import { validate } from '../common/validation';
+import { queueIdentityCheck } from './identity.job';
 import { applicationView, assertFilesReady, assertFilesUsable, loadApplication, saveApplication, versionConflict, type StoredApplication } from './application.repository';
 
 const FileId = z.string().uuid('Upload the file first.');
@@ -134,6 +135,7 @@ export class DriverApplicationController {
       await assertFilesReady(tx, s.driverId, s.app);
       const next: DriverApplication = { ...r.value, checks: r.value.checks ?? queuedChecks(now) };
       const version = await saveApplication(tx, s, next, { actorKind: 'driver', actorId: p.userId, kind: resubmit ? 'resubmitted' : 'submitted', requestId: req.id });
+      await queueIdentityCheck(tx, s.driverId, version);
       return { status: 200, body: await applicationView(tx, { ...s, app: next, version }) };
     });
   }

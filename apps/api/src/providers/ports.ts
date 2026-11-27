@@ -79,7 +79,14 @@ export interface WhatsAppSender {
 
 /* ---------- Bundle ---------- */
 
+import type { IdentityProvider } from './qoreid';
+export type { IdentityProvider };
+
 export interface Providers {
+  /** null until an identity provider is chosen: checks stay queued for staff. */
+  identity: IdentityProvider | null;
+  /** Sends a sign-in code by SMS for the sign-in service's hook; null when no SMS provider is set. */
+  smsCodes: { name: string; sendText(to: string, text: string): Promise<unknown> } | null;
   payments: PaymentGatewayAdapter | null;
   maps: MapsProvider;
   notifications: NotificationSender;

@@ -94,8 +94,10 @@ export class DriverReviewController {
       )
     ).rows;
     const contact = p.permissions.has('drivers.contact_details');
+    const identity = (await this.db.query(`select kind, provider, provider_ref as "providerRef", status, face_match as "faceMatch", match_score as "matchScore", name_match as "nameMatch", detail, created_at as "at" from app.identity_checks where driver_id = $1 order by created_at desc limit 5`, [s.driverId])).rows;
     return {
       ...(await applicationView(this.db, s)),
+      identityChecks: identity,
       driver: { name: person.full_name, ...(contact ? { email: person.email, phone: person.phone } : {}) },
       events: events.map((e) => ({ at: e.at.toISOString(), by: e.actor_kind, kind: e.kind, version: e.version, data: e.data })),
     };
