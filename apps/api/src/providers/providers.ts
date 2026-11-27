@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { createMockObjectStore, createSimulatedGateway, type LatLng, type ObjectStore, type PresignedRequest } from '@gobye/core';
 import { hexToBase64, presignR2, type R2Credentials } from '@gobye/r2-sigv4';
 import type { AppConfig } from '../config/config';
+import { paystackGateway } from './paystack';
 import { Errors } from '../common/errors';
 import { WhatsAppPermanentError, type MapsProvider, type NotificationSender, type PlaceResult, type Providers, type WhatsAppSender } from './ports';
 
@@ -144,7 +145,7 @@ export function r2Storage(creds: R2Credentials, now: () => number = Date.now): O
 /** Picks implementations from configuration. Production refusals live in config.ts. */
 export function providersFromConfig(c: AppConfig, log?: (m: string, meta: object) => void): Providers {
   return {
-    payments: c.PAYMENTS_PROVIDER === 'simulated' ? createSimulatedGateway() : null,
+    payments: c.PAYMENTS_PROVIDER === 'simulated' ? createSimulatedGateway() : c.PAYMENTS_PROVIDER === 'paystack' ? paystackGateway({ secretKey: c.PAYSTACK_SECRET_KEY! }) : null,
     maps: c.MAPS_PROVIDER === 'fake' ? fakeMaps() : notConfiguredMaps,
     notifications: c.NOTIFICATIONS_PROVIDER === 'log' ? logNotifications(log) : notConfiguredNotifications,
     storage:

@@ -82,7 +82,11 @@ const schema = z.object({
   ORIGIN_AUTH_REQUIRED: bool(true),
 
   /* Providers (BACKEND_ARCHITECTURE.md §8). */
-  PAYMENTS_PROVIDER: z.enum(['none', 'simulated']).default('none'),
+  PAYMENTS_PROVIDER: z.enum(['none', 'simulated', 'paystack']).default('none'),
+  /** Paystack secret key (sk_test_… or sk_live_…). Server secret store only. */
+  PAYSTACK_SECRET_KEY: z.string().regex(/^sk_(test|live)_[A-Za-z0-9]{20,}$/, 'must be a Paystack secret key').optional(),
+  /** Where the provider's payment page sends the customer afterwards (an app link). */
+  PAYMENTS_RETURN_URL: url.optional(),
   MAPS_PROVIDER: z.enum(['none', 'fake']).default('none'),
   NOTIFICATIONS_PROVIDER: z.enum(['none', 'log']).default('none'),
   STORAGE_PROVIDER: z.enum(['none', 'memory', 'r2']).default('none'),
@@ -200,6 +204,14 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     else if (prodLike && !o.startsWith('https://')) problems.push('CORS_ORIGINS: https origins only in staging and production');
   }
   if (corsOrigins.includes('*')) problems.push('CORS_ORIGINS: wildcard is not allowed');
+
+  if (c.PAYMENTS_PROVIDER === 'paystack') {
+    if (!c.PAYSTACK_SECRET_KEY) problems.push('PAYSTACK_SECRET_KEY: required when PAYMENTS_PROVIDER=paystack');
+    if (c.APP_ENV === 'production' && c.PAYSTACK_SECRET_KEY && !c.PAYSTACK_SECRET_KEY.startsWith('sk_live_')) problems.push('PAYSTACK_SECRET_KEY: a live key is required in production');
+    if (c.APP_ENV !== 'production' && c.PAYSTACK_SECRET_KEY?.startsWith('sk_live_')) problems.push('PAYSTACK_SECRET_KEY: live keys are refused outside production');
+  }
+  if (c.WALLET_ENABLED && c.PAYMENTS_PROVIDER === 'none') problems.push('WALLET_ENABLED: needs PAYMENTS_PROVIDER (wallet money cannot be switched on without a payment provider)');
+  if (c.PAYMENTS_RETURN_URL && prodLike && !c.PAYMENTS_RETURN_URL.startsWith('https://')) problems.push('PAYMENTS_RETURN_URL: must use https');
 
   if (c.WHATSAPP_PROVIDER !== 'none') {
     if (!c.WHATSAPP_APP_SECRET || c.WHATSAPP_APP_SECRET.length < 16) problems.push('WHATSAPP_APP_SECRET: required (16+ characters) when WHATSAPP_PROVIDER is set');

@@ -24,7 +24,7 @@ const StartBody = z.object({ pin: z.string().regex(/^[0-9]{4}$/, 'Enter the 4 di
 const CancelBody = z.object({ reason: z.string().trim().max(200).optional() }).strict();
 const ConfirmBody = z.object({ method: z.enum(['transfer', 'cash']).optional() }).strict();
 const RateBody = z.object({ stars: z.number().int().min(1).max(5) }).strict();
-const PayoutBody = z.object({ bankName: z.string().trim().min(2).max(60), accountNumber: z.string().regex(/^[0-9]{10}$/, 'Enter the 10 digit account number.'), accountName: z.string().trim().min(2).max(80) }).strict();
+const PayoutBody = z.object({ bankName: z.string().trim().min(2).max(60), accountNumber: z.string().regex(/^[0-9]{10}$/, 'Enter the 10 digit account number.'), accountName: z.string().trim().min(2).max(80), bankCode: z.string().regex(/^[0-9A-Za-z]{2,10}$/).optional() }).strict();
 const List = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20), before: z.string().datetime().optional() }).strict();
 
 const NOT_APPROVED = () => new AppError(403, 'DRIVER_NOT_APPROVED', 'Your registration must be approved before you can drive.');
@@ -340,9 +340,9 @@ export class DriverRidesController {
     this.driver(p);
     return this.write(p, key, 'PUT', '/v1/drivers/me/payout-account', body, reply, async (tx) => {
       await tx.query(
-        `insert into app.driver_payout_accounts (driver_id, bank_name, account_number, account_name, updated_at) values ($1, $2, $3, $4, $5)
-         on conflict (driver_id) do update set bank_name = excluded.bank_name, account_number = excluded.account_number, account_name = excluded.account_name, updated_at = excluded.updated_at`,
-        [p.userId, body.bankName, body.accountNumber, body.accountName, at(this.now())],
+        `insert into app.driver_payout_accounts (driver_id, bank_name, account_number, account_name, updated_at, bank_code) values ($1, $2, $3, $4, $5, $6)
+         on conflict (driver_id) do update set bank_name = excluded.bank_name, account_number = excluded.account_number, account_name = excluded.account_name, updated_at = excluded.updated_at, bank_code = excluded.bank_code`,
+        [p.userId, body.bankName, body.accountNumber, body.accountName, at(this.now()), body.bankCode ?? null],
       );
       // The audit keeps the last four digits only.
       await tx.query(

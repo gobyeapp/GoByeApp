@@ -52,11 +52,15 @@ export interface CollectionRequest {
   customer: { id: string; name: string; email?: string; phone?: string };
   /** Pinned so the provider charge can be checked against the quote shown to the customer. */
   quoteId: string;
+  /** How the customer pays. Card details are only ever typed on the provider's own page (D-093). */
+  channel?: 'bank_transfer' | 'card';
+  /** Where the provider's page sends the customer afterwards. Never proof of payment. */
+  returnUrl?: string;
 }
 
 export interface CollectionInstructions {
   reference: string;
-  method: 'bank_transfer';
+  method: 'bank_transfer' | 'card';
   /** Account the customer transfers to (virtual account), when the provider gives one. */
   account?: { bankName: string; accountNumber: string; accountName: string; expiresAt?: number };
   checkoutUrl?: string;
