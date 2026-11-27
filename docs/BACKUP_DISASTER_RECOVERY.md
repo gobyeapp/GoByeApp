@@ -50,3 +50,32 @@ When something fails, prefer "keep trips safe" over "full service":
 - Rotate `ORIGIN_AUTH_SECRET` and `GATEWAY_ASSERTION_SECRET` without downtime (two-key overlap — future work).
 
 Until those drills run, GoBye must not claim high availability or tested recovery.
+
+## Staging database backups (D-083)
+
+Supabase's free plan keeps no backups, so `.github/workflows/staging-backup.yml` does it every night at 03:23 Lagos time. You can also run it by hand from Actions → Staging backup. Each run:
+
+- dumps the `app` and `ops` schemas (custom format, without owners or grants);
+- encrypts the dump with `BACKUP_PASSPHRASE` (GnuPG, AES-256). Nothing unencrypted leaves the runner;
+- checks the backup by decrypting it and listing its tables;
+- keeps it as a private workflow artifact for **14 days**, with a SHA-256 checksum.
+
+The owner keeps the passphrase in a password manager. Without it, no backup can be opened.
+
+### Restore the staging database
+
+1. Download the artifact (Actions → the run → Artifacts) and unzip it.
+2. Check the file: `sha256sum -c gobye-staging-<stamp>.sha256`.
+3. Decrypt and restore into an **empty** database. Never restore over the live one; restore beside it and switch after checking.
+   ```sh
+   gpg --decrypt gobye-staging-<stamp>.pgc.gpg > dump.pgc     # asks for BACKUP_PASSPHRASE
+   createdb restore_check                                     # or a fresh Supabase project
+   psql restore_check -f apps/api/db/roles.sql               # roles first, if the target is new
+   pg_restore --no-owner --no-privileges --dbname=restore_check dump.pgc
+   psql restore_check -f apps/api/db/grants.sql
+   ```
+4. Run `Staging database → check` against it, then delete `dump.pgc`.
+
+**Rehearsed (2026-11-27, local PostgreSQL 16):** dump, encrypt, list, then restore into an empty database. The row counts matched, and a wrong passphrase was refused. The first real run on staging is still to do.
+
+**Before production:** a backup for production should also be copied off GitHub (for example to an R2 bucket with object lock), and kept for longer (Q-073). Supabase Pro's own daily backups and point-in-time recovery are the main line there.

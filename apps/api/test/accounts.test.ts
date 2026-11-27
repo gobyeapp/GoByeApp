@@ -59,6 +59,31 @@ describe('accounts API', async () => {
     });
   const phoneFor = () => `234803${String(Math.floor(Math.random() * 1e7)).padStart(7, '0')}`;
 
+  test('a person downloads their own data (NDPA access, D-083), audited, without internal details', { skip }, async () => {
+    const sub = randomUUID();
+    const r = await call('POST', '/v1/me/profile', sub, { role: 'driver', fullName: 'Bola Ade', city: 'abuja', consents, device: { installId: 'install_export_01', platform: 'ios' } }, { phone: phoneFor() });
+    assert.equal(r.statusCode, 201, r.body);
+    const other = randomUUID();
+    await call('POST', '/v1/me/profile', other, { role: 'rider', fullName: 'Someone Else', consents }, { phone: phoneFor() });
+
+    const ex = await call('GET', '/v1/me/export', sub, undefined, { key: null });
+    assert.equal(ex.statusCode, 200, ex.body);
+    assert.match(String(ex.headers['content-disposition']), /attachment; filename="gobye-my-data-\d{4}-\d{2}-\d{2}\.json"/);
+    assert.equal(ex.headers['cache-control'], 'no-store');
+    const d = ex.json().data;
+    assert.equal(d.format, 'gobye-personal-data-v1');
+    assert.equal(d.profile.full_name, 'Bola Ade');
+    assert.equal(d.driver.city, 'abuja');
+    assert.equal(d.rider, null);
+    assert.equal(d.consents.length, 2);
+    assert.equal(d.consents[0].ip_hash, undefined, 'internal hash left out');
+    assert.equal(d.devices[0].install_id, 'install_export_01');
+    assert.ok(!JSON.stringify(d).includes('Someone Else'), 'nobody else’s data');
+    const audit = await tdb.db.query(`select action from ops.audit_events where target_id = $1 and action = 'account.export'`, [sub]);
+    assert.equal(audit.rowCount, 1);
+    assert.equal((await t.inject({ method: 'GET', url: '/v1/me/export' })).statusCode, 401);
+  });
+
   test('signs up a rider, records consent and device, and /v1/me shows it', { skip }, async () => {
     const sub = randomUUID();
     const r = await call('POST', '/v1/me/profile', sub, { role: 'rider', fullName: 'Ada Obi', consents, device: { installId: 'install_rider_0001', platform: 'android', appVersion: '0.1.0' } }, { phone: phoneFor() });

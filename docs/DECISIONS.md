@@ -889,3 +889,12 @@ MingCute's public Core set has no tricycle/auto-rickshaw icon. `car-2` is used f
   - `wrangler hyperdrive create` with the gobye-staging pooler URL (the `gobye_api` role), and paste the id into `r2/wrangler.upload-signer.toml`;
   - the Worker secrets;
   - then deploy. The Worker is only reachable through the gateway on `api.gobye.app`, so gobye.app has to be on Cloudflare first.
+
+## D-083 — Staging backups, personal data download, threat model update (Backend Phase 2, WP5, part 1) (2026-11-27)
+
+- **Nightly staging backup** (`.github/workflows/staging-backup.yml`, free):
+  - a `pg_dump` of `app` and `ops` with the session pooler, encrypted with `BACKUP_PASSPHRASE` (GnuPG AES-256);
+  - checked by decrypting it and listing its tables;
+  - kept as a private artifact for 14 days. Restore steps are in `BACKUP_DISASTER_RECOVERY.md`, rehearsed locally.
+- **Personal data download:** `GET /v1/me/export` returns everything GoBye's tables hold about the caller as a JSON attachment, for the NDPA right of access. Internal storage details and other people's ids are left out, and each download is audited. Not yet in the apps' Account screens.
+- **Threat model:** T16 to T23 cover phone-code abuse, password-only sign-in, session theft, staff document access, unscanned uploads, approval races, deletion and data rights, and backup exposure.

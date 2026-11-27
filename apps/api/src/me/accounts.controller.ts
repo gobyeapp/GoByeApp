@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Headers, HttpCode, Inject, Patch, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Headers, HttpCode, Inject, Patch, Post, Req, Res } from '@nestjs/common';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import { Errors } from '../common/errors';
 import { validate } from '../common/validation';
 import { enqueue } from '../jobs/queue';
 import { meView } from './me.view';
+import { exportPersonalData } from './export';
 
 const Name = z.string().trim().min(2, 'Enter your full name.').max(80, 'Use 80 characters or fewer.');
 const City = z.enum(['lagos', 'abuja'], { message: 'Choose Lagos or Abuja.' });
@@ -49,6 +50,22 @@ export class AccountsController {
     @Inject(CONFIG) private readonly config: AppConfig,
     @Inject(CLOCK) private readonly now: () => number,
   ) {}
+
+  /**
+   * GET /v1/me/export: everything GoBye holds about the caller, as a JSON download (NDPA right of access,
+   * D-083). Each export is written to the audit log.
+   */
+  @Get('export')
+  async exportData(@CurrentPrincipal() p: Principal, @Req() req: FastifyRequest, @Res({ passthrough: true }) reply: FastifyReply) {
+    const body = await this.db.tx(async (tx) => {
+      const data = await exportPersonalData(tx, p.userId, new Date(this.now()));
+      await this.audit(tx, p.userId, p.user?.isDriver ? 'driver' : 'rider', 'account.export', 'Downloaded their personal data', req, {});
+      return data;
+    });
+    reply.header('content-disposition', `attachment; filename="gobye-my-data-${new Date(this.now()).toISOString().slice(0, 10)}.json"`);
+    reply.header('cache-control', 'no-store');
+    return body;
+  }
 
   /** POST /v1/me/profile: finish sign-up as a rider or a driver. Needs a confirmed Nigerian phone number. */
   @Post('profile')

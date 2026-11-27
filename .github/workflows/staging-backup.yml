@@ -1,0 +1,76 @@
+# Nightly backup of the STAGING database (docs/BACKUP_DISASTER_RECOVERY.md, D-083).
+# Supabase's free plan keeps no backups, so this job does: a pg_dump of the GoBye schemas (app, ops),
+# encrypted with a passphrase, checked by decrypting and listing it, then kept as a private workflow
+# artifact for 14 days. Free (a few MB of artifact storage). Also runs by hand: Actions → "Staging backup".
+#
+# Needs, in GitHub → Settings → Environments → "staging" → Environment secrets:
+#   STAGING_DATABASE_MIGRATION_URL  (already there) session pooler, port 5432, gobye_migrator
+#   BACKUP_PASSPHRASE               a long random passphrase (32+ characters). Keep a copy in the owner's
+#                                   password manager: without it a backup can't be opened.
+# Restoring: docs/BACKUP_DISASTER_RECOVERY.md "Restore the staging database".
+name: Staging backup
+on:
+  schedule:
+    - cron: "23 2 * * *" # 03:23 in Lagos, every night
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: staging-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: staging
+    steps:
+      - name: Secrets present
+        env:
+          DB: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          [ -n "$DB" ] || { echo "::error::Add STAGING_DATABASE_MIGRATION_URL to the 'staging' environment"; exit 1; }
+          [ "${#PASS}" -ge 32 ] || { echo "::error::Add BACKUP_PASSPHRASE (32+ characters) to the 'staging' environment"; exit 1; }
+          case "$DB" in *:6543/*) echo "::error::Use the SESSION pooler (5432): pg_dump does not work through the transaction pooler"; exit 1;; esac
+
+      - name: PostgreSQL 17 client
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt noble-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17 >/dev/null
+          /usr/lib/postgresql/17/bin/pg_dump --version
+
+      - name: Dump, encrypt and check
+        env:
+          DB: ${{ secrets.STAGING_DATABASE_MIGRATION_URL }}
+          PASS: ${{ secrets.BACKUP_PASSPHRASE }}
+          PGSSLMODE: require
+        run: |
+          set -euo pipefail
+          umask 077
+          stamp=$(date -u +%Y%m%dT%H%MZ)
+          echo "STAMP=$stamp" >> "$GITHUB_ENV"
+          mkdir -p out
+          # Custom format, the GoBye schemas only, without owners or grants (they are re-applied by
+          # db/roles.sql and db/grants.sql on restore). Nothing unencrypted is ever uploaded.
+          /usr/lib/postgresql/17/bin/pg_dump --dbname="$DB" --format=custom --compress=9 \
+            --schema=app --schema=ops --no-owner --no-privileges --file=dump.pgc
+          gpg --batch --yes --pinentry-mode loopback --passphrase-fd 3 --symmetric --cipher-algo AES256 \
+            --output "out/gobye-staging-$stamp.pgc.gpg" dump.pgc 3<<<"$PASS"
+          rm -f dump.pgc
+          # Prove the backup opens: decrypt to a pipe and list its contents.
+          tables=$(gpg --batch --quiet --pinentry-mode loopback --passphrase-fd 3 --decrypt "out/gobye-staging-$stamp.pgc.gpg" 3<<<"$PASS" \
+            | /usr/lib/postgresql/17/bin/pg_restore --list | grep -c ' TABLE DATA ' || true)
+          [ "$tables" -gt 0 ] || { echo "::error::The backup lists no table data"; exit 1; }
+          size=$(du -h "out/gobye-staging-$stamp.pgc.gpg" | cut -f1)
+          echo "Backup gobye-staging-$stamp: $size encrypted, $tables tables with data" | tee -a "$GITHUB_STEP_SUMMARY"
+          sha256sum "out/gobye-staging-$stamp.pgc.gpg" | tee "out/gobye-staging-$stamp.sha256"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gobye-staging-${{ env.STAMP }}
+          path: out/
+          retention-days: 14
+          if-no-files-found: error

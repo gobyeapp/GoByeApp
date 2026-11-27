@@ -1265,3 +1265,10 @@ Owner brief: one management platform with workspaces and permissions per team ov
   - In Chromium at iPhone 13 size on a local server, the headline shows after about 1.2 s, the video plays inline and muted, Inter loads, and Create account opens sign-up with no page errors.
   - Rider tests 37, typecheck, lint, and Android and iOS exports pass.
   - **Not tried in Safari on a real iPhone.**
+
+## 2026-11-27 — Backend Phase 2, WP5 part 1: backups, data download, threat model (D-083)
+
+- `.github/workflows/staging-backup.yml`: nightly, encrypted and checked; restore steps in `BACKUP_DISASTER_RECOVERY.md`. Rehearsed on local PostgreSQL: dump, encrypt, restore into an empty database, row counts match, and a wrong passphrase is refused.
+- **API:** `GET /v1/me/export` (`src/me/export.ts`), with a test. API 113 passed, 5 pooler tests skipped.
+- **Docs:** `THREAT_MODEL.md` T16 to T23.
+- **Owner step:** add `BACKUP_PASSPHRASE` (32+ characters) to GitHub → Settings → Environments → staging, and keep a copy in a password manager. Then run Actions → Staging backup once.

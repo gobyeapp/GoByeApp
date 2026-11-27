@@ -417,6 +417,8 @@ These endpoints exist and are covered by automated tests (`apps/api/test`). They
 | DELETE | `/v1/me` | signed-up self | — | `202 { status: "scheduled", scheduledFor }` (14 days; job `account.delete` then anonymises and removes the sign-in account) | 403, 409 already deleted |
 | POST | `/v1/me/deletion/cancel` | signed-up self | `{}` | `200 { status: "cancelled" }` | 404 nothing to cancel |
 
+**Personal data download (D-083).** `GET /v1/me/export` (signed in, any account) → `200`, `data` = `{ format: "gobye-personal-data-v1", userId, generatedAt, profile, rider, driver, vehicles[], driverApplication, applicationHistory[], driverPasses, driverPassPayments[], ridesAsRider[], ridesAsDriver[], consents[], devices[], accountDeletion, whatsapp[], files[] }` (database column names; storage keys, checksums, IP hashes and other people's ids left out). `Content-Disposition: attachment`, `Cache-Control: no-store`. Audited as `account.export`.
+
 **Driver application (Backend Phase 2, WP3, D-079).** Every write needs `Idempotency-Key`, writes an `application_events` row and an audit row in the same transaction. Driver writes need `If-Match: "<version>"` (from `GET`, also sent as `ETag`); staff send `version` in the body. A stale version is `409 VERSION_CONFLICT`. The body below, **Application**, is `{ driverId, status, version, application (core DriverApplication + city; file fields hold ops.files ids), summary (core verificationSummary), files: [{ slot: licence \| selfie \| registration \| insurance \| roadworthiness, fileId, state: checking \| ready \| problem \| missing }] }`.
 
 | Method | Path | Auth | Request | Response `data` | Errors |
