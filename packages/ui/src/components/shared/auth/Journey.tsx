@@ -2,6 +2,7 @@ import { createContext, forwardRef, useContext, useEffect, useRef, useState, typ
 import { Keyboard, KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Pressable, StyleSheet, TextInput, View, type LayoutChangeEvent, type TextInputProps } from 'react-native';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { passwordChecks, passwordStrength, type SocialProvider } from '@gobye/core';
 import { OrDivider, SocialButtons } from './AuthKit';
@@ -26,8 +27,26 @@ const EDGE = 17;
 const LABEL_W = 84;
 
 /** Solid aubergine header (one brand colour; no gradient or glow, owner 2026-10-22). */
+/**
+ * The brand header background (D-088): a soft diagonal gradient, lighter plum at the top-left falling to
+ * deep plum at the bottom-right, over the flat aubergine (which shows if the gradient can't draw).
+ * Used by the sign-up, sign-in and reset headers and by the Wallet header, so they match.
+ */
 export function PlumBackground({ radius = 0 }: { radius?: number }) {
-  return <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: brand.aubergine, borderRadius: radius }]} />;
+  return (
+    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: brand.aubergine, borderRadius: radius, overflow: 'hidden' }]}>
+      <Svg width="100%" height="100%" preserveAspectRatio="none">
+        <Defs>
+          <LinearGradient id="gobye-plum" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={PLUM.mid} />
+            <Stop offset="0.55" stopColor={brand.aubergine} />
+            <Stop offset="1" stopColor={PLUM.deep} />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum)" />
+      </Svg>
+    </View>
+  );
 }
 
 /** Route progress: a track with a tangerine fill, four stops and a car chip that drives to the current step. */
@@ -566,7 +585,7 @@ const styles = StyleSheet.create({
   track: { position: 'absolute', left: EDGE, right: EDGE, top: 16, height: 2, borderRadius: 1, backgroundColor: 'rgba(255,255,255,0.22)', overflow: 'hidden' },
   fill: { height: 2, borderRadius: 1, overflow: 'hidden' },
   // Upcoming stops are hollow rings on the plum; reached ones fill with tangerine.
-  stop: { position: 'absolute', top: 12, width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: 'rgba(255,255,255,0.45)', backgroundColor: brand.aubergine },
+  stop: { position: 'absolute', top: 12, width: 10, height: 10, borderRadius: 5, borderWidth: 2, borderColor: 'rgba(255,255,255,0.45)', backgroundColor: PLUM.deep },
   car: {
     position: 'absolute',
     top: 0,

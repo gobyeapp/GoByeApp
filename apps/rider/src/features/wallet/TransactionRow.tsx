@@ -104,7 +104,7 @@ export function TransactionRow({ tx, onPress }: { tx: WalletTransaction; onPress
         <Icon name={txIcon(tx)} size={16} color="text" />
       </View>
       <View style={styles.texts}>
-        <Text variant="subhead" weight="medium" numberOfLines={2}>
+        <Text variant="subhead" weight="semibold" numberOfLines={2}>
           {rowTitle(tx)}
         </Text>
         <Text variant="caption" color="textSecondary">
@@ -120,7 +120,7 @@ export function TransactionRow({ tx, onPress }: { tx: WalletTransaction; onPress
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 64, paddingVertical: spacing.md, paddingHorizontal: spacing.md, borderRadius: layout.controlRadius },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 58, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md, borderRadius: layout.controlRadius },
   icon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   texts: { flex: 1, minWidth: 0, gap: 3 },
   right: { alignItems: 'flex-end', gap: 3, flexShrink: 0, maxWidth: '48%' },

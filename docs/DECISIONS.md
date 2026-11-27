@@ -963,3 +963,12 @@ The owner shared a banking app's home screen and asked to take only what GoBye's
   - the status bar is light only while the Wallet tab is showing;
   - a hidden balance goes back to shown when the app restarts.
 - This replaces the pale-panel wallet from the earlier approved reference and D-084's filled "Add money" tile. Aubergine as a header background follows the existing brand banner use (sign-up, receipt).
+
+## D-088 — Plum gradient header, compact wallet type, and the filter-chip fix (2026-11-27)
+
+- **Gradient:** `PlumBackground` is now a soft diagonal gradient (lighter plum top-left to deep plum bottom-right, drawn with react-native-svg over the flat aubergine). The sign-up, sign-in and reset headers in both apps and the rider Wallet header all use it, so they match. This is the one approved gradient; the "no random gradients" rule still holds elsewhere.
+- **Wallet type sizes** follow the owner's bank-app reference: a compact scale where weight, not size, carries the hierarchy.
+  - Balance 30 (was 40) with 14 kobo; name 14 bold; labels 12.
+  - Section heading 15 bold; row titles 14 semibold; chips 12 in a 32-high pill; header buttons 46 high.
+  - Only the Wallet so far. The rest of the app keeps the shared type scale until the owner confirms.
+- **Bug fixed:** choosing a filter with few results (for example Refunds) made the filter chips huge. The horizontal chip row was growing to fill the spare height of the page; it now keeps its own size.

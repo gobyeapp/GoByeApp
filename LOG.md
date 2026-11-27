@@ -1312,3 +1312,12 @@ Owner brief: one management platform with workspaces and permissions per team ov
 
 - `apps/rider/src/app/(tabs)/wallet.tsx` only.
 - **Checked:** screenshots at iPhone 13 size in Chromium (shown and hidden balance, history with filters, offers below); rider tests 37; typecheck, lint, and Android and iOS export pass. **Not tried on a real phone.**
+
+## 2026-11-27 — Plum gradient, compact wallet type, filter-chip fix (D-088)
+
+- `@gobye/ui` `PlumBackground` (gradient); `apps/rider` Wallet (sizes, gradient header, chip row) and `TransactionRow`.
+- **Checked in Chromium:**
+  - The chip bug was reproduced on a tall page: the Refunds chip was 860 px high before the fix and 32 px after.
+  - Screenshots at iPhone 13 size of the Wallet (recent, and history with Refunds) and of sign-up with the gradient header.
+- Rider tests 37 and driver tests 14 pass; typecheck, lint, and Android and iOS exports of both apps pass.
+- **Not tried on a real phone.**

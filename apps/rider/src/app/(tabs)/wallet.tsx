@@ -10,6 +10,7 @@ import {
   EmptyState,
   ErrorState,
   Icon,
+  PlumBackground,
   SimulatedBadge,
   SkeletonGroup,
   SkeletonRow,
@@ -112,14 +113,16 @@ export default function Wallet() {
       >
         {/* Brand header (D-087): greeting, the balance and the two things people do here. */}
         <View style={[styles.hero, { backgroundColor: colors.brandBanner, paddingTop: insets.top + spacing.md }]}>
+          {/* The same plum gradient as the sign-up header (D-088). */}
+          <PlumBackground />
           <View style={styles.header}>
             <Pressable onPress={() => router.push('/(tabs)/account')} accessibilityRole="button" accessibilityLabel={`Your account${name ? `, ${name}` : ''}`} style={styles.who}>
-              <Avatar uri={user?.photoUri} name={name} size={44} />
+              <Avatar uri={user?.photoUri} name={name} size={40} />
               <View style={styles.flex}>
                 <Text variant="caption" style={{ color: on, opacity: 0.8 }}>
                   {greeting}
                 </Text>
-                <Text variant="callout" weight="semibold" numberOfLines={1} style={{ color: on }}>
+                <Text variant="subhead" weight="bold" numberOfLines={1} style={{ color: on }}>
                   {user?.firstName || 'Your wallet'}
                 </Text>
               </View>
@@ -133,7 +136,7 @@ export default function Wallet() {
 
           <View style={styles.balance}>
             <View style={styles.balanceLabel}>
-              <Text variant="footnote" style={{ color: on, opacity: 0.85 }}>
+              <Text variant="caption" style={{ color: on, opacity: 0.85 }}>
                 Available balance
               </Text>
             </View>
@@ -148,7 +151,7 @@ export default function Wallet() {
                     {hidden ? '₦ ••••••' : whole}
                   </Text>
                   {hidden ? null : (
-                    <Text variant="title3" tabular style={{ color: on, opacity: 0.75 }}>
+                    <Text variant="subhead" tabular style={{ color: on, opacity: 0.75 }}>
                       {kobo}
                     </Text>
                   )}
@@ -196,7 +199,7 @@ export default function Wallet() {
 
             {/* History */}
             <View style={styles.sectionHead}>
-              <Text variant="headline" accessibilityRole="header" style={styles.flex}>
+              <Text variant="callout" weight="bold" accessibilityRole="header" style={styles.flex}>
                 {mode === 'recent' ? 'Recent activity' : 'Transaction history'}
               </Text>
               {sorted.length > 0 ? (
@@ -209,7 +212,7 @@ export default function Wallet() {
                   hitSlop={8}
                   style={styles.link}
                 >
-                  <Text variant="footnote" weight="semibold">
+                  <Text variant="caption" weight="semibold">
                     {mode === 'history' ? 'Show less' : 'See all'}
                   </Text>
                   <Icon name={mode === 'history' ? 'chevronUp' : 'chevronRight'} size="xs" color="text" />
@@ -217,7 +220,7 @@ export default function Wallet() {
               ) : null}
             </View>
             {mode === 'history' ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters} accessibilityRole="tablist">
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterRow} contentContainerStyle={styles.filters} accessibilityRole="tablist">
                 {FILTERS.map((f) => {
                   const on = f.id === filter;
                   return (
@@ -228,7 +231,7 @@ export default function Wallet() {
                       accessibilityState={{ selected: on }}
                       style={[styles.chip, { backgroundColor: on ? colors.primary : colors.card, borderColor: colors.border }]}
                     >
-                      <Text variant="footnote" weight={on ? 'semibold' : 'medium'} color={on ? 'onPrimary' : 'text'}>
+                      <Text variant="caption" weight={on ? 'semibold' : 'medium'} color={on ? 'onPrimary' : 'text'}>
                         {f.label}
                       </Text>
                     </Pressable>
@@ -366,8 +369,8 @@ function DepositCard({ tx, onPress }: { tx: WalletTransaction; onPress: () => vo
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  hero: { paddingHorizontal: layout.page, paddingBottom: spacing.xl + 28 },
-  heroIcon: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  hero: { paddingHorizontal: layout.page, paddingBottom: spacing.xl + 28, overflow: 'hidden' },
+  heroIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   glass: { backgroundColor: 'rgba(255, 255, 255, 0.12)' },
   balanceLabel: { paddingHorizontal: spacing.md, paddingVertical: 4, borderRadius: radii.pill, backgroundColor: 'rgba(255, 255, 255, 0.10)' },
   balanceRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
@@ -378,19 +381,21 @@ const styles = StyleSheet.create({
   who: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 48 },
   dot: { position: 'absolute', top: 8, right: 8, width: 10, height: 10, borderRadius: 5, borderWidth: 2 },
   scroll: { paddingBottom: spacing.xl, flexGrow: 1 },
-  balance: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.xl, paddingBottom: spacing.lg },
+  balance: { alignItems: 'center', gap: spacing.sm, paddingTop: spacing.lg, paddingBottom: spacing.lg },
   balanceSkeleton: { alignItems: 'center', paddingVertical: spacing.xs },
   balanceLine: { textAlign: 'center' },
-  balanceBig: { fontSize: 40, lineHeight: 48, letterSpacing: -1 },
-  balanceCompact: { fontSize: 34, lineHeight: 42, letterSpacing: -0.8 },
+  balanceBig: { fontSize: 30, lineHeight: 36, letterSpacing: -0.6 },
+  balanceCompact: { fontSize: 26, lineHeight: 32, letterSpacing: -0.5 },
   balanceMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap', justifyContent: 'center' },
   metaChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: 3, borderRadius: radii.pill },
   tray: { flexDirection: 'row', gap: spacing.sm },
-  tile: { flex: 1, minHeight: 52, borderRadius: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },
+  tile: { flex: 1, height: 46, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingHorizontal: spacing.md },
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: -spacing.sm },
   link: { flexDirection: 'row', alignItems: 'center', gap: 2, minHeight: 32 },
-  filters: { gap: spacing.sm },
-  chip: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: radii.pill, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+  filters: { gap: spacing.sm, alignItems: 'center' },
+  // A horizontal ScrollView grows to fill spare height unless told not to: keep the chip row its own size.
+  filterRow: { flexGrow: 0, flexShrink: 0 },
+  chip: { height: 32, paddingHorizontal: spacing.md, borderRadius: radii.pill, justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
   history: { borderRadius: 24, paddingVertical: spacing.xs, overflow: 'hidden' },
   historyLift: { boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.04)' } as object,
   deposit: { borderRadius: 22, borderWidth: 1, padding: layout.container + 2, gap: spacing.xs },
