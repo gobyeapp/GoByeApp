@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Place } from '@gobye/core';
-import { Avatar, Bone, Button, SearchField, Icon, IconButton, MapSheet, SkeletonGroup, Text, layout, minTouch, radii, shadows, spacing, useTheme, useToast, type IconName } from '@gobye/ui';
+import { PlumBackground, Avatar, Bone, Button, SearchField, Icon, IconButton, MapSheet, SkeletonGroup, Text, layout, minTouch, radii, shadows, spacing, useTheme, useToast, type IconName } from '@gobye/ui';
 import { PassengerSheet, PickupSheet } from '@/features/home/HomeSheets';
 import { PromoCarousel } from '@/features/promo/PromoCarousel';
 import { MapCanvas, type MapCanvasHandle } from '@/features/map/MapCanvas';
@@ -173,6 +173,7 @@ export default function Home() {
               style={({ pressed }) => [styles.banner, { backgroundColor: colors.brandBanner }, pressed && { opacity: 0.9 }]}
               testID="live-ride-banner"
             >
+              <PlumBackground radius={Number(StyleSheet.flatten(styles.banner).borderRadius ?? 0)} />
               <Icon name="car" variant="filled" color={colors.onBrandBanner} />
               <View style={styles.flex}>
                 <Text variant="subhead" weight="semibold" style={{ color: colors.onBrandBanner }}>

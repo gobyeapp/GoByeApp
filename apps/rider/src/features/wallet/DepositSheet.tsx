@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { formatNaira, kobo, naira, type DepositInstructions, type DepositMethod, type Kobo, type WalletTransaction } from '@gobye/core';
-import { Button, Divider, Icon, Sheet, SimulatedBadge, StatusBadge, Text, TextField, layout, spacing, useTheme } from '@gobye/ui';
+import { PlumBackground, Button, Divider, Icon, Sheet, SimulatedBadge, StatusBadge, Text, TextField, layout, spacing, useTheme } from '@gobye/ui';
 import { CopyRow } from '@/features/common/CopyRow';
 import { useHaptics } from '@/state/haptics';
 import { DEPOSIT_OPTIONS, useWallet } from '@/state/wallet';
@@ -329,6 +329,7 @@ function HeroTile({ icon }: { icon: 'wallet' | 'bank' | 'check' }) {
   const { colors } = useTheme();
   return (
     <View style={[styles.hero, { backgroundColor: colors.brandBanner }]}>
+      <PlumBackground radius={Number(StyleSheet.flatten(styles.hero).borderRadius ?? 0)} />
       <Icon name={icon} variant="filled" size="lg" color={colors.onBrandBanner} />
     </View>
   );

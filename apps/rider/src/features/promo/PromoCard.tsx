@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Illustration, Text, layout, spacing, useTheme, type IllustrationName } from '@gobye/ui';
+import { PlumBackground, Illustration, Text, layout, spacing, useTheme, type IllustrationName } from '@gobye/ui';
 
 export interface Promo {
   /** Short, bold headline. */
@@ -33,6 +33,7 @@ export function PromoCard({ title, body, art, accessibilityLabel, onPress, testI
         flat ? null : scheme === 'light' ? styles.depthLight : styles.depthDark,
       ]}
     >
+      <PlumBackground radius={Number(StyleSheet.flatten(styles.card).borderRadius ?? 0)} />
       <View style={styles.text}>
         <Text variant="headline" weight="bold" style={{ color: colors.onBrandBanner }} numberOfLines={2}>
           {title}

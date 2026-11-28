@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { PAYMENT_METHOD_LABELS, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, receiptReference, receiptTimes, type TripReceipt } from '@gobye/core';
-import {
+import { PlumBackground,
   BRAND_NAME,
   Avatar,
   BrandMark,
@@ -146,7 +146,8 @@ export function ReceiptView({ id, title }: { id: string; title: string }) {
         testID="receipt-ticket"
       >
         {/* Brand header. */}
-        <View style={[styles.band, { backgroundColor: colors.brandBanner }]}>
+        <View style={[styles.band, { backgroundColor: colors.brandBanner, overflow: 'hidden' }]}>
+          <PlumBackground />
           <View style={styles.bandTop}>
             <View style={styles.brandRow} accessible accessibilityLabel={`${BRAND_NAME} trip receipt`}>
               <BrandMark size={26} inverse />

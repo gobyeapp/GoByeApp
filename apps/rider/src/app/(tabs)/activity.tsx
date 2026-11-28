@@ -20,7 +20,7 @@ import {
   type TripReceipt,
 } from '@gobye/core';
 import { SignedAmount, TxStatusBadge } from '@/features/common/Money';
-import { EmptyState, Icon, SegmentedControl, SkeletonGroup, SkeletonRow, Text, layout, shadows, spacing, useTheme, type IconName, type StatusKind } from '@gobye/ui';
+import { PlumBackground, EmptyState, Icon, SegmentedControl, SkeletonGroup, SkeletonRow, Text, layout, shadows, spacing, useTheme, type IconName, type StatusKind } from '@gobye/ui';
 import { liveBannerCopy, liveRoute } from '@/features/navigation/reset';
 import { useBookAgain } from '@/features/booking/useBookAgain';
 import { useAccount } from '@/state/account';
@@ -86,6 +86,7 @@ export default function Activity() {
           style={({ pressed }) => [styles.banner, { backgroundColor: colors.brandBanner }, pressed && { opacity: 0.9 }]}
           testID="activities-live"
         >
+          <PlumBackground radius={Number(StyleSheet.flatten(styles.banner).borderRadius ?? 0)} />
           <View style={styles.flex}>
             <Text variant="headline" style={{ color: colors.onBrandBanner }}>
               {liveBannerCopy(live, 'Ride in progress').title}

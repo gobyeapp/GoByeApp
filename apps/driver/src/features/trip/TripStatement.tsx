@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Linking, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, receiptReference, type DriverTrip } from '@gobye/core';
-import {
+import { PlumBackground,
   Avatar,
   BRAND_NAME,
   BrandMark,
@@ -79,7 +79,8 @@ export function TripStatement({ trip }: { trip: DriverTrip | undefined }) {
         style={[styles.ticket, { backgroundColor: colors.card, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth }, scheme === 'light' && shadows.card]}
         testID="trip-statement"
       >
-        <View style={[styles.band, { backgroundColor: colors.brandBanner }]}>
+        <View style={[styles.band, { backgroundColor: colors.brandBanner, overflow: 'hidden' }]}>
+          <PlumBackground />
           <View style={styles.bandTop}>
             <View style={styles.brandRow} accessible accessibilityLabel={`${BRAND_NAME} Driver trip statement`}>
               <BrandMark size={26} inverse />

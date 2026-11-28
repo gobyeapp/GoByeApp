@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import { Button, EmptyState, Illustration, Screen, ScreenHeader, Text, layout, spacing, useTheme } from '@gobye/ui';
+import { PlumBackground, Button, EmptyState, Illustration, Screen, ScreenHeader, Text, layout, spacing, useTheme } from '@gobye/ui';
 import { usePromotion } from '@/features/promo/usePromotions';
 
 /** Offer page: what the promotion is, how it works in three short steps, and one action. */
@@ -22,6 +22,7 @@ export default function PromoDetail() {
     >
       <View style={styles.body}>
         <View style={[styles.hero, { backgroundColor: colors.brandBanner }]}>
+          <PlumBackground radius={Number(StyleSheet.flatten(styles.hero).borderRadius ?? 0)} />
           <Illustration name={promo.art} size={150} />
         </View>
         <View style={styles.copy}>

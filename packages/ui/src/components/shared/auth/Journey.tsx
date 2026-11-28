@@ -28,9 +28,9 @@ const LABEL_W = 84;
 
 /* The header was a flat aubergine until D-088; it now follows the website. */
 /**
- * The brand header background (D-088, D-102): the website's header, drawn the same way. Deep plum running
- * to a lighter plum, a warm tangerine glow coming in from the top-right corner and a violet glow rising
- * from the bottom-left, with a faint sheen along the top edge. The flat aubergine underneath shows if the
+ * The brand surface (D-088, D-102, D-109): plum running to a bright orchid, a strong tangerine light in
+ * the top-right corner that cools through rose into the plum, a violet light rising from the bottom-left,
+ * and a sheen along the top edge. Every plum surface in the apps uses it, so they all share one light. The flat aubergine underneath shows if the
  * drawing can't render. Used by the sign-up, sign-in and reset headers and by the Wallet header.
  */
 export function PlumBackground({ radius = 0 }: { radius?: number }) {
@@ -39,22 +39,25 @@ export function PlumBackground({ radius = 0 }: { radius?: number }) {
       <Svg width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <LinearGradient id="gobye-plum" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={PLUM.deep} />
-            <Stop offset="0.5" stopColor="#3A1A46" />
-            <Stop offset="1" stopColor={PLUM.mid} />
+            <Stop offset="0" stopColor="#2E1238" />
+            <Stop offset="0.45" stopColor="#4F1F63" />
+            <Stop offset="1" stopColor="#7A2F86" />
           </LinearGradient>
-          <RadialGradient id="gobye-plum-warm" cx="1" cy="0" rx="0.9" ry="1.25" fx="1" fy="0" gradientUnits="objectBoundingBox">
-            <Stop offset="0" stopColor={brand.tangerine} stopOpacity={0.55} />
-            <Stop offset="0.35" stopColor={brand.tangerine} stopOpacity={0.22} />
-            <Stop offset="0.65" stopColor={brand.tangerine} stopOpacity={0} />
+          {/* The warm light: a hot core in the top-right corner, spreading well into the header. */}
+          <RadialGradient id="gobye-plum-warm" cx="1" cy="0" rx="0.95" ry="1.5" fx="1" fy="0" gradientUnits="objectBoundingBox">
+            <Stop offset="0" stopColor="#FFB067" stopOpacity={0.95} />
+            <Stop offset="0.18" stopColor={brand.tangerine} stopOpacity={0.78} />
+            <Stop offset="0.45" stopColor="#E0457B" stopOpacity={0.34} />
+            <Stop offset="0.8" stopColor="#C2377A" stopOpacity={0} />
           </RadialGradient>
-          <RadialGradient id="gobye-plum-violet" cx="0" cy="1" rx="0.75" ry="0.95" fx="0" fy="1" gradientUnits="objectBoundingBox">
-            <Stop offset="0" stopColor="#A85FC4" stopOpacity={0.5} />
-            <Stop offset="0.7" stopColor="#9B50B4" stopOpacity={0} />
+          <RadialGradient id="gobye-plum-violet" cx="0" cy="1" rx="0.85" ry="1.2" fx="0" fy="1" gradientUnits="objectBoundingBox">
+            <Stop offset="0" stopColor="#C77DFF" stopOpacity={0.75} />
+            <Stop offset="0.4" stopColor="#9B4FD1" stopOpacity={0.38} />
+            <Stop offset="0.8" stopColor="#9B50B4" stopOpacity={0} />
           </RadialGradient>
           <LinearGradient id="gobye-plum-sheen" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.07} />
-            <Stop offset="0.35" stopColor="#FFFFFF" stopOpacity={0} />
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.12} />
+            <Stop offset="0.4" stopColor="#FFFFFF" stopOpacity={0} />
           </LinearGradient>
         </Defs>
         <Rect x="0" y="0" width="100%" height="100%" fill="url(#gobye-plum)" />
