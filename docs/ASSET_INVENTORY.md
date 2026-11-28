@@ -11,7 +11,7 @@ Status: `PREVIEW` (working concept or derived from one — not for release) · `
 | Logo mark | `packages/ui/assets/brand/mark.png` | PNG RGBA 512² (128 KB) | PREVIEW | `01-brand-concepts/logo-concept-breakdown.png` ("The connection") | Raster extraction, white → transparent. Slight texture from generated artwork. Replace with vector export |
 | Logo mark, light variant | `packages/ui/assets/brand/mark-inverse.png` | PNG RGBA 512² (68 KB) | PREVIEW | Same, aubergine strokes → white | For dark backgrounds; tangerine dot kept |
 | In-app wordmark | `Wordmark` in `packages/ui/src/components/display.tsx` | Mark + Inter 700 text | PREVIEW | Mark above + `BRAND_NAME` | Name styling open (Q-046) |
-| Sedan illustration | `packages/ui/assets/brand/sedan.webp` | WebP 512 px (24 KB) | PREVIEW | `03-rendered-assets/sedan.png` | Onboarding (Quick Match), empty Activity |
+| Vehicle pictures (keke, car, comfort, XL) | `packages/ui/assets/vehicles/<type>-<colour>.webp` (48 files) | WebP 512 x 334 | PREVIEW | `tools/3d/vehicles.py` (our own Blender models, D-110) | Ride choice cards, the driver card, the driver's vehicle step. The white car is also the `sedan` illustration (empty Activities, promo cards) |
 | Wallet illustration | `packages/ui/assets/brand/wallet.webp` | WebP 512 px (25 KB) | PREVIEW | `03-rendered-assets/wallet.png` | Onboarding (Negotiate), Wallet card |
 | Gift illustration | `packages/ui/assets/brand/reward-gift.webp` | WebP 512 px (27 KB) | PREVIEW | `03-rendered-assets/reward-gift.png` | Rewards |
 | Destination illustration | `packages/ui/assets/brand/destination.webp` | WebP 512 px (23 KB) | PREVIEW | `03-rendered-assets/destination.png` | Onboarding, location primer |
@@ -24,7 +24,7 @@ Status: `PREVIEW` (working concept or derived from one — not for release) · `
 | Driver app icon set + splash | `apps/driver/assets/images/*` | as above | PREVIEW | Light mark on Aubergine #251632 | Distinguishes Driver from Rider |
 | Favicons | `apps/*/assets/images/favicon.png` | 48² | PREVIEW | Mark | Web not targeted |
 | Map markers | `apps/rider/src/features/map/MapCanvas.tsx` | Vector Views | PREVIEW | Tokens | Distinct by shape + label: pickup (person or passenger photo + "Pickup"), destination (tangerine flag pin), vehicle (car circle; grey when location is stale) |
-| Vehicle visuals | `sedan.webp` render (category cards, VehicleSummary) + MingCute `car` | WebP / SVG | PREVIEW / Third-party | — | One car category at launch; Keke hidden (D-029). The render is generic — the actual colour/model/plate is shown as text with a colour swatch |
+| Vehicle visuals | The pictures above + MingCute `car` | WebP / SVG | PREVIEW / Third-party | — | One car category at launch; Keke, Comfort and XL hidden (D-029) but each has its picture. The picture shows the ride type in the driver's colour; the actual make, model and plate are shown as text |
 | MingCute icons | `@mingcute/react-native` | SVG components | Third-party (Apache-2.0) | — | `DEPENDENCIES_AND_LICENSES.md` |
 | Inter font | `@expo-google-fonts/inter` | TTF ×4 weights | Third-party (OFL-1.1) | — | Plus Jakarta Sans proposed, not approved (Q-048) |
 

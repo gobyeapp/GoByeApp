@@ -5,9 +5,9 @@ import { spacing } from '../../theme/tokens';
 import { Text } from '../Text';
 
 /**
- * The paint colours a driver can pick for their car (D-108), and the car picture in each one. Picking
- * from a fixed list (instead of typing) means the rider's screen can always show the car in that colour.
- * The pictures are made by tools/tint-cars.py from the white render; add a colour in both places.
+ * The paint colours a driver can pick for their vehicle (D-108), and the picture of each ride type in each
+ * one (D-110). Picking from a fixed list (instead of typing) means the rider's screen can always show the
+ * vehicle in that colour. The pictures are rendered by tools/3d/vehicles.py; add a colour in both places.
  */
 export const VEHICLE_COLOURS = [
   { id: 'white', name: 'White', hex: '#F5F5F5' },
@@ -34,23 +34,82 @@ export function vehicleColour(name: string | undefined | null) {
   return VEHICLE_COLOURS.find((c) => c.id === id) ?? null;
 }
 
-const CAR_ART: Record<VehicleColourId, ImageSourcePropType> = {
-  white: require('../../../assets/brand/sedan.webp'),
-  silver: require('../../../assets/cars/sedan-silver.webp'),
-  grey: require('../../../assets/cars/sedan-grey.webp'),
-  black: require('../../../assets/cars/sedan-black.webp'),
-  blue: require('../../../assets/cars/sedan-blue.webp'),
-  red: require('../../../assets/cars/sedan-red.webp'),
-  wine: require('../../../assets/cars/sedan-wine.webp'),
-  green: require('../../../assets/cars/sedan-green.webp'),
-  brown: require('../../../assets/cars/sedan-brown.webp'),
-  gold: require('../../../assets/cars/sedan-gold.webp'),
-  yellow: require('../../../assets/cars/sedan-yellow.webp'),
-  orange: require('../../../assets/cars/sedan-orange.webp'),
+/** The four ride types that have a picture. A ride category id maps onto one ('go' is the car). */
+export type VehicleArtType = 'keke' | 'car' | 'comfort' | 'xl';
+const ART_TYPE: Record<string, VehicleArtType> = { keke: 'keke', go: 'car', car: 'car', comfort: 'comfort', xl: 'xl' };
+
+// Rendered by tools/3d/vehicles.py: one picture for each ride type in each colour (D-110).
+const VEHICLE_ART: Record<VehicleArtType, Record<VehicleColourId, ImageSourcePropType>> = {
+  keke: {
+    white: require('../../../assets/vehicles/keke-white.webp'),
+    silver: require('../../../assets/vehicles/keke-silver.webp'),
+    grey: require('../../../assets/vehicles/keke-grey.webp'),
+    black: require('../../../assets/vehicles/keke-black.webp'),
+    blue: require('../../../assets/vehicles/keke-blue.webp'),
+    red: require('../../../assets/vehicles/keke-red.webp'),
+    wine: require('../../../assets/vehicles/keke-wine.webp'),
+    green: require('../../../assets/vehicles/keke-green.webp'),
+    brown: require('../../../assets/vehicles/keke-brown.webp'),
+    gold: require('../../../assets/vehicles/keke-gold.webp'),
+    yellow: require('../../../assets/vehicles/keke-yellow.webp'),
+    orange: require('../../../assets/vehicles/keke-orange.webp'),
+  },
+  car: {
+    white: require('../../../assets/vehicles/car-white.webp'),
+    silver: require('../../../assets/vehicles/car-silver.webp'),
+    grey: require('../../../assets/vehicles/car-grey.webp'),
+    black: require('../../../assets/vehicles/car-black.webp'),
+    blue: require('../../../assets/vehicles/car-blue.webp'),
+    red: require('../../../assets/vehicles/car-red.webp'),
+    wine: require('../../../assets/vehicles/car-wine.webp'),
+    green: require('../../../assets/vehicles/car-green.webp'),
+    brown: require('../../../assets/vehicles/car-brown.webp'),
+    gold: require('../../../assets/vehicles/car-gold.webp'),
+    yellow: require('../../../assets/vehicles/car-yellow.webp'),
+    orange: require('../../../assets/vehicles/car-orange.webp'),
+  },
+  comfort: {
+    white: require('../../../assets/vehicles/comfort-white.webp'),
+    silver: require('../../../assets/vehicles/comfort-silver.webp'),
+    grey: require('../../../assets/vehicles/comfort-grey.webp'),
+    black: require('../../../assets/vehicles/comfort-black.webp'),
+    blue: require('../../../assets/vehicles/comfort-blue.webp'),
+    red: require('../../../assets/vehicles/comfort-red.webp'),
+    wine: require('../../../assets/vehicles/comfort-wine.webp'),
+    green: require('../../../assets/vehicles/comfort-green.webp'),
+    brown: require('../../../assets/vehicles/comfort-brown.webp'),
+    gold: require('../../../assets/vehicles/comfort-gold.webp'),
+    yellow: require('../../../assets/vehicles/comfort-yellow.webp'),
+    orange: require('../../../assets/vehicles/comfort-orange.webp'),
+  },
+  xl: {
+    white: require('../../../assets/vehicles/xl-white.webp'),
+    silver: require('../../../assets/vehicles/xl-silver.webp'),
+    grey: require('../../../assets/vehicles/xl-grey.webp'),
+    black: require('../../../assets/vehicles/xl-black.webp'),
+    blue: require('../../../assets/vehicles/xl-blue.webp'),
+    red: require('../../../assets/vehicles/xl-red.webp'),
+    wine: require('../../../assets/vehicles/xl-wine.webp'),
+    green: require('../../../assets/vehicles/xl-green.webp'),
+    brown: require('../../../assets/vehicles/xl-brown.webp'),
+    gold: require('../../../assets/vehicles/xl-gold.webp'),
+    yellow: require('../../../assets/vehicles/xl-yellow.webp'),
+    orange: require('../../../assets/vehicles/xl-orange.webp'),
+  },
 };
 
-/** The car picture in this colour; the white one when the colour isn't on the list. */
-export const carArt = (colourName: string | undefined | null): ImageSourcePropType => CAR_ART[vehicleColour(colourName)?.id ?? 'white'];
+/**
+ * The picture of this ride type in this colour. An unknown colour gives the white one and an unknown
+ * (or missing) category gives the car.
+ */
+export const carArt = (colourName: string | undefined | null, category?: string | null): ImageSourcePropType =>
+  VEHICLE_ART[ART_TYPE[category ?? 'go'] ?? 'car'][vehicleColour(colourName)?.id ?? 'white'];
+
+/** The picture that stands for a ride type when no driver is matched yet: a yellow keke, a white car. */
+export const categoryArt = (category: string): ImageSourcePropType => carArt(category === 'keke' ? 'yellow' : 'white', category);
+
+/** What to call the vehicle in a sentence: "keke" or "car". */
+export const vehicleNoun = (category?: string | null): string => (category === 'keke' ? 'keke' : 'car');
 
 /** Pick the car's colour from swatches. The value is the colour's name ("Silver"). */
 export function ColourPicker({ label, value, onChange, error, testID }: { label: string; value: string; onChange: (name: string) => void; error?: string; testID?: string }) {

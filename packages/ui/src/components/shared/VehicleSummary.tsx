@@ -5,6 +5,8 @@ export interface VehicleLike {
   make: string;
   model: string;
   plate: string;
+  /** Ride category id (keke, go, comfort, xl); picks which vehicle is drawn. */
+  category?: string;
 }
 import { Illustration } from '../../brand';
 import { Text } from '../Text';
@@ -14,15 +16,15 @@ import { carArt, vehicleColour } from './vehicleColours';
 
 
 /**
- * Vehicle summary for transport screens (brief §5, §7). The picture is a generic car in the driver's
- * own colour (D-108); the text (colour, make and model, registration) is the actual vehicle. The make
- * and shape in the picture are not the driver's real car.
+ * Vehicle summary for transport screens (brief §5, §7). The picture is the driver's ride type (keke, car,
+ * comfort or XL, D-110) in the driver's own colour (D-108); the text (colour, make and model,
+ * registration) is the actual vehicle. The make and exact shape in the picture are not the driver's own.
  */
 export function VehicleSummary({ vehicle, size = 'md' }: { vehicle: VehicleLike; size?: 'sm' | 'md' | 'lg' }) {
   const { colors } = useTheme();
   const swatch = vehicleColour(vehicle.colour)?.hex ?? colors.textSecondary;
   // The car is drawn in the driver's own colour, so it is easier to spot at the kerb (D-108).
-  const car = carArt(vehicle.colour);
+  const car = carArt(vehicle.colour, vehicle.category);
   const art = size === 'lg' ? 172 : size === 'md' ? 120 : 72;
   const label = `${vehicle.colour} ${vehicle.make} ${vehicle.model}, registration ${vehicle.plate}`;
   if (size === 'lg') {

@@ -1,10 +1,10 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { formatDuration, formatNaira, nairaAccessibilityLabel, type CategoryConfig, type Kobo } from '@gobye/core';
-import { Illustration, Text, layout, spacing, useTheme } from '@gobye/ui';
+import { Illustration, Text, categoryArt, layout, spacing, useTheme } from '@gobye/ui';
 
 /**
  * Vehicle category option (brief §5). Categories and names come from admin config — at launch
- * exactly one car category is enabled. Shows a car render appropriate to the category; the actual
+ * exactly one car category is enabled. Shows the 3D picture of that ride type (keke, car, comfort, XL); the actual
  * vehicle (colour, model, plate) is shown once a driver is matched.
  */
 export function CategoryCard({
@@ -48,7 +48,7 @@ export function CategoryCard({
         },
       ]}
     >
-      <Illustration name={category.image} size={84} style={styles.art} />
+      <Illustration name={category.image} source={categoryArt(category.id)} size={84} style={styles.art} />
       <View style={styles.flex}>
         <Text variant="headline">{category.name}</Text>
         <Text variant="footnote" color="textSecondary">

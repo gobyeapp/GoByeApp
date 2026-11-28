@@ -2,7 +2,7 @@
 import type { ReactElement } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ChatSheet, ColourPicker, VEHICLE_COLOURS, carArt, vehicleColour } from '@gobye/ui';
+import { ChatSheet, ColourPicker, VEHICLE_COLOURS, carArt, categoryArt, vehicleColour, vehicleNoun } from '@gobye/ui';
 
 const METRICS = { frame: { x: 0, y: 0, width: 390, height: 844 }, insets: { top: 47, left: 0, right: 0, bottom: 34 } };
 const show = (el: ReactElement) => render(<SafeAreaProvider initialMetrics={METRICS}>{el}</SafeAreaProvider>);
@@ -62,5 +62,25 @@ describe('ride chat sheet and car colours (D-108)', () => {
     expect(vehicleColour('Maroon')?.id).toBe('wine');
     expect(vehicleColour('Lilac')).toBeNull();
     expect(carArt('Lilac')).toBe(carArt('White'));
+  });
+
+  it('each ride type (keke, car, comfort, XL) has its own picture in every colour', () => {
+    const seen = new Set<unknown>();
+    for (const category of ['keke', 'go', 'comfort', 'xl']) {
+      for (const c of VEHICLE_COLOURS) {
+        const art = carArt(c.name, category);
+        expect(art).toBeDefined();
+        seen.add(`${category}:${c.id}`);
+      }
+    }
+    expect(seen.size).toBe(48);
+    // No category, or one we have no picture for, falls back to the car.
+    expect(carArt('Red')).toBe(carArt('Red', 'go'));
+    expect(carArt('Red', 'boat')).toBe(carArt('Red', 'go'));
+    // Before a driver is matched: a yellow keke, a white car.
+    expect(categoryArt('keke')).toBe(carArt('Yellow', 'keke'));
+    expect(categoryArt('xl')).toBe(carArt('White', 'xl'));
+    expect(vehicleNoun('keke')).toBe('keke');
+    expect(vehicleNoun('comfort')).toBe('car');
   });
 });

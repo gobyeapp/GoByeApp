@@ -16,7 +16,7 @@ export const BRAND_NAME = 'GoBye';
 export const brandImages = {
   mark: require('../assets/brand/mark.png'),
   markInverse: require('../assets/brand/mark-inverse.png'),
-  sedan: require('../assets/brand/sedan.webp'),
+  sedan: require('../assets/vehicles/car-white.webp'),
   wallet: require('../assets/brand/wallet.webp'),
   gift: require('../assets/brand/reward-gift.webp'),
   destination: require('../assets/brand/destination.webp'),

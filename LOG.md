@@ -1434,3 +1434,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Core `quickRepliesFor`, `sendPhoto`, `isChatPhoto` (5 chat tests); `ChatSheet` shows photos and has a camera button; `features/trip/snap.ts` in both apps; the admin ride drawer has a Messages section (text and photos).
 - Tests: core 320, rider 40, driver 14, admin 418. The sheet was looked at in Chromium at iPhone 13 size through a temporary page (not kept). **Not tried:** the real camera, or a conversation between two phones and the admin.
 
+## 2026-11-28 — A 3D picture for keke, car, comfort and XL (D-110)
+
+- `tools/3d/vehicles.py` (Blender): 48 pictures in `packages/ui/assets/vehicles` (four types, twelve colours). `carArt(colour, category)`, `categoryArt`, `vehicleNoun` in `@gobye/ui`; `VehicleSummary`, the ride choice card and the driver's vehicle step use them. The old saloon, its tinted copies and `tools/tint-cars.py` are removed.
+- Tests: rider 41 (one new), driver 14, core 320; typecheck, lint, Android and iOS export pass. All 48 pictures were looked at on the contact sheet (`docs/assets/3d/vehicles-sheet.png`). **Not tried:** the pictures inside the running apps (in a browser or on a phone); a ride with a keke, Comfort or XL driver (those types are switched off). The car and comfort models look close to each other.
+

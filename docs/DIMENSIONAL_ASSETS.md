@@ -76,6 +76,8 @@ python3 tools/3d/render.py --sheet                # rebuild the contact sheet
 python3 tools/3d/render.py --post                 # redo the WebP files from the saved 640 px renders
 ```
 
+The vehicles the rider and driver apps show (keke, car, comfort, XL in twelve colours, D-110) come from a second script on the same rig: `python3 tools/3d/vehicles.py` (about an hour on CPU; `keke`, `car:red` or `--preview` for less). They go to `packages/ui/assets/vehicles/`.
+
 How the script works:
 - Renders 640 px with 96 samples and denoising, then downsamples to 320 px WebP (quality 90). About 65 seconds per asset on CPU.
 - Post-processing softens the shadow catcher's broad ambient haze (partial alpha raised to the power 1.8) and fades the outer 14% of the image to transparent, so no shadow box shows on a white page. The objects themselves stay fully opaque.
