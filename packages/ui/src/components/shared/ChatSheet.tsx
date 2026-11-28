@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { Icon } from '../../icons/Icon';
 import { useTheme } from '../../theme/useTheme';
 import { fontFamily, inputFontSize, layout, spacing } from '../../theme/tokens';
@@ -10,6 +10,8 @@ export interface ChatBubble {
   id: string;
   mine: boolean;
   text: string;
+  /** A photo instead of words (a data: link). */
+  image?: string;
   at: number;
 }
 
@@ -25,6 +27,7 @@ export function ChatSheet({
   messages,
   quickReplies,
   onSend,
+  onSendPhoto,
   note,
   maxLength = 300,
 }: {
@@ -35,6 +38,8 @@ export function ChatSheet({
   quickReplies: readonly string[];
   /** Resolves with an error message when the text could not be sent. */
   onSend: (text: string) => Promise<string | null>;
+  /** Take and send a photo of where you are. Resolves with an error message, or null (sent or cancelled). */
+  onSendPhoto?: () => Promise<string | null>;
   /** One quiet line under the title, e.g. why there are no phone numbers. */
   note?: string;
   maxLength?: number;
@@ -58,6 +63,14 @@ export function ChatSheet({
     if (failed) return setError(failed);
     setDraft('');
   };
+  const snap = async () => {
+    if (sending || !onSendPhoto) return;
+    setSending(true);
+    setError(null);
+    const failed = await onSendPhoto();
+    setSending(false);
+    if (failed) setError(failed);
+  };
   const time = (at: number) => new Date(at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
@@ -65,14 +78,18 @@ export function ChatSheet({
       <ScrollView ref={list} style={styles.list} contentContainerStyle={styles.listContent} keyboardShouldPersistTaps="handled">
         {messages.length === 0 ? (
           <Text variant="footnote" color="textSecondary" align="center" style={styles.empty}>
-            No messages yet. Tap a quick message or type your own.
+            No messages yet. Tap a quick message, describe where you are, or send a photo.
           </Text>
         ) : (
           messages.map((m) => (
-            <View key={m.id} style={[styles.bubble, m.mine ? styles.mine : styles.theirs, { backgroundColor: m.mine ? colors.primary : colors.secondary }]} accessible accessibilityLabel={`${m.mine ? 'You' : title}: ${m.text}, ${time(m.at)}`}>
-              <Text variant="callout" style={{ color: m.mine ? colors.onPrimary : colors.text }}>
-                {m.text}
-              </Text>
+            <View key={m.id} style={[styles.bubble, m.mine ? styles.mine : styles.theirs, { backgroundColor: m.mine ? colors.primary : colors.secondary }]} accessible accessibilityLabel={`${m.mine ? 'You' : title}: ${m.image ? 'a photo' : m.text}, ${time(m.at)}`}>
+              {m.image ? (
+                <Image source={{ uri: m.image }} style={styles.photo} resizeMode="cover" accessibilityIgnoresInvertColors />
+              ) : (
+                <Text variant="callout" style={{ color: m.mine ? colors.onPrimary : colors.text }}>
+                  {m.text}
+                </Text>
+              )}
               <Text variant="caption" style={{ color: m.mine ? colors.onPrimary : colors.textSecondary, opacity: 0.7 }}>
                 {time(m.at)}
               </Text>
@@ -98,10 +115,15 @@ export function ChatSheet({
       ) : null}
 
       <View style={[styles.inputRow, { borderColor: colors.borderStrong, backgroundColor: colors.surface }]}>
+        {onSendPhoto ? (
+          <Pressable onPress={() => void snap()} disabled={sending} accessibilityRole="button" accessibilityLabel="Send a photo of where you are" testID="chat-photo" hitSlop={6} style={styles.camera}>
+            <Icon name="camera" size={22} color="text" />
+          </Pressable>
+        ) : null}
         <TextInput
           value={draft}
           onChangeText={setDraft}
-          placeholder="Type a message"
+          placeholder={onSendPhoto ? 'Describe where you are' : 'Type a message'}
           placeholderTextColor={colors.textSecondary}
           maxLength={maxLength}
           returnKeyType="send"
@@ -127,7 +149,9 @@ const styles = StyleSheet.create({
   theirs: { alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
   quick: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   chip: { minHeight: 36, paddingHorizontal: spacing.md, borderRadius: 999, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderRadius: layout.cardRadius, paddingLeft: spacing.md, paddingRight: spacing.xs, minHeight: 52 },
+  photo: { width: 200, height: 150, borderRadius: 10 },
+  camera: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center' },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, borderWidth: 1, borderRadius: layout.cardRadius, paddingLeft: spacing.sm, paddingRight: spacing.xs, minHeight: 52 },
   input: { flex: 1, fontFamily: fontFamily.regular, fontSize: inputFontSize, paddingVertical: spacing.sm },
   send: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createRideChat, type ChatMessage } from '@gobye/core';
+import { createRideChat, quickRepliesFor, type ChatMessage } from '@gobye/core';
 import type { ChatBubble } from '@gobye/ui';
+import { snapForChat } from './snap';
 import { relay } from '@/state/relay';
 
 /**
@@ -25,7 +26,7 @@ export function useRideChat(rideId: string | null, me: 'rider' | 'driver', onInc
       seen.current = all.length;
       setMessages(all);
       // Messages already there when the screen opens aren't announced again.
-      if (!first && fresh.length) incoming.current?.(fresh[fresh.length - 1]!.text);
+      if (!first && fresh.length) incoming.current?.(fresh[fresh.length - 1]!.image ? 'sent a photo of where they are' : fresh[fresh.length - 1]!.text);
       first = false;
     });
   }, [chat, me]);
@@ -42,6 +43,21 @@ export function useRideChat(rideId: string | null, me: 'rider' | 'driver', onInc
     [chat],
   );
 
-  const bubbles: ChatBubble[] = useMemo(() => messages.map((m) => ({ id: m.id, mine: m.from === me, text: m.text, at: m.at })), [messages, me]);
-  return { available: !!chat, bubbles, send };
+  /** Take a photo of where you are and send it. Null when sent or when the person backed out. */
+  const sendPhoto = useCallback(async (): Promise<string | null> => {
+    if (!chat) return 'Messages need the shared connection, which is off in this build.';
+    const shot = await snapForChat();
+    if (!shot.ok) return shot.error;
+    if (!shot.image) return null;
+    const r = await chat.sendPhoto(shot.image);
+    if (!r.ok) return r.error;
+    setMessages((prev) => (prev.some((m) => m.id === r.value.id) ? prev : [...prev, r.value]));
+    seen.current += 1;
+    return null;
+  }, [chat]);
+
+  const bubbles: ChatBubble[] = useMemo(() => messages.map((m) => ({ id: m.id, mine: m.from === me, text: m.text, image: m.image, at: m.at })), [messages, me]);
+  // The one-tap messages follow the conversation: asked "where are you?", the buttons become answers.
+  const quickReplies = useMemo(() => quickRepliesFor(me, messages), [me, messages]);
+  return { available: !!chat, bubbles, quickReplies, send, sendPhoto };
 }

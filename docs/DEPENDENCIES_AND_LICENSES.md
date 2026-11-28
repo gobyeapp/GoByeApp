@@ -163,3 +163,5 @@ Also used by the admin (`apps/admin`, same version) for staff sign-in when `VITE
 **2026-11-27 (D-098):** the driver app adds `@react-native-ml-kit/face-detection` 2.0.1 (MIT), which bundles Google ML Kit face detection (Android `com.google.mlkit:face-detection`, iOS `GoogleMLKit/FaceDetection`; free, on-device, under the ML Kit terms). Used to check a driver's own photo for one clear face before it is accepted. Not yet built into an app.
 
 **2026-11-28 (D-107):** the driver app adds `expo-image-manipulator` ~57.0.21 (Expo, MIT) to make a small copy of the driver's profile photo on the phone.
+
+**2026-11-28 (D-108):** the rider app adds `expo-image-manipulator` ~57.0.21 (Expo, MIT), already used by the driver app, to shrink a photo before it is sent as a message.

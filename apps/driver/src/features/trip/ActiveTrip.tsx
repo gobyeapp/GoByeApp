@@ -2,7 +2,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, BackHandler, Linking, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatCountdown, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, noShowAvailableAt, pinAttemptsLeft, QUICK_REPLIES, type DriverTrip, type LatLng } from '@gobye/core';
+import { formatCountdown, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, noShowAvailableAt, pinAttemptsLeft, type DriverTrip, type LatLng } from '@gobye/core';
 import { Avatar, Button, ChatSheet, CodeBoxes, FieldMessage, Icon, IconButton, JourneyBar, SimulatedBadge, Text, layout, shadows, spacing, useTheme, useToast } from '@gobye/ui';
 import { MapCanvas, type MapCanvasHandle } from '@gobye/ui/src/map/MapCanvas';
 import { confirmAction } from '@/features/common/confirm';
@@ -115,7 +115,7 @@ function RiderRow({ trip }: { trip: DriverTrip }) {
       </View>
       <IconButton icon="message" variant="filled" accessibilityLabel={`Message ${trip.rider.firstName}`} onPress={() => contact('message')} />
       <IconButton icon="phone" variant="filled" accessibilityLabel={`Call ${trip.rider.firstName}`} onPress={() => contact('call')} />
-      <ChatSheet visible={open} onClose={() => setOpen(false)} title={trip.rider.firstName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={QUICK_REPLIES.driver} onSend={chat.send} />
+      <ChatSheet visible={open} onClose={() => setOpen(false)} title={trip.rider.firstName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={chat.quickReplies} onSend={chat.send} onSendPhoto={chat.sendPhoto} />
     </View>
   );
 }

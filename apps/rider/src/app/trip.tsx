@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Share } from 'react-native';
-import { formatNaira, QUICK_REPLIES } from '@gobye/core';
+import { formatNaira } from '@gobye/core';
 import { ChatSheet, useToast } from '@gobye/ui';
 import { useRideChat } from '@/features/trip/useRideChat';
 import { useCancelRide, useConfirmBeforeBack } from '@/features/booking/useCancelRide';
@@ -96,7 +96,7 @@ export default function Trip() {
         />
       )}
 
-      <ChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} title={driverName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={QUICK_REPLIES.rider} onSend={chat.send} />
+      <ChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} title={driverName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={chat.quickReplies} onSend={chat.send} onSendPhoto={chat.sendPhoto} />
 
       <HelpSheet
         visible={helpOpen}

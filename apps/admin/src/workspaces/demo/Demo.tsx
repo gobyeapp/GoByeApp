@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import {
+import { isChatPhoto,
   CHECKS,
   ISSUES,
   formatDistance,
@@ -684,7 +684,7 @@ function RideDrawer({ c, r, onClose, refresh }: { c: DemoConnection; r: RelayRid
                 rowKey={(m) => m.id}
                 columns={[
                   { key: 'w', label: 'From', render: (m) => <Pill tone={m.actor === 'driver' ? 'info' : 'neutral'} icon={m.actor === 'driver' ? 'steering' : 'user'}>{m.actor === 'driver' ? (d?.firstName ?? 'Driver') : r.rider.name.split(' ')[0]}</Pill> },
-                  { key: 'm', label: 'Message', render: (m) => m.summary },
+                  { key: 'm', label: 'Message', render: (m) => (isChatPhoto(m.summary) ? <img src={m.summary} alt={`Photo sent by the ${m.actor}`} style={{ maxWidth: 180, borderRadius: 8, display: 'block' }} /> : m.summary.startsWith('data:') ? <span className="muted">A picture that can’t be shown</span> : m.summary) },
                   { key: 't', label: 'When', render: (m) => when(m.at) },
                 ]}
               />

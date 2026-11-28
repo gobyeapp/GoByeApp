@@ -1429,3 +1429,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Tests: core 318, rider 39, driver 14, admin 418; typecheck, lint, Android and iOS export pass. The picker and preview were checked in Chromium at iPhone 13 size.
 - **Not tried:** a real conversation between two phones (my local builds have no demo connection, so only the rules and the sheet were tested), or anything on a real phone.
 
+## 2026-11-28 — Chat: fitting quick answers, photos, and staff can read a ride's messages (D-108)
+
+- Core `quickRepliesFor`, `sendPhoto`, `isChatPhoto` (5 chat tests); `ChatSheet` shows photos and has a camera button; `features/trip/snap.ts` in both apps; the admin ride drawer has a Messages section (text and photos).
+- Tests: core 320, rider 40, driver 14, admin 418. The sheet was looked at in Chromium at iPhone 13 size through a temporary page (not kept). **Not tried:** the real camera, or a conversation between two phones and the admin.
+
