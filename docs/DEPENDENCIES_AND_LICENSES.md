@@ -161,3 +161,5 @@ Wrangler is not installed in the repo. Workflows and docs run the pinned `npx wr
 Also used by the admin (`apps/admin`, same version) for staff sign-in when `VITE_AUTH=supabase` (D-081). Used in the apps only when `EXPO_PUBLIC_AUTH=supabase`. Sessions are stored with the existing `expo-secure-store`.
 
 **2026-11-27 (D-098):** the driver app adds `@react-native-ml-kit/face-detection` 2.0.1 (MIT), which bundles Google ML Kit face detection (Android `com.google.mlkit:face-detection`, iOS `GoogleMLKit/FaceDetection`; free, on-device, under the ML Kit terms). Used to check a driver's own photo for one clear face before it is accepted. Not yet built into an app.
+
+**2026-11-28 (D-107):** the driver app adds `expo-image-manipulator` ~57.0.21 (Expo, MIT) to make a small copy of the driver's profile photo on the phone.

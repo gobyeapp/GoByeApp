@@ -24,11 +24,14 @@ export default function NotificationPreferences() {
             <SettingsRow icon="gift" title="Offers and referrals" trailing="switch" switchValue={prefs.offers} onSwitch={(v) => update({ offers: v })} testID="pref-offers" />
             <SettingsRow icon="shield" title="Safety alerts" value="Always on" trailing="none" accessibilityHint="Can’t be turned off" testID="pref-safety" />
           </SettingsGroup>
+          <SettingsGroup title="Receipts" footer="Sent to your confirmed email after each paid trip. You can still open any receipt in Activities.">
+            <SettingsRow icon="document" title="Email my receipts" trailing="switch" switchValue={prefs.receipts} onSwitch={(v) => update({ receipts: v })} testID="pref-receipts" />
+          </SettingsGroup>
           <SettingsGroup title="Sound">
             <SettingsRow icon="notification" title="Alert sounds" trailing="switch" switchValue={prefs.sounds} onSwitch={(v) => update({ sounds: v })} testID="pref-sounds" />
           </SettingsGroup>
           <Text variant="footnote" color="textSecondary">
-            Push alerts aren’t live in this preview.
+            Push alerts and emailed receipts aren’t live in this preview. Your choices are saved for when they are.
           </Text>
         </>
       )}

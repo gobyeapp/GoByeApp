@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatPhone, summariseEarnings } from '@gobye/core';
 import { Avatar, ConnectionPill, Icon, SettingsGroup, SettingsRow, Text, VehicleSummary, layout, spacing, useTheme } from '@gobye/ui';
@@ -43,13 +43,14 @@ export default function Account() {
     });
 
   return (
-    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}>
-      <Text variant="title2" accessibilityRole="header" style={styles.title}>
-        Account
-      </Text>
-
+    <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}>
       <View style={styles.identity}>
-        <Avatar uri={d.application.personal?.photoUri ?? d.application.identity?.selfieUri} name={name} size={76} />
+        <Pressable onPress={() => router.push('/account/photo')} accessibilityRole="button" accessibilityLabel="Change your photo" testID="account-photo-open">
+          <Avatar uri={d.application.personal?.photoUri ?? d.application.identity?.selfieUri} name={name} size={76} />
+          <View style={[styles.badge, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Icon name="camera" size={14} color="text" />
+          </View>
+        </Pressable>
         <View style={styles.center}>
           <Text variant="headline">{name}</Text>
           <View style={styles.pill}>
@@ -120,6 +121,7 @@ export default function Account() {
 }
 
 const styles = StyleSheet.create({
+  badge: { position: 'absolute', right: -2, bottom: -2, width: 28, height: 28, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: layout.page, paddingBottom: spacing.xxl, gap: spacing.lg },
   title: { paddingTop: spacing.xs },
   identity: { alignItems: 'center', gap: spacing.md },

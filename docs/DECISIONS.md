@@ -1119,3 +1119,10 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Kept:** "Quick Match" and "Negotiate" are product names, each with a plain line under it. "Preview" and "simulated" labels stay in test builds.
 - Applied across the rider and driver apps (buttons, titles, labels, error and empty messages). New wording follows these rules; check near-duplicates before adding a new phrase.
 
+## D-107 — Riders see the driver's photo; drivers can change it; a receipts switch (2026-11-28)
+
+- **Driver photo to the rider:** the driver's phone makes a small copy of the profile photo (about 128 px, a few KB, `photoThumb`) and it travels with the ride over the demo connection, so the rider sees the driver's face on the trip screens and receipt. This is for the prototype: on the server the rider gets a short-lived link to the staff-approved photo instead (D-100), and the small copy is never sent to the server.
+- **Changing the photo:** Account, tap the photo, same capture, face check and review as registration. It doesn't reopen the application. On the server a new photo will need staff approval before riders see it.
+- **Email my receipts:** a switch under Account, Notifications (on by default). Saved on the phone for now; it takes effect when email is connected (`PATCH /v1/me/notifications`).
+- New dependency in the driver app: `expo-image-manipulator` (Expo, MIT).
+

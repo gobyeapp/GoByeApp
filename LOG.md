@@ -1418,3 +1418,8 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - About 50 phrases changed in the rider and driver apps to follow the five wording rules; money buttons read "Add ₦5,000" / "Pay ₦2,500" as one phrase; tab pages no longer repeat their tab name.
 - Rider tests 37, driver 14, core 315; typecheck, lint and Android and iOS export pass. **Read as text, not on every screen in context;** nothing was tried on a real phone.
 
+## 2026-11-28 — Driver photo shown to riders, change photo, receipts switch (D-107)
+
+- Driver: `features/onboarding/thumb.ts`, `app/account/photo.tsx`, `updatePhoto` in driver state, photo on the shared driver card; Account no longer repeats its tab name. Rider: "Email my receipts" in notification settings.
+- **Checked** in Chromium at iPhone 13 size on local builds. **Not tried:** two real phones (the photo crossing from one to the other), or the Android build.
+

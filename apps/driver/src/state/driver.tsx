@@ -116,6 +116,8 @@ interface DriverValue {
   verification: VerificationStatus;
   /** Save registration details; `step` marks that step's flagged issues as fixed. Returns the new application. */
   updateApplication(patch: Partial<DriverApplication>, step?: OnboardingStepId): DriverApplication;
+  /** A new profile photo after registration. Doesn't reopen the application or change its status. */
+  updatePhoto(photoUri: string, photoThumb?: string): void;
   submitApplication(): Result<true>;
   /** Send an application back after fixing what staff flagged. */
   resubmitApplication(): Result<true>;
@@ -518,6 +520,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       id: phone ?? 'driver',
       firstName,
       lastName: lastName || undefined,
+      photoUrl: s.application.personal?.photoThumb,
       rating: 4.9,
       completedTrips: s.history.filter((t) => t.stage === 'completed').length,
       vehicle: { make: v?.make ?? 'Car', model: v?.model ?? '', colour: v?.colour ?? '', plate: v?.plate ?? '', year: v?.year ?? 2015, category: v?.category ?? 'go' },
@@ -761,6 +764,13 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
         pushApplication(next);
         if (step) enqueue(step);
         return next;
+      },
+      updatePhoto: (photoUri, photoThumb) => {
+        const cur = storedRef.current.application;
+        if (!cur.personal) return;
+        const next: DriverApplication = { ...cur, personal: { ...cur.personal, photoUri, photoThumb } };
+        persist((prev) => ({ ...prev, application: next }));
+        pushApplication(next);
       },
       submitApplication: () => {
         const now = Date.now();

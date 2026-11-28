@@ -31,6 +31,11 @@ export interface DriverPersonalDetails {
    * matched against the ID. A local file on the device; an ops.files id on the server.
    */
   photoUri?: string;
+  /**
+   * A small copy of the photo (a data: link, about 128 px) that can travel with a ride so the rider sees
+   * the driver's face before real file storage is connected (D-107). Made on the driver's phone.
+   */
+  photoThumb?: string;
   /** Launch city the driver will work in (Q-007). */
   city: 'Lagos' | 'Abuja';
 }

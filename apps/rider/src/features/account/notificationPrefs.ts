@@ -7,10 +7,12 @@ export interface NotificationPrefs {
   payments: boolean;
   offers: boolean;
   sounds: boolean;
+  /** Email a receipt after each paid trip (D-103). On unless turned off. */
+  receipts: boolean;
 }
 
 export const NOTIFICATION_PREFS_KEY = 'gobye.notificationPrefs';
-export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = { trips: true, payments: true, offers: true, sounds: true };
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = { trips: true, payments: true, offers: true, sounds: true, receipts: true };
 
 /** Notification preferences kept on this device (push delivery is not live in the preview). */
 export function useNotificationPrefs() {
