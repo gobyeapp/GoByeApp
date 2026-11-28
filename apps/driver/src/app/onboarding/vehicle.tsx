@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { MIN_VEHICLE_YEAR, VEHICLE_CATEGORIES, validateName, validatePlate, validateVehicleYear, type VehicleCategoryId } from '@gobye/core';
-import { Button, TextField } from '@gobye/ui';
+import { Button, ColourPicker, Illustration, Text, TextField, carArt, spacing, vehicleColour } from '@gobye/ui';
 import { ChoiceRow, StepShell, goNext } from '@/features/onboarding/parts';
 import { useDriver } from '@/state/driver';
 
@@ -14,7 +15,8 @@ export default function Vehicle() {
   const [make, setMake] = useState(v?.make ?? '');
   const [model, setModel] = useState(v?.model ?? '');
   const [year, setYear] = useState(v ? String(v.year) : '');
-  const [colour, setColour] = useState(v?.colour ?? '');
+  // A colour typed before the picker existed that isn't on the list starts empty, so the driver picks one.
+  const [colour, setColour] = useState(vehicleColour(v?.colour)?.name ?? '');
   const [plate, setPlate] = useState(v?.plate ?? '');
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
@@ -40,8 +42,20 @@ export default function Vehicle() {
       <TextField label="Make" value={make} onChangeText={setMake} placeholder="Toyota" error={errors.make} testID="vehicle-make" />
       <TextField label="Model" value={model} onChangeText={setModel} placeholder="Corolla" error={errors.model} testID="vehicle-model" />
       <TextField label="Year" value={year} onChangeText={(t) => setYear(t.replace(/\D/g, '').slice(0, 4))} keyboardType="number-pad" placeholder="2016" error={errors.year} testID="vehicle-year" />
-      <TextField label="Colour" value={colour} onChangeText={setColour} placeholder="Silver" error={errors.colour} testID="vehicle-colour" />
+      <ColourPicker label="Colour" value={colour} onChange={setColour} error={errors.colour} testID="vehicle-colour" />
+      {colour ? (
+        <View style={styles.preview} accessible accessibilityLabel={`Riders will see a ${colour.toLowerCase()} car`}>
+          <Illustration name="sedan" source={carArt(colour)} size={132} still />
+          <Text variant="footnote" color="textSecondary" align="center">
+            Riders see your car in this colour.
+          </Text>
+        </View>
+      ) : null}
       <TextField label="Plate number" value={plate} onChangeText={setPlate} autoCapitalize="characters" autoCorrect={false} placeholder="KJA 123 AB" error={errors.plate} testID="vehicle-plate" />
     </StepShell>
   );
 }
+
+const styles = StyleSheet.create({
+  preview: { alignItems: 'center', gap: spacing.xs },
+});

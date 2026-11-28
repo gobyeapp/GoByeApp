@@ -1423,3 +1423,9 @@ Owner brief: one management platform with workspaces and permissions per team ov
 - Driver: `features/onboarding/thumb.ts`, `app/account/photo.tsx`, `updatePhoto` in driver state, photo on the shared driver card; Account no longer repeats its tab name. Rider: "Email my receipts" in notification settings.
 - **Checked** in Chromium at iPhone 13 size on local builds. **Not tried:** two real phones (the photo crossing from one to the other), or the Android build.
 
+## 2026-11-28 — Rider and driver messages, car colour picker and coloured car (D-108)
+
+- Core `relay/chat.ts` (3 tests); `@gobye/ui` `ChatSheet`, `ColourPicker`, `VEHICLE_COLOURS`, `carArt`; eleven car pictures in `packages/ui/assets/cars` (336 KB) from `tools/tint-cars.py`; both trip screens wired; the driver's vehicle step uses the picker.
+- Tests: core 318, rider 39, driver 14, admin 418; typecheck, lint, Android and iOS export pass. The picker and preview were checked in Chromium at iPhone 13 size.
+- **Not tried:** a real conversation between two phones (my local builds have no demo connection, so only the rules and the sheet were tested), or anything on a real phone.
+

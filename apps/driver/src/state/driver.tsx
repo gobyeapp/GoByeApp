@@ -156,6 +156,8 @@ interface DriverValue {
   activeTrip: DriverTrip | null;
   /** The active trip is a real rider's ride through the demo relay. */
   relayTrip: boolean;
+  /** The shared ride behind the current trip (for messages), or null on a simulated trip. */
+  rideId: string | null;
   /** Why a trip ended without the driver (e.g. the rider cancelled). */
   tripNotice: string | null;
   clearTripNotice(): void;
@@ -816,6 +818,7 @@ export function DriverProvider({ children, accountKey }: { children: ReactNode; 
       declineRequest,
       activeTrip,
       relayTrip: !!activeRide,
+      rideId: activeRide,
       tripNotice,
       clearTripNotice: () => setTripNotice(null),
       arrive,

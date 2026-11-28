@@ -35,3 +35,4 @@ export * from './accounts';
 export * from './wallet/account';
 export * from './whatsapp';
 export * from './server/rides';
+export * from './relay/chat';

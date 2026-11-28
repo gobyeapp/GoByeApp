@@ -10,36 +10,26 @@ import { Illustration } from '../../brand';
 import { Text } from '../Text';
 import { spacing } from '../../theme/tokens';
 import { useTheme } from '../../theme/useTheme';
+import { carArt, vehicleColour } from './vehicleColours';
 
-const COLOUR_SWATCH: Record<string, string> = {
-  white: '#F5F5F5',
-  black: '#1A1A1A',
-  silver: '#C0C3C8',
-  grey: '#7C8088',
-  gray: '#7C8088',
-  blue: '#2F5DA8',
-  red: '#B3261E',
-  yellow: '#F2C200',
-  green: '#2E7D4F',
-  brown: '#6D4C3D',
-  gold: '#C8A84B',
-};
 
 /**
- * Vehicle summary for transport screens (brief §5, §7). The illustration is a generic car render for
- * the category; the text — colour, make/model and registration — is the actual assigned vehicle, and
- * a swatch shows the real colour so the picture never misrepresents it.
+ * Vehicle summary for transport screens (brief §5, §7). The picture is a generic car in the driver's
+ * own colour (D-108); the text (colour, make and model, registration) is the actual vehicle. The make
+ * and shape in the picture are not the driver's real car.
  */
 export function VehicleSummary({ vehicle, size = 'md' }: { vehicle: VehicleLike; size?: 'sm' | 'md' | 'lg' }) {
   const { colors } = useTheme();
-  const swatch = COLOUR_SWATCH[vehicle.colour.toLowerCase()] ?? colors.textSecondary;
+  const swatch = vehicleColour(vehicle.colour)?.hex ?? colors.textSecondary;
+  // The car is drawn in the driver's own colour, so it is easier to spot at the kerb (D-108).
+  const car = carArt(vehicle.colour);
   const art = size === 'lg' ? 172 : size === 'md' ? 120 : 72;
   const label = `${vehicle.colour} ${vehicle.make} ${vehicle.model}, registration ${vehicle.plate}`;
   if (size === 'lg') {
     // car.jpg: car centred, then one line "Colour Make Model · PLATE" with the plate kept legible.
     return (
       <View style={styles.root} accessible accessibilityLabel={label}>
-        <Illustration name="sedan" size={art} style={styles.art} />
+        <Illustration name="sedan" source={car} size={art} style={styles.art} />
         <View style={styles.lgLine}>
           <View style={[styles.swatch, { backgroundColor: swatch, borderColor: colors.textSecondary }]} />
           <Text variant="headline">
@@ -57,7 +47,7 @@ export function VehicleSummary({ vehicle, size = 'md' }: { vehicle: VehicleLike;
   }
   return (
     <View style={[styles.root, size === 'sm' && styles.rowLayout]} accessible accessibilityLabel={label}>
-      <Illustration name="sedan" size={art} style={size === 'sm' ? undefined : styles.art} />
+      <Illustration name="sedan" source={car} size={art} style={size === 'sm' ? undefined : styles.art} />
       <View style={[styles.texts, size === 'sm' && styles.textsLeft]}>
         <View style={styles.inline}>
           <View style={[styles.swatch, { backgroundColor: swatch, borderColor: colors.textSecondary }]} />

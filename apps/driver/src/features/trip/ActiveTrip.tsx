@@ -2,13 +2,14 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, BackHandler, Linking, Platform, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { formatCountdown, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, noShowAvailableAt, pinAttemptsLeft, type DriverTrip, type LatLng } from '@gobye/core';
-import { Avatar, Button, CodeBoxes, FieldMessage, Icon, IconButton, JourneyBar, SimulatedBadge, Text, layout, shadows, spacing, useTheme, useToast } from '@gobye/ui';
+import { formatCountdown, formatDistance, formatDuration, formatNaira, nairaAccessibilityLabel, noShowAvailableAt, pinAttemptsLeft, QUICK_REPLIES, type DriverTrip, type LatLng } from '@gobye/core';
+import { Avatar, Button, ChatSheet, CodeBoxes, FieldMessage, Icon, IconButton, JourneyBar, SimulatedBadge, Text, layout, shadows, spacing, useTheme, useToast } from '@gobye/ui';
 import { MapCanvas, type MapCanvasHandle } from '@gobye/ui/src/map/MapCanvas';
 import { confirmAction } from '@/features/common/confirm';
 import { PAYMENT_LABEL } from '@/features/common/format';
 import { resetTo } from '@/features/navigation/reset';
 import { useDriver } from '@/state/driver';
+import { useRideChat } from './useRideChat';
 import { useHaptics } from '@/state/settings';
 import { useNow } from '@/state/useNow';
 
@@ -87,7 +88,19 @@ export function ActiveTrip() {
 
 function RiderRow({ trip }: { trip: DriverTrip }) {
   const toast = useToast();
-  const contact = (how: 'call' | 'message') => toast(how === 'call' ? 'Calls go through a masked number. Simulated in this preview.' : 'In-app messages are simulated in this preview.', 'info');
+  const d = useDriver();
+  const [open, setOpen] = useState(false);
+  const openRef = useRef(false);
+  openRef.current = open;
+  // A message that arrives while the conversation is closed shows as a notice.
+  const chat = useRideChat(d.rideId, 'driver', (text) => {
+    if (!openRef.current) toast(`${trip.rider.firstName}: ${text}`, 'info');
+  });
+  const contact = (how: 'call' | 'message') => {
+    if (how === 'call') return toast('Calls aren’t connected yet. Message the rider instead.', 'info');
+    if (!chat.available) return toast('Messages work on a ride from a real rider.', 'info');
+    setOpen(true);
+  };
   return (
     <View style={styles.rider}>
       <Avatar name={trip.rider.firstName} size={44} />
@@ -102,6 +115,7 @@ function RiderRow({ trip }: { trip: DriverTrip }) {
       </View>
       <IconButton icon="message" variant="filled" accessibilityLabel={`Message ${trip.rider.firstName}`} onPress={() => contact('message')} />
       <IconButton icon="phone" variant="filled" accessibilityLabel={`Call ${trip.rider.firstName}`} onPress={() => contact('call')} />
+      <ChatSheet visible={open} onClose={() => setOpen(false)} title={trip.rider.firstName} note="Your phone numbers stay private." messages={chat.bubbles} quickReplies={QUICK_REPLIES.driver} onSend={chat.send} />
     </View>
   );
 }

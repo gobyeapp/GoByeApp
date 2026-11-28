@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Image, type ImageStyle, type StyleProp } from 'react-native';
+import { Image, type ImageStyle, type StyleProp, type ImageSourcePropType } from 'react-native';
 import Animated, { Easing, cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated';
 import { useTheme } from './theme/useTheme';
 
@@ -58,7 +58,7 @@ export function BrandMark({ size = 32, inverse, label }: { size?: number; invers
  * starts at a different phase so several on one screen don't move in lockstep. Reduce Motion → still.
  * Pass `still` where motion would distract (e.g. very small sizes).
  */
-export function Illustration({ name, size = 160, style, still }: { name: IllustrationName; size?: number; style?: StyleProp<ImageStyle>; still?: boolean }) {
+export function Illustration({ name, size = 160, style, still, source }: { name: IllustrationName; size?: number; style?: StyleProp<ImageStyle>; still?: boolean; /** Another picture in the same slot, e.g. the car in the driver's colour. */ source?: ImageSourcePropType }) {
   const reduce = useReducedMotion();
   const t = useSharedValue(0);
   useEffect(() => {
@@ -72,7 +72,7 @@ export function Illustration({ name, size = 160, style, still }: { name: Illustr
   }));
   return (
     <Animated.Image
-      source={brandImages[name]}
+      source={source ?? brandImages[name]}
       style={[{ width: size, height: size }, style, motion]}
       resizeMode="contain"
       accessible={false}

@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Linking, Share } from 'react-native';
-import { formatNaira } from '@gobye/core';
-import { useToast } from '@gobye/ui';
+import { formatNaira, QUICK_REPLIES } from '@gobye/core';
+import { ChatSheet, useToast } from '@gobye/ui';
+import { useRideChat } from '@/features/trip/useRideChat';
 import { useCancelRide, useConfirmBeforeBack } from '@/features/booking/useCancelRide';
 import { resetTo } from '@/features/navigation/reset';
 import { ApproachView } from '@/features/trip/ApproachView';
@@ -29,6 +30,16 @@ export default function Trip() {
   const cancel = useCancelRide();
   const lastStatus = useRef(b?.status);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const chatOpenRef = useRef(false);
+  chatOpenRef.current = chatOpen;
+  const driverName = b?.driver?.firstName ?? 'Driver';
+  // A message that arrives while the conversation is closed shows as a notice; tapping Message opens it.
+  const chat = useRideChat(b?.driver ? b.id : null, 'rider', (text) => {
+    if (chatOpenRef.current) return;
+    haptic('selection');
+    toast(`${driverName}: ${text}`, 'info');
+  });
 
   const beforePickup = b?.status === 'matched' || b?.status === 'driver_en_route' || b?.status === 'driver_arrived';
   // Back: offer cancellation before pickup; once on board, go Home (the ride continues and is reachable
@@ -78,12 +89,14 @@ export default function Trip() {
           pickupName={b.rider?.name ?? user?.firstName}
           categoryName={catName(b.quote.category)}
           onBack={() => resetTo('/(tabs)')}
-          onMessage={() => toast('Messaging is simulated', 'info')}
-          onCall={() => toast('Calling is simulated', 'info')}
+          onMessage={() => (chat.available ? setChatOpen(true) : toast('Messages work when you’re matched with a real driver', 'info'))}
+          onCall={() => toast('Calls aren’t connected yet. Message your driver instead.', 'info')}
           onHelp={() => setHelpOpen(true)}
           onCancel={cancel}
         />
       )}
+
+      <ChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} title={driverName} note="Your phone numbers stay private." messages={chat.bubbles} quickReplies={QUICK_REPLIES.rider} onSend={chat.send} />
 
       <HelpSheet
         visible={helpOpen}

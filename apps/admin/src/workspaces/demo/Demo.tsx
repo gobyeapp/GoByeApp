@@ -63,7 +63,8 @@ function useRelayData(c: DemoConnection) {
         c.relay.select<RelayRide>('demo_rides', { order: ['created_at', 'desc'], limit: 200 }),
         c.relay.select<RelayEvent>('demo_events', { order: ['at', 'desc'], limit: 60 }),
       ]);
-      setData({ people, apps, rides, events });
+      // Messages between a rider and driver share this table; they are private and stay out of the feed.
+      setData({ people, apps, rides, events: events.filter((e) => e.type !== 'chat') });
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Can’t reach the demo relay.');

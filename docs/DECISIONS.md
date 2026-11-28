@@ -1126,3 +1126,9 @@ The owner asked for the Wallet's reference sizes on every page.
 - **Email my receipts:** a switch under Account, Notifications (on by default). Saved on the phone for now; it takes effect when email is connected (`PATCH /v1/me/notifications`).
 - New dependency in the driver app: `expo-image-manipulator` (Expo, MIT).
 
+## D-108 — Messages between rider and driver; car colour picked from a list and shown on the car (2026-11-28)
+
+- **Messages (owner):** during a ride the rider and driver can message each other: one-tap messages for what people usually say at pickup ("I’ve arrived", "Where are you?"), plus free text up to 300 characters. A message that arrives while the conversation is closed shows as a notice. Neither side sees the other's phone number. In the prototype the messages travel over the demo connection (the shared activity table, type `chat`, kept out of the admin feed); rules in `packages/core/src/relay/chat.ts`, the sheet is `ChatSheet` in `@gobye/ui`. On the server this needs its own table with a retention period and staff access for safety reports: not built yet.
+- **Calls:** not connected. A call through one shared number that hides both people's numbers needs a telephony provider (paid, owner decision). Until then the Call button says so and points to messages. The apps never dial the other person's real number.
+- **Car colour (owner):** drivers pick the colour from twelve swatches instead of typing it, with a live preview. The rider's screens show the car picture in that colour (`carArt`, `VEHICLE_COLOURS` in `@gobye/ui`). The pictures are made from the white render by `tools/tint-cars.py`; only the paint changes. The picture is still a generic saloon, not the driver's real make or shape, so the text (colour, make, model, plate) remains what riders should match.
+
