@@ -115,7 +115,7 @@ function RiderRow({ trip }: { trip: DriverTrip }) {
       </View>
       <IconButton icon="message" variant="filled" accessibilityLabel={`Message ${trip.rider.firstName}`} onPress={() => contact('message')} />
       <IconButton icon="phone" variant="filled" accessibilityLabel={`Call ${trip.rider.firstName}`} onPress={() => contact('call')} />
-      <ChatSheet visible={open} onClose={() => setOpen(false)} title={trip.rider.firstName} note="Your phone numbers stay private." messages={chat.bubbles} quickReplies={QUICK_REPLIES.driver} onSend={chat.send} />
+      <ChatSheet visible={open} onClose={() => setOpen(false)} title={trip.rider.firstName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={QUICK_REPLIES.driver} onSend={chat.send} />
     </View>
   );
 }

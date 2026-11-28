@@ -63,7 +63,8 @@ function useRelayData(c: DemoConnection) {
         c.relay.select<RelayRide>('demo_rides', { order: ['created_at', 'desc'], limit: 200 }),
         c.relay.select<RelayEvent>('demo_events', { order: ['at', 'desc'], limit: 60 }),
       ]);
-      // Messages between a rider and driver share this table; they are private and stay out of the feed.
+      // Messages between a rider and driver share this table. Staff read them on the ride itself (D-108), so
+      // they don't crowd the activity list.
       setData({ people, apps, rides, events: events.filter((e) => e.type !== 'chat') });
       setError(null);
     } catch (e) {
@@ -561,6 +562,22 @@ function RideDrawer({ c, r, onClose, refresh }: { c: DemoConnection; r: RelayRid
   const [responses, setResponses] = useState<RelayResponse[]>([]);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [messages, setMessages] = useState<RelayEvent[]>([]);
+  // What the rider and driver wrote to each other on this ride, for safety and disputes (D-108).
+  useEffect(() => {
+    let live = true;
+    const load = () =>
+      c.relay
+        .select<RelayEvent>('demo_events', { where: { ride_id: r.id, type: 'chat' }, order: ['at', 'asc'], limit: 200 })
+        .then((x) => live && setMessages(x))
+        .catch(() => undefined);
+    void load();
+    const id = setInterval(load, POLL_MS);
+    return () => {
+      live = false;
+      clearInterval(id);
+    };
+  }, [c, r.id]);
   useEffect(() => {
     if (r.kind !== 'negotiate') return;
     let live = true;
@@ -660,6 +677,21 @@ function RideDrawer({ c, r, onClose, refresh }: { c: DemoConnection; r: RelayRid
               )}
             </Section>
           ) : null}
+          <Section title={`Messages${messages.length ? ` (${messages.length})` : ''}`}>
+            {messages.length ? (
+              <Table
+                rows={messages}
+                rowKey={(m) => m.id}
+                columns={[
+                  { key: 'w', label: 'From', render: (m) => <Pill tone={m.actor === 'driver' ? 'info' : 'neutral'} icon={m.actor === 'driver' ? 'steering' : 'user'}>{m.actor === 'driver' ? (d?.firstName ?? 'Driver') : r.rider.name.split(' ')[0]}</Pill> },
+                  { key: 'm', label: 'Message', render: (m) => m.summary },
+                  { key: 't', label: 'When', render: (m) => when(m.at) },
+                ]}
+              />
+            ) : (
+              <p className="muted small">No messages on this ride.</p>
+            )}
+          </Section>
           <Section title="Timeline">
             <Timeline items={rideTimeline(r)} />
           </Section>

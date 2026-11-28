@@ -96,7 +96,7 @@ export default function Trip() {
         />
       )}
 
-      <ChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} title={driverName} note="Your phone numbers stay private." messages={chat.bubbles} quickReplies={QUICK_REPLIES.rider} onSend={chat.send} />
+      <ChatSheet visible={chatOpen} onClose={() => setChatOpen(false)} title={driverName} note="Your number stays private. GoBye can read messages for safety." messages={chat.bubbles} quickReplies={QUICK_REPLIES.rider} onSend={chat.send} />
 
       <HelpSheet
         visible={helpOpen}
